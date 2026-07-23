@@ -1,0 +1,17 @@
+{
+ "engine": "RK4(1e-3) + Barrowman drag buildup",
+ "Cd_nominal": 0.539,
+ "cp_from_nose_cm": 56.8,
+ "CN_total": 10.309971218436644,
+ "static_margin_cal": 1.1,
+ "note": "Ellipsoid nose, FINNED 72mm, no ballast: passively stable (+1.0 cal) for launch + first 0.5s spike; TVC engages at t=0.5s on the smooth curve",
+ "burnout_t": 3.45,
+ "burnout_alt_m": 75.3,
+ "burnout_v": 35.5,
+ "apogee_m": 132.6,
+ "apogee_ft": 435.0,
+ "apogee_t": 6.81,
+ "max_accel_g": 3.34,
+ "deploy_t": 4.0,
+ "deploy_v": 29.0
+}

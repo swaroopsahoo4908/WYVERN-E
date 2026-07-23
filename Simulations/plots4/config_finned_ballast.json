@@ -1,0 +1,17 @@
+{
+ "ballast_g": 150.0,
+ "ballast_station_cm": 6.0,
+ "fin_count": 4,
+ "fin_root_mm": 70.0,
+ "fin_tip_mm": 35.0,
+ "fin_sweepLE_mm": 25.0,
+ "fin_span_mm": 47.7,
+ "fin_mass_g": 37.6,
+ "span_for_1cal_mm": 40.5,
+ "m_lift_g": 849.6,
+ "CG_cm": 39.3,
+ "CP_cm": 49.8,
+ "static_margin_cal": 1.5,
+ "TW_avg": 1.73,
+ "TW_peak": 3.04
+}

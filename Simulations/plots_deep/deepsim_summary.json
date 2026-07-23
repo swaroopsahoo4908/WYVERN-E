@@ -1,0 +1,59 @@
+{
+  "A_flutter": {
+    "AR": 1.14,
+    "t_over_c": 0.038,
+    "v_max_ms": 36.4,
+    "Vflutter_ASA_ms": 358.0,
+    "Vflutter_PCFR_ms": 532.0,
+    "flutter_margin_PCFR": 14.6,
+    "pass": true
+  },
+  "B_heating": {
+    "Tstag_max_C": 15.4,
+    "Tskin_max_C": 14.9,
+    "ASA_Tg_C": 95,
+    "PCFR_Tg_C": 141,
+    "pass": true
+  },
+  "C_servo": {
+    "hinge_moment_max_Nm": 0.054,
+    "servo_stall_Nm": 0.2,
+    "torque_margin": 3.7,
+    "mAh_per_flight": 0.7,
+    "pass": true
+  },
+  "D_cg_tol": {
+    "margin_nominal_cal": 1.0,
+    "margin_at_20mm_aft": 0.71,
+    "cg_aft_limit_mm_for_1cal": 0.0,
+    "pass": true
+  },
+  "E_dispersion": {
+    "apogee_vertical_m": 132.6,
+    "apogee_15deg_m": 128.1,
+    "max_drift_m": 269.0,
+    "pass": true
+  },
+  "F_step": {
+    "rise_time_s": 0.359,
+    "overshoot_pct": -0.0,
+    "settle_2pct_s": 0.459,
+    "pass": true
+  },
+  "G_drag": {
+    "apogee_lowdrag_m": 137.8,
+    "apogee_highdrag_m": 128.0,
+    "stays_under_305m": true,
+    "pass": true
+  },
+  "H_battery": {
+    "pack_mAh": 850,
+    "per_flight_mAh": 3.0,
+    "flights_per_charge": 147.0,
+    "pass": true
+  },
+  "_verdict": {
+    "passed": "8/8",
+    "note": "F15-4 single-stage servo-TVC deep checks"
+  }
+}

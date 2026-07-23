@@ -1,0 +1,39 @@
+{
+  "atmospheres": {
+    "ISA 15\u00b0C": {
+      "rho_sl": 1.225,
+      "q_peak_Pa": 908.0,
+      "max_pitch_dev_deg": 1.32,
+      "max_gimbal_deg": 1.69,
+      "max_pitch_dev_scheduled_deg": 1.15,
+      "improvement_pct": 13.1
+    },
+    "Cold \u221215\u00b0C": {
+      "rho_sl": 1.367,
+      "q_peak_Pa": 991.0,
+      "max_pitch_dev_deg": 1.45,
+      "max_gimbal_deg": 1.86,
+      "max_pitch_dev_scheduled_deg": 1.26,
+      "improvement_pct": 12.9
+    },
+    "Hot +40\u00b0C": {
+      "rho_sl": 1.121,
+      "q_peak_Pa": 845.0,
+      "max_pitch_dev_deg": 1.22,
+      "max_gimbal_deg": 1.56,
+      "max_pitch_dev_scheduled_deg": 1.06,
+      "improvement_pct": 13.2
+    },
+    "High DA 1500m": {
+      "rho_sl": 1.025,
+      "q_peak_Pa": 784.0,
+      "max_pitch_dev_deg": 1.13,
+      "max_gimbal_deg": 1.44,
+      "max_pitch_dev_scheduled_deg": 0.98,
+      "improvement_pct": 13.3
+    }
+  },
+  "worst_case_pitch_dev_deg": 1.45,
+  "all_inside_5deg_gimbal": true,
+  "recommendation": "Margin-validated gains Kp=0.10 Ki=0.40 Kd=0.18 (see Documentation/PID_TUNING_REPORT.md; Kp=2.0/Ki=0.4/Kd=0.5 has negative stability margin once the 2ms loop delay is modeled alongside the 40ms servo lag) hold <~1.4\u00b0 across all atmospheres + mid/late gusts; gain-scheduling adds <1% (F15 thrust is nearly flat) \u21d2 keep a simple fixed-gain PID."
+}

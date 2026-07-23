@@ -1,0 +1,20 @@
+{
+ "fin_count": 4,
+ "fin_root_mm": 70.0,
+ "fin_tip_mm": 35.0,
+ "fin_sweepLE_mm": 25.0,
+ "fin_span_mm": 35.0,
+ "fin_mass_g": 22.5,
+ "m_lift_finned_g": 727.5,
+ "CG_finned_cm": 45.8,
+ "CP_cm": 52.2,
+ "static_margin_cal": 0.91,
+ "optimal_span_for_1p5cal_mm": 55.0,
+ "apogee_ft_finned": 401.0,
+ "apogee_m_finned": 122.3,
+ "apogee_t": 6.63,
+ "burnout_v": 33.4,
+ "rail_exit_v_1p5m": 7.6,
+ "fin_flutter_v_ms": 62.0,
+ "drift_m_per_ms_wind": 20.4
+}

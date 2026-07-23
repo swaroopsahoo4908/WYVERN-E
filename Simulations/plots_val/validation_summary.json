@@ -1,0 +1,81 @@
+{
+  "vehicle": "WYVERN-E 4.0 (70 mm, F15-0, ellipsoid nose + 60 mm fins, no ballast)",
+  "liftoff_mass_kg": 0.708,
+  "apogee_m": 131.4,
+  "apogee_ft": 431.0,
+  "v_max_ms": 36.1,
+  "mach_max": 0.105,
+  "a_max_g": 3.32,
+  "maxQ_Pa": 793.0,
+  "descent_ms": 6.5,
+  "CEP_m": 79.0,
+  "gates": {
+    "mach_subsonic": {
+      "value": 0.105,
+      "limit": "< 0.85 (Barrowman valid)",
+      "pass": true
+    },
+    "apogee_window_m": {
+      "value": 131.4,
+      "limit": "80-180 m design band",
+      "pass": true
+    },
+    "margin_liftoff_cal": {
+      "value": 1.02,
+      "limit": ">= 1.0 cal",
+      "pass": true
+    },
+    "margin_max_cal": {
+      "value": 1.33,
+      "limit": "<= 2.5 cal (not over-stable)",
+      "pass": true
+    },
+    "rail_exit_v_ms": {
+      "value": 6.7,
+      "limit": ">= 15 m/s (fins effective)",
+      "pass": false
+    },
+    "thrust_to_weight_peak": {
+      "value": 4.31,
+      "limit": ">= 5 (rule of thumb)",
+      "pass": false
+    },
+    "tvc_authority_ratio": {
+      "value": 84.8,
+      "limit": ">= 2x required maneuver moment",
+      "pass": true
+    },
+    "weathercock_max_deg": {
+      "value": 56.2,
+      "limit": "<= 30 deg @ 10 m/s",
+      "pass": false
+    },
+    "mc_p_stable_pct": {
+      "value": 100.0,
+      "limit": ">= 99% margin>=0.5 cal",
+      "pass": true
+    },
+    "mc_p_safe_deploy_pct": {
+      "value": 100.0,
+      "limit": ">= 99% deploy < 35 m/s",
+      "pass": true
+    },
+    "descent_rate_ms": {
+      "value": 6.5,
+      "limit": "3-7 m/s safe landing",
+      "pass": true
+    },
+    "shock_cord_SF": {
+      "value": 141.59,
+      "limit": ">= 2.0",
+      "pass": true
+    },
+    "structure_SF": {
+      "value": 702.3,
+      "limit": ">= 3",
+      "pass": true
+    }
+  },
+  "gates_passed": "10/13",
+  "verdict": "REVIEW \u2014 3 gate(s) flagged"
+}

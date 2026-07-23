@@ -1,0 +1,59 @@
+{
+  "apogee_m": 132.6,
+  "apogee_t_s": 6.81,
+  "burnout_s": 3.45,
+  "optimal_delay_s": 3.36,
+  "timing": {
+    "F15-4": {
+      "t_eject_s": 7.45,
+      "dt_vs_apogee_s": 0.64,
+      "v_at_eject_ms": -6.3,
+      "h_at_eject_m": 130.6,
+      "verdict": "near-optimal"
+    },
+    "F15-6": {
+      "t_eject_s": 9.45,
+      "dt_vs_apogee_s": 2.64,
+      "v_at_eject_ms": -24.8,
+      "h_at_eject_m": 99.0,
+      "verdict": "late/hard"
+    },
+    "F15-8": {
+      "t_eject_s": 11.45,
+      "dt_vs_apogee_s": 4.64,
+      "v_at_eject_ms": -40.2,
+      "h_at_eject_m": 33.4,
+      "verdict": "late/hard"
+    }
+  },
+  "recommend": "F15-4",
+  "bypass_tube": {
+    "dP_12mm_kPa": 0.06,
+    "recommend_id_mm": 12,
+    "pass": true
+  },
+  "bay_pressure": {
+    "delivered_kPa": 139.9,
+    "release_kPa": [
+      14,
+      41
+    ],
+    "margin_x": 3.4,
+    "pass": true
+  },
+  "opening_loads": {
+    "F15-4": {
+      "v": 6.3,
+      "F": 11
+    },
+    "F15-6": {
+      "v": 24.8,
+      "F": 167
+    },
+    "F15-8": {
+      "v": 40.2,
+      "F": 438
+    }
+  },
+  "verdict": "FEASIBLE. F15-6 ejects +2.6s past apogee at 25 m/s (hard/late). Optimal delay 3.4s -> F15-4."
+}

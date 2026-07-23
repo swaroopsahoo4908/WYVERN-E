@@ -1,0 +1,39 @@
+{
+  "old_gains": {
+    "Kp": 2.0,
+    "Ki": 0.4,
+    "Kd": 0.5
+  },
+  "old_margins": {
+    "worst_PM_deg": -6.24,
+    "worst_GM_dB": -2.04
+  },
+  "new_gains": {
+    "Kp": 0.1,
+    "Ki": 0.4,
+    "Kd": 0.18
+  },
+  "new_margins": {
+    "worst_PM_deg": 33.14,
+    "worst_GM_dB": 9.27
+  },
+  "new_nonlinear": {
+    "worst_gust_pitch_dev_deg": 1.355,
+    "worst_gimbal_deg": 1.721,
+    "chatter": false
+  },
+  "this_run_grid_optimum": {
+    "Kp": 0.1,
+    "Ki": 0.4,
+    "Kd": 0.2,
+    "worst_PM_deg": 30.05,
+    "worst_GM_dB": 8.39,
+    "worst_gust_pitch_dev_deg": 1.243,
+    "note": "grid-dependent; see script note above"
+  },
+  "margin_floor": {
+    "PM_deg": 30.0,
+    "GM_dB": 6.0
+  },
+  "n_op_points": 24
+}

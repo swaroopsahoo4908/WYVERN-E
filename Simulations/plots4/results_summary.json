@@ -1,0 +1,27 @@
+{
+ "m_lift_g": 708.0,
+ "m_dry_g": 606.0,
+ "prop_g": 60.0,
+ "cg_lift_cm": 49.1,
+ "cg_burn_cm": 47.4,
+ "Iyy_lift": 0.021,
+ "control_arm_lift_cm": 12.9,
+ "control_arm_burn_cm": 14.6,
+ "TW_avg": 2.07,
+ "TW_peak": 3.64,
+ "burnout_alt_m": 75.0,
+ "burnout_v": 35.5,
+ "apogee_m": 132.7,
+ "apogee_ft": 435.0,
+ "apogee_t": 6.82,
+ "deploy_v": 29.1,
+ "deploy_t": 4.0,
+ "tvc_max_dev_deg": 3.93,
+ "ctrl_margin_min_mNm": 0.0,
+ "chute_in": 18.0,
+ "descent_v": 6.2,
+ "apogee_disp_ft": [
+  361.0,
+  521.0
+ ]
+}
