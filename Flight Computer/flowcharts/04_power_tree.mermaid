@@ -1,0 +1,9 @@
+%% WYVERN-E 4.0 — power (light 2S LiPo -> 5V UBEC; recovery is motor-driven, no recovery battery)
+flowchart LR
+    B2[2S LiPo 7.4V ~450mAh] --> SW[arming switch + fuse]
+    SW --> BEC[5V/6V UBEC set 5V, 3A]
+    BEC --> RAIL[single 5V rail + decoupling: 1000uF bulk @ servos, 100uF + SS34 Schottky hold-up @ VSYS]
+    RAIL --> T[Pico 2 W VSYS 1.8-5.5V -> 3V3OUT -> 3x BNO085 + BMP388/BME688 + cam]
+    RAIL --> SV[2 TVC servos @ 5V ~1.8 kg-cm]
+    B2 --> ADC[GP26/ADC0 100k/62k pack monitor]
+    M[F15-4 motor] --> EJ[built-in ejection charge -> bypass tube -> chute]

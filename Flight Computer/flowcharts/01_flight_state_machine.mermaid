@@ -1,0 +1,15 @@
+%% WYVERN-E 4.0 — flight state machine (Pico 2 W, fins + active TVC)
+stateDiagram-v2
+    [*] --> BOOT
+    BOOT: BOOT — mount SD, mux + init 3x BNO085 (Game Rotation Vector), baro datum
+    ARMED: ARMED — RBF pulled; launch-detect primed; camera recording
+    BOOST: BOOST — F15-4; 500 Hz TVC PID stabilize→maneuver; gimbal within ±5°
+    COAST: COAST(brief) — burnout t=3.45s; NO thrust ⇒ NO TVC authority
+    RECOVER: RECOVER — F15-4 motor ejection ~t=7.5s via bypass tube (FC logs only)
+    DESCENT: DESCENT — 18in chute ~6 m/s; log to apogee+landing
+    LANDED: LANDED — flush log, safe outputs
+    BOOT --> ARMED: self-test pass
+    ARMED --> BOOST: |a|>3g
+    BOOST --> COAST: burnout (t>3.45s)
+    COAST --> RECOVER: F15-4 ejection ~7.5s
+    RECOVER --> DESCENT --> LANDED --> [*]

@@ -1,0 +1,8 @@
+%% WYVERN-E 4.0 — MOTOR-ejection recovery via bypass tube (no CO2, no pyro bay, no FC actuation)
+flowchart TD
+    B[Burnout t=3.45 s] --> C[Coast; TVC neutral; FC logs only]
+    C --> A[Apogee ~6.8 s]
+    A --> E[F15-4 ejection charge fires t~7.5 s]
+    E --> TU[Gas -> solid-walled bypass tube -> PAST sealed FC bay]
+    TU --> P[Recovery bay pressurizes ~140 kPa vs 14-41 kPa release]
+    P --> N[Friction-fit nose releases -> 18 in chute + Nomex -> ~6 m/s]

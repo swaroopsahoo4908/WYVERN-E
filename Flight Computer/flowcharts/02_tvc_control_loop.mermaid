@@ -1,0 +1,15 @@
+%% WYVERN-E 4.0 — 500 Hz TVC loop on the Pico 2 W (core 0)
+%% PID gains corrected 2026 to match firmware/wyvern_pid.h + Documentation/PID_TUNING_REPORT.md.
+%% Kp=8/Ki=1.5/Kd=1.2 (this diagram's old value) and Kp=2.0/Ki=0.4/Kd=0.5 (an intermediate firmware
+%% value) BOTH fail a stability-margin check once the 40 ms servo lag + 2 ms loop delay are modeled
+%% together — see CONFLICTS.md item 1. Do not reintroduce either.
+flowchart TD
+    A[Read gimbal BNO085 q_g + body BNO085 q_b — Game Rotation Vector] --> B[Deflection = q_b⁻¹ ⊗ q_g → pitch/yaw rel. body]
+    B --> C[Setpoint: vertical (t<2s) then 4° maneuver]
+    C --> D[PID per axis: Kp=0.10 Ki=0.40 Kd=0.18]
+    D --> E[Clamp ±5° gimbal limit]
+    E --> F[RP2350 hardware PWM → 2 servos (GP14/GP15)]
+    F --> G[Log t,q_b,q_g,defl,cmd,baro,accel → core-1 FIFO → SPI microSD]
+    G --> H{burnout t>3.45s?}
+    H -->|no| A
+    H -->|yes| I[Neutral gimbal → RECOVER]
