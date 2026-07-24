@@ -57,19 +57,79 @@ def _default_fmt(fmt):
     return "parquet" if HAVE_PARQUET else "csv"
 
 
+# GitHub hard-blocks files >= 100 MiB. Cap every generated file at 99 MiB so nothing datagen
+# writes can ever break a `git push`. Files that would exceed this are split into
+# `..._part001.parquet`, `..._part002.parquet`, etc.
+MAX_FILE_BYTES = 99 * 1024 * 1024
+
+
+def _part_path(base_path, part):
+    """base_path with a _partNNN tag inserted before the extension (handles .csv.gz too)."""
+    if part == 1:
+        return base_path
+    root, ext = os.path.splitext(base_path)
+    if ext == ".gz":
+        root, ext2 = os.path.splitext(root)
+        ext = ext2 + ext
+    return f"{root}_part{part:03d}{ext}"
+
+
 # ---------------------------------------------------------------- chunk writers
 class _Writer:
-    """Uniform chunk writer: Parquet (pyarrow) or gzip-CSV, chosen by extension/format."""
-    def __init__(self, path, cols, fmt):
-        self.cols = cols; self.fmt = fmt; self.path = path
+    """Uniform chunk writer: Parquet (pyarrow) or gzip-CSV, chosen by extension/format.
+
+    Auto-rotates to a new numbered part file whenever the next chunk would push the current
+    file past `max_bytes` (default MAX_FILE_BYTES), so no single output file ever exceeds the
+    cap. `self.paths` accumulates every part written; `self.path` is always the current one."""
+    def __init__(self, path, cols, fmt, max_bytes=MAX_FILE_BYTES):
+        self.cols = cols; self.fmt = fmt; self.base_path = path
+        self.max_bytes = max_bytes
+        self._part = 1
+        self.paths = []
+        self._rows_since_open = 0
+        self._open_part()
+
+    def _open_part(self):
+        path = _part_path(self.base_path, self._part)
         os.makedirs(os.path.dirname(os.path.abspath(path)) or ".", exist_ok=True)
-        if fmt == "parquet":
+        self.path = path
+        self.paths.append(path)
+        self._rows_since_open = 0
+        if self.fmt == "parquet":
             self._pw = None
         else:
             self._fh = gzip.open(path, "wt") if path.endswith(".gz") else open(path, "w")
-            self._fh.write(",".join(cols) + "\n")
+            self._fh.write(",".join(self.cols) + "\n")
+
+    def _close_part(self):
+        if self.fmt == "parquet":
+            if self._pw is not None: self._pw.close()
+        else:
+            self._fh.close()
+
+    def _current_size(self):
+        try:
+            return os.path.getsize(self.path)
+        except OSError:
+            return 0
+
+    def _estimate_next_bytes(self, n_rows):
+        # Use the observed avg bytes/row for the current part once we have data; otherwise fall
+        # back to a conservative per-format guess so the very first chunk can't blow past the cap.
+        cur_size = self._current_size()
+        if self._rows_since_open > 0 and cur_size > 0:
+            avg = cur_size / self._rows_since_open
+        else:
+            avg = 300.0 if self.fmt == "parquet" else 80.0  # bytes/row, conservative
+        return cur_size + avg * n_rows
 
     def write(self, coldict):
+        n_rows = len(next(iter(coldict.values())))
+        if self.max_bytes and self._rows_since_open > 0:
+            if self._estimate_next_bytes(n_rows) >= self.max_bytes:
+                self._close_part()
+                self._part += 1
+                self._open_part()
         if self.fmt == "parquet":
             table = pa.table({c: np.asarray(coldict[c]) for c in self.cols})
             if self._pw is None:
@@ -78,12 +138,11 @@ class _Writer:
         else:
             arr = np.column_stack([np.asarray(coldict[c], dtype=float) for c in self.cols])
             np.savetxt(self._fh, arr, fmt="%.6g", delimiter=",")
+            self._fh.flush()
+        self._rows_since_open += n_rows
 
     def close(self):
-        if self.fmt == "parquet":
-            if self._pw is not None: self._pw.close()
-        else:
-            self._fh.close()
+        self._close_part()
 
 
 def _resolve_path(path, fmt):
@@ -124,10 +183,11 @@ def _emit(progress_cb, done, total, rows, t0):
 
 
 def generate_outcomes(n_total, out, fmt="auto", chunk=100_000, seed=0, envelope=None,
-                      dt=0.005, timestamp=True, progress_cb=None, cancel_cb=None):
+                      dt=0.005, timestamp=True, progress_cb=None, cancel_cb=None,
+                      max_bytes=MAX_FILE_BYTES):
     fmt = _default_fmt(fmt); out = _resolve_path(out, fmt)
     if timestamp: out = _timestamped(out)
-    w = _Writer(out, OUTCOME_COLS, fmt); t0 = time.time(); done = 0; rows = 0
+    w = _Writer(out, OUTCOME_COLS, fmt, max_bytes=max_bytes); t0 = time.time(); done = 0; rows = 0
     fid0 = 0
     while done < n_total:
         if cancel_cb and cancel_cb(): break
@@ -137,14 +197,16 @@ def generate_outcomes(n_total, out, fmt="auto", chunk=100_000, seed=0, envelope=
         w.write(o); rows += m; done += m; fid0 += m
         _emit(progress_cb, done, n_total, rows, t0)
     w.close()
-    return dict(path=out, rows=rows, fmt=fmt, seconds=round(time.time() - t0, 2))
+    return dict(path=w.paths[0], paths=w.paths, parts=len(w.paths), rows=rows, fmt=fmt,
+                seconds=round(time.time() - t0, 2))
 
 
 def generate_tvc(n_total, out, fmt="auto", chunk=100_000, seed=0, envelope=None,
-                 dt=0.002, timestamp=True, progress_cb=None, cancel_cb=None):
+                 dt=0.002, timestamp=True, progress_cb=None, cancel_cb=None,
+                 max_bytes=MAX_FILE_BYTES):
     fmt = _default_fmt(fmt); out = _resolve_path(out, fmt)
     if timestamp: out = _timestamped(out)
-    w = _Writer(out, TVC_COLS, fmt); t0 = time.time(); done = 0; rows = 0; fid0 = 0
+    w = _Writer(out, TVC_COLS, fmt, max_bytes=max_bytes); t0 = time.time(); done = 0; rows = 0; fid0 = 0
     while done < n_total:
         if cancel_cb and cancel_cb(): break
         m = min(chunk, n_total - done)
@@ -153,14 +215,16 @@ def generate_tvc(n_total, out, fmt="auto", chunk=100_000, seed=0, envelope=None,
         w.write(o); rows += m; done += m; fid0 += m
         _emit(progress_cb, done, n_total, rows, t0)
     w.close()
-    return dict(path=out, rows=rows, fmt=fmt, seconds=round(time.time() - t0, 2))
+    return dict(path=w.paths[0], paths=w.paths, parts=len(w.paths), rows=rows, fmt=fmt,
+                seconds=round(time.time() - t0, 2))
 
 
 def generate_timeseries(n_flights, out, fmt="auto", flight_chunk=2000, stride=10, seed=0,
-                        envelope=None, dt=0.005, timestamp=True, progress_cb=None, cancel_cb=None):
+                        envelope=None, dt=0.005, timestamp=True, progress_cb=None, cancel_cb=None,
+                        max_bytes=MAX_FILE_BYTES):
     fmt = _default_fmt(fmt); out = _resolve_path(out, fmt)
     if timestamp: out = _timestamped(out)
-    w = _Writer(out, TRACE_COLS, fmt); t0 = time.time(); done = 0; rows = 0; fid0 = 0
+    w = _Writer(out, TRACE_COLS, fmt, max_bytes=max_bytes); t0 = time.time(); done = 0; rows = 0; fid0 = 0
     total_rows, _ = estimate("timeseries", flights=n_flights, stride=stride, dt=dt)
     while done < n_flights:
         if cancel_cb and cancel_cb(): break
@@ -178,19 +242,19 @@ def generate_timeseries(n_flights, out, fmt="auto", flight_chunk=2000, stride=10
         w.write(col); rows += fid.size; done += m; fid0 += m
         _emit(progress_cb, done, n_flights, rows, t0)
     w.close()
-    return dict(path=out, rows=rows, fmt=fmt, seconds=round(time.time() - t0, 2),
-                approx_total_rows=total_rows)
+    return dict(path=w.paths[0], paths=w.paths, parts=len(w.paths), rows=rows, fmt=fmt,
+                seconds=round(time.time() - t0, 2), approx_total_rows=total_rows)
 
 
 def generate_flightlog(n_flights, out, fmt="auto", flight_chunk=200, seed=0, envelope=None,
                        dt=0.004, t_max=9.0, log_hz=50, timestamp=True,
-                       progress_cb=None, cancel_cb=None):
+                       progress_cb=None, cancel_cb=None, max_bytes=MAX_FILE_BYTES):
     """Closed-loop SIL flight logs (state machine + sensor noise + PID), one flight at a time.
     Sequential (~5-15 flights/s) — realism over raw count. Truncates at t_max (default 9 s, through
     deploy + chute-open) to focus on the controlled phase."""
     fmt = _default_fmt(fmt); out = _resolve_path(out, fmt)
     if timestamp: out = _timestamped(out)
-    w = _Writer(out, FLIGHTLOG_COLS, fmt); t0 = time.time(); rows = 0; done = 0
+    w = _Writer(out, FLIGHTLOG_COLS, fmt, max_bytes=max_bytes); t0 = time.time(); rows = 0; done = 0
     e = dict(core.ENVELOPE);
     if envelope: e.update(envelope)
     rng = np.random.default_rng(seed)
@@ -220,12 +284,13 @@ def generate_flightlog(n_flights, out, fmt="auto", flight_chunk=200, seed=0, env
             flush(); _emit(progress_cb, done, n_flights, rows, t0)
     flush(); _emit(progress_cb, done, n_flights, rows, t0)
     w.close()
-    return dict(path=out, rows=rows, fmt=fmt, seconds=round(time.time() - t0, 2))
+    return dict(path=w.paths[0], paths=w.paths, parts=len(w.paths), rows=rows, fmt=fmt,
+                seconds=round(time.time() - t0, 2))
 
 
 def generate_combined(n_flights, out, fmt="auto", seed=0, envelope=None, gimbal_deg=8.0,
                       dt=0.004, t_max=9.0, log_flight_chunk=200, sample_every=250, timestamp=True,
-                      progress_cb=None, sample_cb=None, cancel_cb=None):
+                      progress_cb=None, sample_cb=None, cancel_cb=None, max_bytes=MAX_FILE_BYTES):
     """Super-combined mode: live closed-loop SIL over N random flights (default use: 25,000). Writes
     BOTH the full time-series log (`*_log`) and a compact per-flight summary (`*_flights`), each
     timestamped. progress_cb(done,total,rows,rate); sample_cb(list_of_summary_dicts) feeds live viz."""
@@ -236,7 +301,8 @@ def generate_combined(n_flights, out, fmt="auto", seed=0, envelope=None, gimbal_
     import datetime
     ts = ("_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S")) if timestamp else ""
     logpath = f"{root}_log{ts}{ext}"; sumpath = f"{root}_flights{ts}{ext}"
-    wl = _Writer(logpath, FLIGHTLOG_COLS, fmt); ws = _Writer(sumpath, COMBINED_SUMMARY_COLS, fmt)
+    wl = _Writer(logpath, FLIGHTLOG_COLS, fmt, max_bytes=max_bytes)
+    ws = _Writer(sumpath, COMBINED_SUMMARY_COLS, fmt, max_bytes=max_bytes)
     t0 = time.time(); rows = 0; done = 0
     e = dict(core.ENVELOPE)
     if envelope: e.update(envelope)
@@ -279,7 +345,8 @@ def generate_combined(n_flights, out, fmt="auto", seed=0, envelope=None, gimbal_
     ws.write({c: np.asarray(sbuf[c], dtype=float) for c in COMBINED_SUMMARY_COLS}); ws.close(); wl.close()
     if progress_cb: progress_cb(done, n_flights, rows, done / max(time.time() - t0, 1e-9))
     if sample_cb and recent: sample_cb(recent)
-    return dict(log_path=logpath, summary_path=sumpath, flights=done, rows=rows, fmt=fmt,
+    return dict(log_path=wl.paths[0], log_paths=wl.paths, summary_path=ws.paths[0],
+                summary_paths=ws.paths, flights=done, rows=rows, fmt=fmt,
                 seconds=round(time.time() - t0, 2))
 
 
@@ -299,40 +366,52 @@ def main(argv=None):
         s.add_argument("--chunk", type=int, default=100_000); s.add_argument("--seed", type=int, default=0)
         s.add_argument("--no-timestamp", dest="timestamp", action="store_false",
                        help="overwrite --out instead of writing a new timestamped file")
+        s.add_argument("--max-mb", type=float, default=99.0,
+                       help="split output into _partNNN files once a file would exceed this size (MiB)")
     st = sub.add_parser("timeseries")
     st.add_argument("--flights", type=int, required=True); st.add_argument("--out", required=True)
     st.add_argument("--stride", type=int, default=10); st.add_argument("--fmt", default="auto")
     st.add_argument("--flight-chunk", type=int, default=2000); st.add_argument("--seed", type=int, default=0)
     st.add_argument("--no-timestamp", dest="timestamp", action="store_false",
                     help="overwrite --out instead of writing a new timestamped file")
+    st.add_argument("--max-mb", type=float, default=99.0,
+                    help="split output into _partNNN files once a file would exceed this size (MiB)")
     fl = sub.add_parser("flightlog")
     fl.add_argument("--flights", type=int, required=True); fl.add_argument("--out", required=True)
     fl.add_argument("--fmt", default="auto"); fl.add_argument("--seed", type=int, default=0)
     fl.add_argument("--t-max", type=float, default=9.0, dest="t_max")
     fl.add_argument("--no-timestamp", dest="timestamp", action="store_false")
+    fl.add_argument("--max-mb", type=float, default=99.0,
+                    help="split output into _partNNN files once a file would exceed this size (MiB)")
     cb = sub.add_parser("combined")
     cb.add_argument("--flights", type=int, default=25000); cb.add_argument("--out", required=True)
     cb.add_argument("--fmt", default="auto"); cb.add_argument("--seed", type=int, default=0)
     cb.add_argument("--gimbal", type=float, default=8.0, dest="gimbal_deg")
     cb.add_argument("--no-timestamp", dest="timestamp", action="store_false")
+    cb.add_argument("--max-mb", type=float, default=99.0,
+                    help="split output into _partNNN files once a file would exceed this size (MiB)")
     a = p.parse_args(argv)
+    max_bytes = int(a.max_mb * 1024 * 1024)
     if a.kind == "outcomes":
-        r = generate_outcomes(a.n, a.out, a.fmt, a.chunk, a.seed, timestamp=a.timestamp, progress_cb=_cli_progress)
+        r = generate_outcomes(a.n, a.out, a.fmt, a.chunk, a.seed, timestamp=a.timestamp,
+                              progress_cb=_cli_progress, max_bytes=max_bytes)
     elif a.kind == "tvc":
-        r = generate_tvc(a.n, a.out, a.fmt, a.chunk, a.seed, timestamp=a.timestamp, progress_cb=_cli_progress)
+        r = generate_tvc(a.n, a.out, a.fmt, a.chunk, a.seed, timestamp=a.timestamp,
+                         progress_cb=_cli_progress, max_bytes=max_bytes)
     elif a.kind == "flightlog":
         r = generate_flightlog(a.flights, a.out, a.fmt, seed=a.seed, t_max=a.t_max,
-                               timestamp=a.timestamp, progress_cb=_cli_progress)
+                               timestamp=a.timestamp, progress_cb=_cli_progress, max_bytes=max_bytes)
     elif a.kind == "combined":
         r = generate_combined(a.flights, a.out, a.fmt, seed=a.seed, gimbal_deg=a.gimbal_deg,
-                              timestamp=a.timestamp, progress_cb=_cli_progress)
-        print(f"\nDONE  {r['flights']:,} flights -> log {r['log_path']} + summary {r['summary_path']}  "
+                              timestamp=a.timestamp, progress_cb=_cli_progress, max_bytes=max_bytes)
+        print(f"\nDONE  {r['flights']:,} flights -> log {r['log_paths']} + summary {r['summary_paths']}  "
               f"({r['rows']:,} log rows, {r['seconds']}s)")
         return r
     else:
         r = generate_timeseries(a.flights, a.out, a.fmt, a.flight_chunk, a.stride, a.seed,
-                                timestamp=a.timestamp, progress_cb=_cli_progress)
-    print(f"\nDONE  {r['rows']:,} rows -> {r['path']}  ({r['fmt']}, {r['seconds']}s, "
+                                timestamp=a.timestamp, progress_cb=_cli_progress, max_bytes=max_bytes)
+    parts_note = f"  [{r['parts']} parts]" if r["parts"] > 1 else ""
+    print(f"\nDONE  {r['rows']:,} rows -> {r['paths']}{parts_note}  ({r['fmt']}, {r['seconds']}s, "
           f"{r['rows']/max(r['seconds'],1e-9):,.0f} rows/s)")
     return r
 
