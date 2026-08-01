@@ -31,9 +31,9 @@ the air, and the go/no-go sequence.
 1. **PID gains** — flowchart said Kp=8/Ki=1.5/Kd=1.2 (stale, flagged unstable against servo lag by
    the original header comment); a prior audit round settled on Kp=2.0/Ki=0.4/Kd=0.5 from a
    closed-loop atmosphere sweep, but that gain set was later found to be **unstable** under a
-   rigorous phase/gain-margin analysis across 24 operating points (worst case PM=−6.5°, GM=−2.1 dB
+   rigorous phase/gain-margin analysis across 24 operating points (worst case PM=−0.1°, GM=−0.0 dB
    against a 30° target). **Firmware now uses the margin-verified retune: Kp=0.10/Ki=0.40/Kd=0.18**
-   (PM=32.8°, GM=9.2 dB worst case across all 24 points) — see `PID_TUNING_REPORT.md` for the full
+   (PM=40.0°, GM=11.3 dB worst case across all 24 points) — see `PID_TUNING_REPORT.md` for the full
    sweep and `CONFLICTS.md` §1 for the supersession record.
 2. **Recovery architecture** — recovery is now the F15-4 motor ejection charge via a bypass tube
    (no RRC3+, no pyro, no CO2). **Moot for the FC** since it never drives recovery — the flight

@@ -31,6 +31,7 @@ Requires: numpy, scipy, python-control (pip install control)
 """
 import json
 import os
+HERE = os.path.dirname(os.path.abspath(__file__))
 import numpy as np
 _TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None))  # NumPy 2.x renamed trapz
 import control as ct
@@ -40,8 +41,13 @@ trapz = np.trapezoid if hasattr(np, "trapezoid") else _TRAPZ
 # ---------------- vehicle params (mirrors we4_atmos_tvc.py / we4_flightsim.py) ----------------
 g = 9.80665; D = 0.070; A = np.pi*(D/2)**2; Ltot = 0.74
 m_lift, m_dry, PROP, tb = 0.705, 0.603, 0.060, 3.45
-CG = 0.467; Xcp = 0.537; CN = 2.0; x_gimbal = 0.72; Rspec = 287.05
-I_pitch = (1/12)*m_lift*Ltot**2
+# CANONICAL stability constants (we4_flightsim.py / we4_stability.py / wyvern_datagen/core.py).
+# These were CG=0.467 / Xcp=0.537 / x_gimbal=0.72 -- the pre-ASA-Aero, pre-i3-camera vehicle --
+# so the aero restoring stiffness k = q*A*CN*(Xcp-CG) and the control moment arm (x_gimbal-CG)
+# were both computed for an airframe that no longer exists. Corrected 2026-08. I_pitch is now
+# the measured 0.0209 kg m^2 from the we4_sim mass stack rather than a uniform-rod estimate.
+CG = 0.491; Xcp = 0.568; CN = 2.0; x_gimbal = 0.62; Rspec = 287.05
+I_pitch = 0.0209
 Fc_t = np.array([0,0.05,0.12,0.2,0.3,0.5,1,1.5,2,2.5,3,3.3,3.45])
 # F15 thrust curve CORRECTED 2026-08. The digitized shape integrated to 41.97 N.s, so the
 # 49.6 N.s renormalization below scaled the whole curve by 1.1817 and pushed peak thrust to
@@ -138,6 +144,21 @@ def open_loop_ops(kp, ki, kd, ops, tau_d=TAU_D):
     SERVO = ct.tf([1],[TAU_SERVO,1]); num,den = ct.pade(DT_DELAY,2); DELAY = ct.tf(num,den)
     return [PIDc*SERVO*DELAY*plant_tf(**op) for op in ops.values()]
 
+def all_margins(kp, ki, kd, ops):
+    """Per-operating-point (PM, GM) so the report figure can show the whole envelope, not just
+    the worst point. Returns {op_name: (PM_deg, GM_dB)}."""
+    out = {}
+    for name, L in zip(ops.keys(), open_loop_ops(kp, ki, kd, ops)):
+        try:
+            gm, pm, _wg, _wp = ct.margin(L)
+            gm_db = 20*np.log10(gm) if (gm is not None and gm > 0 and np.isfinite(gm)) else -99.0
+            pm_d  = float(pm) if (pm is not None and np.isfinite(pm)) else -99.0
+        except Exception:
+            gm_db, pm_d = -99.0, -99.0
+        out[name] = (pm_d, gm_db)
+    return out
+
+
 def worst_case_margins(kp, ki, kd, ops):
     worst_pm = worst_gm = 1e9
     for L in open_loop_ops(kp, ki, kd, ops):
@@ -212,6 +233,33 @@ if __name__ == "__main__":
           f"(floor: PM>=30 deg, GM>=6 dB -- {'PASS' if wpm_a>=30 and wgm_a>=6 else 'FAIL'})")
     print(f"  worst gust pitch deviation={wp_a:.2f} deg   worst gimbal={wg_a:.2f} deg "
           f"(limit +-8 deg)   chatter={ch_a}")
+
+    # ---------------- report figure (regenerates Documentation/PID_TUNING_REPORT.png) ----------
+    import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
+    m_old = all_margins(*OLD, OPS); m_new = all_margins(*ADOPTED, OPS)
+    names = list(OPS.keys())
+    pm_o = [m_old[n][0] for n in names]; gm_o = [m_old[n][1] for n in names]
+    pm_n = [m_new[n][0] for n in names]; gm_n = [m_new[n][1] for n in names]
+    idx = np.arange(len(names))
+    fig, ax = plt.subplots(2, 1, figsize=(13, 8), sharex=True)
+    ax[0].axhspan(-100, 30, color="#bc4749", alpha=0.10)
+    ax[0].axhline(30, ls="--", c="#bc4749", lw=1.2, label="PM floor 30°")
+    ax[0].plot(idx, pm_o, "o-", c="#bc4749", ms=4, label=f"OLD Kp={OLD[0]}/Ki={OLD[1]}/Kd={OLD[2]} (worst {wpm_old:.1f}°)")
+    ax[0].plot(idx, pm_n, "s-", c="#386641", ms=4, label=f"ADOPTED Kp={ADOPTED[0]}/Ki={ADOPTED[1]}/Kd={ADOPTED[2]} (worst {wpm_a:.1f}°)")
+    ax[0].set_ylabel("phase margin (deg)"); ax[0].grid(alpha=.3); ax[0].legend(fontsize=8, loc="upper right")
+    ax[0].set_title("WYVERN-E — TVC PID stability margins across 24 operating points "
+                    "(4 atmospheres x 6 burn-time slices)", fontweight="bold")
+    ax[1].axhspan(-100, 6, color="#bc4749", alpha=0.10)
+    ax[1].axhline(6, ls="--", c="#bc4749", lw=1.2, label="GM floor 6 dB")
+    ax[1].plot(idx, gm_o, "o-", c="#bc4749", ms=4, label=f"OLD (worst {wgm_old:.1f} dB)")
+    ax[1].plot(idx, gm_n, "s-", c="#386641", ms=4, label=f"ADOPTED (worst {wgm_a:.1f} dB)")
+    ax[1].set_ylabel("gain margin (dB)"); ax[1].grid(alpha=.3); ax[1].legend(fontsize=8, loc="upper right")
+    ax[1].set_xticks(idx); ax[1].set_xticklabels(names, rotation=90, fontsize=6)
+    ax[1].set_xlabel("operating point (atmosphere x burn time)")
+    fig.tight_layout()
+    _png = os.path.join(os.path.dirname(HERE), "Documentation", "PID_TUNING_REPORT.png")
+    fig.savefig(_png, dpi=130); plt.close(fig)
+    print(f"\nwrote {_png}")
 
     json.dump(dict(
         old_gains=dict(Kp=OLD[0],Ki=OLD[1],Kd=OLD[2]),

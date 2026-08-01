@@ -77,7 +77,8 @@ pico.pins("T",["VSYS","3V3OUT"])
 pico.pins("B",["GND"])
 pico.pins("R",["GP2 SCK","GP3 MOSI","GP4 MISO","GP5 CS","GP14 S1","GP15 S2",
                "GP16 SDA0","GP17 SCL0","GP18 SDA1","GP19 SCL1",
-               "GP6 spare","GP7 IRQ","GP8 CAM","GP9 LED","GP10 BUZ","GP22 RBF","GP1 spare"])
+               "GP6 spare","GP7 IRQ","GP8 CAM","GP9 LED","GP10 BUZ","GP22 RBF",
+               "GP26 VBAT","GP1 spare"])
 # Pico power to rails
 poly([pico.p("VSYS"),(pico.p("VSYS")[0],RAIL_5V)]); junc(pico.p("VSYS")[0],RAIL_5V)
 poly([pico.p("3V3OUT"),(pico.p("3V3OUT")[0],RAIL_3V3)]); junc(pico.p("3V3OUT")[0],RAIL_3V3)
@@ -151,6 +152,21 @@ label(pico.p("GP8 CAM")[0]+4,pico.p("GP8 CAM")[1]-0.6,"CAM_EN")
 # GP9 LED, GP10 BUZ, GP22 RBF -> short labeled stubs (local I/O)
 for pin,nm in [("GP9 LED","LED"),("GP10 BUZ","BUZZER"),("GP22 RBF","RBF_SAFE")]:
     a=pico.p(pin); poly([a,(a[0]+8,a[1])]); label(a[0]+9,a[1]-0.6,nm)
+
+# ----- Battery-sense divider on GP26/ADC0 ---------------------------------------------------
+# ADDED 2026-08. CONFLICTS.md item 4 specifies this divider, COMPATIBILITY.md item 4 verifies its
+# headroom, and firmware/battery.h reads it every loop -- but no wiring generator ever routed it,
+# so the schematic silently disagreed with the firmware and both audit documents.
+# Tap is on the PACK side of the UBEC (true cell voltage, not the regulated rail).
+div=Comp("VBAT DIVIDER",42,150,52,30,"R_top 100k / R_bot 62k -> 0.3827")
+div.pins("L",["VBAT_TAP"]); div.pins("R",["ADC_NODE"]); div.pins("B",["GND"])
+# tap the pack + node directly (upstream of the UBEC), not the regulated 5 V rail
+poly([batt.p("+"),(batt.p("+")[0],48),(26,48),(26,div.p("VBAT_TAP")[1]),div.p("VBAT_TAP")])
+junc(batt.p("+")[0],48)
+poly([div.p("GND"),(div.p("GND")[0],RAIL_GND)]); junc(div.p("GND")[0],RAIL_GND)
+a=pico.p("GP26 VBAT"); b=div.p("ADC_NODE")
+poly([b,(b[0]+6,b[1]),(b[0]+6,a[1]),a])
+label(a[0]-26,a[1]-0.6,"VBAT_SENSE")
 
 
 # mux channels -> sensors (each SDA/SCL pair)

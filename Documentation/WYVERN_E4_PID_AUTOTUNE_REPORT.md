@@ -10,7 +10,7 @@ A robust multi-wind auto-tune search (143 gain sets) finds the firmware gains wi
 grid-optimal time-domain cost, and shows that the small remaining gap is *not a tuning problem* — it
 is the physical ±5° gimbal-authority limit of this low-T/W vehicle at high wind, which no gain set
 can overcome. The gains are therefore validated by **two independent methods**: the frequency-domain
-phase/gain-margin analysis (`PID_TUNING_REPORT.md`, PM ≈ 33°, GM ≈ 9.2 dB across 24 operating points)
+phase/gain-margin analysis (`PID_TUNING_REPORT.md`, PM ≈ 33°, GM ≈ 11.3 dB across 24 operating points)
 and the time-domain robust auto-tune here.
 
 ## 2. Method

@@ -43,7 +43,7 @@ in §7 is achievable.
   `t4_sensors_sdlog` (now BMP388), plus `selftest.py`/`host_monitor.py` go/no-go harness.
 - Telemetry: `telemetry_wifi_flight` + `telemetry_wifi_receiver` sketches.
 - **PID: flight-ready, no change.** Gains **0.10/0.40/0.18** confirmed by both the frequency-domain
-  margin analysis (`PID_TUNING_REPORT.md`, PM≈32.8°/GM≈9.2 dB) and a time-domain robust auto-tune
+  margin analysis (`PID_TUNING_REPORT.md`, PM≈40.0°/GM≈11.3 dB) and a time-domain robust auto-tune
   (`PID_AUTOTUNE_REPORT.md`, within ~4% of grid-optimal; integral retained for steady-bias rejection).
 - **Digital twin available:** `Simulations/wyvern_datagen/fc_sil.py` (+ GUI *Flight Computer SIL* tab)
   runs the full FC in software-in-the-loop with sensor noise and simulated Wi-Fi telemetry — use it to
@@ -176,6 +176,11 @@ telemetry. Every surviving question still has two independent methods (Proposal 
 | 10 | Generic motor shapes normalized to impulse only | published peaks wrong by up to 2× (D12 read 14.2 N vs 29.7 N) — the number that sizes the load cell | decay rate solved per motor; all five motors now match published impulse and peak |
 | 11 | `build_ork4.py` gave ASA-Aero nose/fins **PC-FR density**, and announced a 150 g-ballast config | the `.ork` cross-check modelled the wrong vehicle | densities corrected to 650 kg/m³; no ballast |
 | 12 | Control-authority margin swept from t=0 to burnout | both endpoints are thrust-zero, so the reported minimum was always exactly 0.0 mN·m | swept over the TVC-active window → **71.7 mN·m** |
+| 13 | `gen_rocket4.py` called `fin(0.070, 0.035, 0.072, 0.025, 0.003)` — **metres**, in a file whose every other dimension is millimetres | the fin was built at 1/1000 scale: `08b_fin_single_ASA.stl` exported at **0.0 cm³ / 0.0 g**. Slicing that file yields a speck, and the script's printed-mass roll-up silently omitted all four fins | called in mm; fin is now 11.3 cm³ / **7.4 g** each → 29.6 g for four, matching the 30 g in the mass stack |
+| 14 | Printed-mass roll-up filtered part prefixes `01`–`07` | excluded the fins (`08b`) and the PC-FR bypass tube (`09`), so the reported printed mass could never be reconciled against the dry stack | roll-up now covers the full flight airframe with per-part quantities |
+| 15 | Battery-sense divider (GP26/ADC0) documented in `CONFLICTS.md` §4, verified in `COMPATIBILITY.md` §4, read by `battery.h` — but **routed in no schematic** | the wiring generators disagreed with the firmware on a net the flight computer samples every loop | both generators now emit a `VBAT DIVIDER` block tapped upstream of the UBEC into GP26 |
+| 16 | `02_tvc_control_loop.mermaid` clamped the gimbal at **±5°** | the retired limit; `wyvern_pid.h` uses `OUT_LIM_DEG = 8.0` | flowchart regenerated at ±8° |
+| 17 | `PID_TUNING_REPORT.png` and `phase0_math_validation.png` were hand-made orphans with no generating script | both showed superseded numbers and could not be kept in step | each is now a reproducible output of the script that derives it (`we4_pid_retune.py`, `derive_math.py`) |
 
 ### 9.3 Fidelity increases
 
@@ -194,6 +199,21 @@ telemetry. Every surviving question still has two independent methods (Proposal 
 - **Datasets:** regenerated at 6.0 M rows / 344 MB across 50 shards, widened from 23 to 34 columns
   (build dispersion and rail-exit/coast-Cd are now first-class), every file ≤ 26 MB.
 
+### 9.3b Printed-mass reconciliation
+
+`gen_rocket4.py` now reports the full printed flight airframe: **413.2 g** of printed structure
+(+1.3 g rail buttons). Against the itemized stack in `we4_sim.py` the tube/nose/bulkhead/fin parts
+agree to better than 0.5 g each. Two parts differ by design and should not be "fixed" silently:
+
+| Part | Solid volume × density | `we4_sim.py` allowance | Why |
+|---|---|---|---|
+| Motor mount (PC-FR) | 59.1 g | 45 g | as-built sparse infill, not a 100 %-dense solid |
+| TVC gimbal (PC-FR) | 112.5 g | 105 g | same, plus the CAD solid includes trunnion stock removed in post |
+
+The generator's number is raw solid volume; the flight budget's number is the as-built allowance.
+The 603 g dry mass additionally carries avionics, battery, camera, servos, chute and harness, so the
+two figures are not directly comparable — the script now prints that caveat alongside the roll-up.
+
 ### 9.4 Post-rerun canonical numbers
 
 | Quantity | Value |
@@ -204,7 +224,7 @@ telemetry. Every surviving question still has two independent methods (Proposal 
 | Max acceleration | 2.67 g net (3.66 g specific force) |
 | CG / CP / margin | 49.1 cm / 56.8 cm / **+1.10 cal** |
 | Deploy | t = 7.45 s, +0.63 s past apogee, 6.1 m/s |
-| PID margins | PM **32.8°**, GM **9.2 dB**, worst gust pitch **1.31°**, gimbal 1.68° |
+| PID margins | PM **40.0°**, GM **11.3 dB**, worst gust pitch **2.30°**, gimbal 2.60° |
 | Gates | validation **10/13**, deepsim **8/8** |
 | Cross-file check | **14/14** numeric agreements between the summary JSONs |
 

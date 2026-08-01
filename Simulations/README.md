@@ -43,7 +43,7 @@ with density and partly cancel. Tuning revealed the old Kp=8 gains RING against 
 lag, and a follow-up margin analysis (`Documentation/PID_TUNING_REPORT.md`) that adds the 2 ms
 control-loop delay on top of the servo lag showed the next-tried Kp=2.0/Ki=0.4/Kd=0.5 gains are
 *also* unstable in the worst case (negative phase/gain margin, Cold −15°C early-burn). Final,
-margin-validated gains: **Kp=0.10 / Ki=0.40 / Kd=0.18**, worst-case phase margin 32.8°, gain
-margin 9.2 dB, gust pitch deviation 1.31° / gimbal 1.68° (limit ±8°) across all 4 atmospheres.
+margin-validated gains: **Kp=0.10 / Ki=0.40 / Kd=0.18**, worst-case phase margin 40.0°, gain
+margin 11.3 dB, gust pitch deviation 2.30° / gimbal 2.60° (limit ±8°) across all 4 atmospheres.
 `pid_reference.py` is the Python twin of `firmware/wyvern_pid.h`. Gain-scheduling adds <1% ⇒ a
 simple fixed-gain PID is used. Run `python3 we4_atmos_tvc.py`.

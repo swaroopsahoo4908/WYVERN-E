@@ -26,9 +26,16 @@ def sch(title,mods):
   (sheet_instances (path "/" (page "1"))))'''
 FLIGHT=[
  ("POWER",["VBAT: 2S LiPo 7.4V +","GND","V5: 5V UBEC -> Pico VSYS/cam/servos","decouple: 1000uF@servos, 100uF+SS34->VSYS"],54),
+ # Battery-sense divider. CONFLICTS.md item 4 and COMPATIBILITY.md item 4 both specify and verify
+ # this net, and firmware/battery.h reads it every loop -- but it was never routed in either wiring
+ # generator, so the schematic disagreed with the firmware and with both audit documents. Added
+ # 2026-08. Tap is on the PACK side of the UBEC so the reading is true cell voltage, not rail.
+ ("BATTERY SENSE (GP26 / ADC0)",["VBAT_TAP: pack + (before UBEC)","R_TOP: 100k -> ADC node",
+   "R_BOT: 62k -> GND","GP26: ADC0 node, ratio 0.3827 (8.4V -> 3.21V)",
+   "warn 6.4V (3.2V/cell) / arm-inhibit 6.0V (3.0V/cell)","GP28: ADC2 spare (unwired)"],60),
  ("RPi PICO 2 W (RP2350, FC + real-time TVC)",["VSYS: 5V in","3V3: sensor rail","GND",
    "GP16/GP17: I2C0 -> PCA9548A mux","GP18/GP19: I2C1 -> gimbal BNO085","GP2/3/4/5: SPI0 microSD (SCK/MOSI/MISO/CS)",
-   "GP14: PWM servo1 (pitch)","GP15: PWM servo2 (yaw)","GP8: CAM_EN gate","GP7: LAUNCH_IRQ","GP22: RBF sense","GP6/GP1: spare (RRC3 removed — motor ejection)","GP9: LED  GP10: buzzer","CYW43: WiFi/BLE bench telemetry"],68),
+   "GP14: PWM servo1 (pitch)","GP15: PWM servo2 (yaw)","GP8: CAM_EN gate","GP7: LAUNCH_IRQ","GP22: RBF sense","GP26: ADC0 battery divider (100k/62k)","GP6/GP1: spare (RRC3 removed — motor ejection)","GP9: LED  GP10: buzzer","CYW43: WiFi/BLE bench telemetry"],68),
  ("PCA9548A I2C MUX (0x70, on I2C0)",["ch0: body BNO085 0x4A","ch1: recovery BNO085 0x4A (vote)","ch2: BME688 0x76","ch3: BMP388 0x77 (Adafruit 3966, 3V3)","ch4: spare (unpopulated)"],58),
  ("IMUs x3 (BNO085, Game Rotation Vector)",["gimbal: 0x4A I2C1 (dedicated)","body(FC): 0x4A mux ch0","recovery: 0x4A mux ch1 (vote)"],56),
  ("STORAGE — microSD (SPI0 breakout)",["SCK GP2 / MOSI GP3 / MISO GP4 / CS GP5","3V3 / GND: full-rate flight log"],52),

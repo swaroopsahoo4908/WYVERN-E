@@ -81,3 +81,69 @@ out = {
 with open("phase0_math_constants.json", "w") as f:
     json.dump(out, f, indent=2)
 print("\nWrote phase0_math_constants.json")
+
+# ============================================================================
+# Validation figure (regenerates phase0_math_validation.png)
+# ============================================================================
+# This PNG was previously a hand-made orphan with no generating script, so it could not be kept in
+# step with the derivation. It is now a reproducible output of this file.
+import os
+import matplotlib; matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+rng2 = np.random.default_rng(11)
+N_MC = 4000
+# Monte-Carlo the whole calibrate-then-resolve pipeline: draw a random true thrust vector inside
+# the balance's envelope, synthesize noisy counts, invert with the FITTED matrix, and score the
+# error in resolved magnitude and direction. This is the quantity the RQ1 actuator comparison
+# actually depends on -- it sets the smallest gimbal-angle difference the stand can distinguish.
+T_err = np.zeros(N_MC); th_err = np.zeros(N_MC); th_true_all = np.zeros(N_MC)
+for i in range(N_MC):
+    th = np.deg2rad(rng2.uniform(0, 10)); ph = rng2.uniform(-np.pi, np.pi)
+    Tm = rng2.uniform(5.0, 25.3)
+    Ft = np.array([Tm*np.sin(th)*np.cos(ph), Tm*np.sin(th)*np.sin(ph), Tm*np.cos(th)])
+    c = counts_from_force(Ft, S_true, c0_true, noise_sigma, rng2)
+    Fh = S_inv @ (c - c0_fit)
+    Th_, thh, _ = thrust_vector(Fh)
+    T_err[i] = Th_ - Tm
+    th_err[i] = np.rad2deg(thh - th)
+    th_true_all[i] = np.rad2deg(th)
+
+fig, ax = plt.subplots(1, 3, figsize=(14, 4.2))
+ax[0].imshow(np.abs(S_fit - S_true), cmap="viridis")
+for r in range(3):
+    for cc in range(3):
+        ax[0].text(cc, r, f"{abs(S_fit-S_true)[r,cc]:.2f}", ha="center", va="center",
+                   color="w", fontsize=9)
+ax[0].set_xticks(range(3), ["Fx", "Fy", "Fz"]); ax[0].set_yticks(range(3), ["ch X", "ch Y", "ch Z"])
+ax[0].set_title(f"Calibration-matrix fit error (counts/N)\nmax {np.max(np.abs(S_fit-S_true)):.2f}, "
+                f"cond={np.linalg.cond(S_fit):.2f}", fontsize=10)
+
+ax[1].hist(T_err, bins=60, color="#2a6f97", alpha=.85)
+ax[1].axvline(0, c="k", lw=.8)
+ax[1].set_xlabel("resolved thrust error (N)"); ax[1].set_ylabel("count")
+ax[1].set_title(f"Thrust magnitude\nbias {T_err.mean():+.4f} N, 1σ {T_err.std():.4f} N", fontsize=10)
+ax[1].grid(alpha=.3)
+
+ax[2].scatter(th_true_all, th_err, s=3, alpha=.25, color="#bc4749")
+ax[2].axhline(0, c="k", lw=.8)
+ax[2].set_xlabel("true gimbal deflection θ (deg)"); ax[2].set_ylabel("θ error (deg)")
+ax[2].set_title(f"Deflection-angle resolution\n1σ {th_err.std():.4f}°  (N={N_MC})", fontsize=10)
+ax[2].grid(alpha=.3)
+
+fig.suptitle("WYVERN-E — 3-axis balance calibration validation (least-squares fit + Monte-Carlo resolve)",
+             fontweight="bold")
+fig.tight_layout()
+_p = os.path.join(HERE, "phase0_math_validation.png")
+fig.savefig(_p, dpi=130); plt.close(fig)
+print(f"Wrote {_p}")
+print(f"  resolved thrust  bias {T_err.mean():+.4f} N, 1-sigma {T_err.std():.4f} N")
+print(f"  resolved theta   1-sigma {th_err.std():.4f} deg")
+
+out["balance_resolution"] = {
+    "thrust_bias_N": float(T_err.mean()), "thrust_sigma_N": float(T_err.std()),
+    "theta_sigma_deg": float(th_err.std()), "n_monte_carlo": N_MC,
+}
+with open("phase0_math_constants.json", "w") as f:
+    json.dump(out, f, indent=2)

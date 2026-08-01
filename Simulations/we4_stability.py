@@ -218,5 +218,40 @@ ax.set_xlabel("crosswind (m/s)"); ax.set_ylabel("weathercock angle (deg)"); ax.g
 ax.set_title(f"WYVERN-E · weathercock vs wind (rail-exit {v_rail_1p5:.1f} m/s off a 1.5 m rail)",
              fontweight='bold'); sv(fig, "16_weathercock")
 
+# ---- ballast trade (replaces the orphaned config_optimized.json / config_finned_ballast.json) ---
+# Those two files carried the superseded 58.4 mm / 708 g / 431 ft and 150 g-ballast configurations
+# and were written by no surviving script, so they could never be refreshed. The trade is now a
+# first-class output of this file.
+def ballast_case(ball_kg, x_ball=0.05, target=1.0):
+    """Smallest fin span holding `target` cal at this ballast, and the resulting apogee."""
+    lo, hi = 0.02, 0.14
+    for _ in range(80):
+        mid = 0.5 * (lo + hi)
+        mf = fin_mass_kg(mid); m = M_EX_FINS + mf + ball_kg
+        cg = (CG_EX_FINS * M_EX_FINS + X_FIN * mf + x_ball * ball_kg) / m
+        if (barrowman(mid)[0] - cg) / D < target: lo = mid
+        else: hi = mid
+    span = 0.5 * (lo + hi)
+    mf = fin_mass_kg(span); m = M_EX_FINS + mf + ball_kg
+    cg = (CG_EX_FINS * M_EX_FINS + X_FIN * mf + x_ball * ball_kg) / m
+    md = m - 0.102
+    ss = np.array([0.0, 0.0]); tt = 0.0; best = 0.0
+    while tt < 12:
+        def dz(st, t_):
+            h, v = st
+            mm = max(md, m - mdot * min(max(t_, 0), TB))
+            return np.array([v, (thr(t_) - 0.5 * rhoh(h) * CD_NOMINAL * A * v * abs(v) - mm * g) / mm])
+        k1 = dz(ss, tt); k2 = dz(ss + .5*dt*k1, tt + .5*dt)
+        k3 = dz(ss + .5*dt*k2, tt + .5*dt); k4 = dz(ss + dt*k3, tt + dt)
+        ss = ss + dt/6*(k1 + 2*k2 + 2*k3 + k4); tt += dt; best = max(best, ss[0])
+        if ss[1] < 0 and tt > TB: break
+    return dict(ballast_g=round(ball_kg*1000, 1), fin_span_for_1cal_mm=round(span*1000, 1),
+                m_lift_g=round(m*1000, 1), CG_cm=round(cg*100, 1),
+                apogee_m=round(best, 1), apogee_ft=round(best*3.281, 0))
+
+res["ballast_trade"] = [ballast_case(b) for b in (0.0, 0.060, 0.150)]
+res["ballast_verdict"] = ("Every gram of nose ballast lowers apogee: the smaller fins it buys never "
+                          "pay back the dead weight. Flown configuration carries no ballast.")
+
 json.dump(res, open(f"{OUT}/stability_summary.json", "w"), indent=1)
 print(json.dumps(res, indent=1))

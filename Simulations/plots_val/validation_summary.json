@@ -8,7 +8,7 @@
   "a_max_g": 2.67,
   "maxQ_Pa": 810.0,
   "descent_ms": 6.3,
-  "CEP_m": 136.0,
+  "CEP_m": 137.0,
   "gates": {
     "mach_subsonic": {
       "value": 0.106,

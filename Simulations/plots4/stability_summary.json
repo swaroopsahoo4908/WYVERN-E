@@ -34,5 +34,32 @@
  "max_flight_v_ms": 36.5,
  "flutter_margin_x": 13.8,
  "max_flight_mach": 0.107,
- "drift_m_per_ms_wind": 21.1
+ "drift_m_per_ms_wind": 21.1,
+ "ballast_trade": [
+  {
+   "ballast_g": 0.0,
+   "fin_span_for_1cal_mm": 68.7,
+   "m_lift_g": 703.6,
+   "CG_cm": 49.1,
+   "apogee_m": 131.3,
+   "apogee_ft": 431.0
+  },
+  {
+   "ballast_g": 60.0,
+   "fin_span_for_1cal_mm": 55.6,
+   "m_lift_g": 758.3,
+   "CG_cm": 45.4,
+   "apogee_m": 110.3,
+   "apogee_ft": 362.0
+  },
+  {
+   "ballast_g": 150.0,
+   "fin_span_for_1cal_mm": 45.0,
+   "m_lift_g": 844.0,
+   "CG_cm": 41.0,
+   "apogee_m": 83.3,
+   "apogee_ft": 273.0
+  }
+ ],
+ "ballast_verdict": "Every gram of nose ballast lowers apogee: the smaller fins it buys never pay back the dead weight. Flown configuration carries no ballast."
 }

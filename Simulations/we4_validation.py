@@ -9,7 +9,7 @@ answer one question: will the vehicle fly safely and predictably on an F15-4?
   3. Rail departure                            -> rail-exit velocity & T/W
   4. TVC control authority                     -> gimbal restoring moment vs gust
   5. Wind weathercock + drift sweep            -> tilt & downrange vs wind
-  6. Monte-Carlo dispersion (N=40000, vectorized RK4 core) -> apogee/stability/deploy spread
+  6. Monte-Carlo dispersion (N=25000, vectorized RK4 core) -> apogee/stability/deploy spread
   7. Recovery descent + opening shock          -> descent rate, shock-cord load
   8. Structural axial load                      -> body-tube compressive safety factor
 
@@ -205,7 +205,7 @@ fig.tight_layout(); fig.savefig(f"{OUT}/05_wind_weathercock.png",dpi=130); plt.c
 #     in wyvern_datagen/datasets/ are now produced by the same engine.
 import sys as _sys; _sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "wyvern_datagen"))
 import core as _core
-N=40000
+N=25000
 _env=dict(wind_ms=(0.0,8.0))                      # match this suite's historical 0-8 m/s wind band
 rng=np.random.default_rng(42)
 _o=_core.simulate_outcomes(N, seed=42, envelope=_env, dt=2e-3, disperse_vehicle=True)

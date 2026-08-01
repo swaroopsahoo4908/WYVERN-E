@@ -45,7 +45,14 @@ def motor_mount():
     for z in (10,70,130): mt=mt.fuse(tube(P["RI"],P["MMT"]/2,3.0).translate(0,0,z))
     save(mt,DROCK,"06_motor_mount_29mm_PCFR","PCFR")
 def fins():
-    fi=fin(0.070,0.035,0.072,0.025,0.003)
+    # UNIT BUG FIXED 2026-08. This was called as fin(0.070,0.035,0.072,0.025,0.003) -- metres --
+    # inside a file whose every other dimension is millimetres (P["OD"]=70.0 etc.), so the fin was
+    # built at 1/1000 scale and the exported 08b_fin_single_ASA.stl/.step had a volume of
+    # 0.0 cm3 / 0.0 g. Anyone slicing that STL would have got a speck, and the printed-airframe
+    # mass roll-up below silently omitted all four fins.
+    # Canonical geometry (we4_stability.py / we4_flightsim.py / the .ork): root 70, tip 35,
+    # semispan 72, LE sweep 25, thickness 3 -- all mm.
+    fi=fin(70.0,35.0,72.0,25.0,3.0)
     save(fi,DROCK,"08b_fin_single_ASA","ASA")
 def gimbal():
     # 2-axis gimbal: outer ring (pitch) + inner ring (yaw) holding the 29mm motor mount
@@ -97,5 +104,21 @@ if __name__=="__main__":
     print("== STATIC DEFLECTOR =="); deflector()
     print("== ASSEMBLY =="); assembly()
     json.dump(report,open(os.path.join(os.path.dirname(__file__),"mass_report.json"),"w"),indent=1)
-    tot=sum(x[2] for x in report if x[0].startswith(("01","02","03","04","05","06","07")))
-    print(f"\nprinted airframe mass (parts) ~{tot:.0f} g; parts {len(report)}")
+    # Roll-up of the printed FLIGHT airframe. The prefix filter previously stopped at "07", which
+    # silently excluded 08b (the 4 fins) and 09 (the PC-FR bypass tube) -- so the printed mass this
+    # script reported could never be reconciled against the 603 g dry stack in we4_sim.py.
+    QTY = {"08b_fin_single_ASA": 4}          # one STL, printed four times
+    flight = [x for x in report if x[0][:2] in ("01","02","03","04","05","06","07","08","09")
+              and not x[0].startswith("08_rail")]
+    tot = sum(x[2] * QTY.get(x[0], 1) for x in flight)
+    rails = sum(x[2] for x in report if x[0].startswith("08_rail"))
+    print(f"\nprinted flight-airframe mass ~{tot:.1f} g  (+{rails:.1f} g rail buttons)"
+          f"  ->  {tot + rails:.1f} g printed total; {len(report)} exported parts")
+    print("  breakdown:")
+    for x in flight:
+        q = QTY.get(x[0], 1)
+        print(f"    {x[0]:30} {x[2]:6.1f} g x{q} = {x[2]*q:6.1f} g  ({x[3]})")
+    print("  NOTE: this is PRINTED STRUCTURE ONLY. The 603 g dry mass in we4_sim.py additionally")
+    print("        carries avionics, battery, camera, servos, chute, harness and the ejection")
+    print("        plenum; and the gimbal/mount masses there are as-built allowances, not raw")
+    print("        solid volumes. Compare like for like before calling a discrepancy.")

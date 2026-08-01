@@ -17,3 +17,4 @@ updated_at: 2026-08-01
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/_superseded/05b_bulkhead_B_ASA.stl]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/_superseded/08b_fin_single_PCFR.step]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/_superseded/08b_fin_single_PCFR.stl]]
+- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/_superseded/README.md]]

@@ -39,7 +39,7 @@ Re=rho0*V*D/1.81e-5; a2.plot(T,Re/1e5,c="#386641",label="Reynolds /1e5"); a2.set
 ax.axvline(tb,ls=':',c='g'); ax.set_title("WYVERN-E · dynamic pressure & Reynolds number",fontweight='bold'); ax.grid(alpha=.3); sv(fig,"18_q_reynolds")
 # 19 in-flight static margin (CG moves aft as propellant burns)
 tt=np.linspace(0,tb,60); CGb=0.467-0.0  # finned no-ballast; prop is aft so CG moves slightly aft during burn
-CG=0.467+0.01*np.clip(tt/tb,0,1)         # ~1 cm aft shift
+CG=0.491-0.017*np.clip(tt/tb,0,1)        # 49.1 -> 47.4 cm: CG moves FORWARD as propellant burns
 CP=0.525; marg=(CP-CG)/D
 fig,ax=plt.subplots(figsize=(8.5,5)); ax.plot(tt,marg,c="#2a6f97",lw=2); ax.axhline(1.0,ls=':',c='g',label="1.0 cal min")
 ax.axvline(0.5,ls='--',c='orange',label="TVC engages 0.5 s"); ax.set_xlabel("burn time (s)"); ax.set_ylabel("static margin (cal)"); ax.legend()

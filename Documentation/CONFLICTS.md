@@ -11,34 +11,37 @@ the RRC3+ has been removed from the vehicle (§3).
 **This section has been updated. The gains below are frozen as of the phase-margin retune; do not
 read `Kp=2.0/Ki=0.4/Kd=0.5` anywhere in this repo as current — it is a documented-superseded value.**
 
-- `Flight Computer/flowcharts/02_tvc_control_loop.mermaid` lists **Kp=8 Ki=1.5 Kd=1.2** (stale from
-  the original design pass, never simulated, flagged unstable by the header's own original comment).
+- `Flight Computer/flowcharts/02_tvc_control_loop.mermaid` *formerly* listed **Kp=8 Ki=1.5 Kd=1.2**
+  (stale from the original design pass, never simulated, flagged unstable by the header's own
+  original comment). **Regenerated 2026-08** — it now carries the frozen gains and, separately, its
+  gimbal clamp was corrected from the retired ±5° to the current ±8° `OUT_LIM_DEG`.
 - The gains that were live in `wyvern_pid.h`/`we4_atmos_tvc.py` through the prior audit round —
   **Kp=2.0 Ki=0.4 Kd=0.5** — were *themselves* subsequently found to be unstable once evaluated
   rigorously: a phase/gain-margin sweep across 24 operating points (4 atmospheres — ISA T_sl=288.15K,
   cold=258.15K, hot=313.15K, high-DA=298.15K — × 6 burn-time slices at 0.6/1.0/1.7/2.5/2.9/3.4 s
   into the 3.45 s burn) with the servo modeled as `TAU_SERVO=0.04 s` plus a ~2 ms Padé-2 transport
-  delay found a **worst-case phase margin of −6.5° and gain margin of −2.1 dB** against a 30° PM
-  target — i.e. genuinely unstable at some points in the envelope, not merely under-margined.
+  delay found a **worst-case phase margin of −0.1° and gain margin of −0.0 dB** against a 30° PM
+  target — i.e. sitting exactly on the stability boundary at the worst point in the envelope, with
+  no margin whatsoever.
 - A re-tune against the same 24-point sweep (see `Documentation/PID_TUNING_REPORT.md` for the full
   margin tables and `Simulations/we4_pid_retune.py` for the search) found
-  **Kp=0.10, Ki=0.40, Kd=0.18** achieves **PM=32.8°, GM=9.2 dB at every one of the 24 points** —
+  **Kp=0.10, Ki=0.40, Kd=0.18** achieves **PM=40.0°, GM=11.3 dB at every one of the 24 points** —
   clearing the 30° target with margin to spare across the full atmosphere/burn-time envelope.
 - **Resolution: firmware (`wyvern_pid.h`) now uses Kp=0.10, Ki=0.40, Kd=0.18.** The Kp=2.0/Ki=0.4/
   Kd=0.5 gains recorded earlier in this memo (and still in `we4_atmos_tvc.py`'s in-file defaults,
   which predate the margin sweep and should be updated to match) are superseded, not current. The
-  flowchart remains stale against *both* historical gain sets and should be regenerated from this
-  table, not from either prior value.
+  flowchart has now been regenerated from this table (2026-08) and no longer carries either prior
+  value.
 
 ## 2. Recovery architecture: motor ejection via bypass tube — RESOLVED (design change)
 
 - Recovery was previously debated between a timer-forced electronic deploy (finless-era) and an
   apogee-primary RRC3+ dual-deploy (finned-era). **Both are now obsolete.** The current vehicle uses
-  the **F15-4 motor's own ejection charge**, fired 4 s after burnout (t ≈ 7.45 s, 0.66 s past
+  the **F15-4 motor's own ejection charge**, fired 4 s after burnout (t = 7.45 s, 0.63 s past
   apogee), routed through a solid-walled bypass tube past the sealed FC bay into the recovery bay to
   release the friction-fit nose (see `WYVERN_E4_Recovery.md` and `Simulations/we4_ejection_feasibility.py`).
 - This **eliminates** the RRC3+, the isolated 9 V recovery battery, the e-match/black-powder charge,
-  and the earlier CO2 solenoid system entirely. The finned airframe (4×72 mm, +1.0 cal, 705 g
+  and the earlier CO2 solenoid system entirely. The finned airframe (4×72 mm, +1.10 cal, 705 g
   liftoff) is stable to apogee, so a single passive event just past apogee is appropriate.
 - **Resolution: a non-issue for the Pico firmware**, because *the flight computer never drives
   recovery* — the motor does. The Pico only **observes**: it logs baro/IMU for apogee/landing and
@@ -75,6 +78,12 @@ Battery-voltage sense is on **GP26 (ADC0)**, tapping the LiPo pack *before* the 
 This divider is a one-resistor-pair addition to the FC-bay harness; it does not touch the servo
 rail or any existing net (there is no recovery power domain — recovery is the motor's own charge).
 
+**Routed 2026-08.** Until this pass the divider existed only in this memo, in `COMPATIBILITY.md` §4,
+and in `battery.h` — **no wiring generator ever emitted it**, so the schematic silently disagreed
+with the firmware that reads it every loop. `gen_wiring4.py` and `gen_connected_sch.py` now both
+emit a `VBAT DIVIDER` block tapped from the pack **+** node upstream of the UBEC (true cell voltage,
+not the regulated rail) into `GP26 VBAT`, and the regenerated preview shows the net.
+
 ## 5. Frozen parameter table (firmware is written against these values — single source of truth)
 
 | Parameter | Value | Source |
@@ -83,7 +92,7 @@ rail or any existing net (there is no recovery power domain — recovery is the 
 | Control loop rate | 500 Hz (dt = 2.0 ms) on core 0 | 01_FlightComputer_Spec.md, flowcharts/02 |
 | TVC engage delay | t ≥ 0.5 s after launch detect (past F15 ignition spike) | we4_atmos_tvc.py |
 | Burnout / TVC cutoff | t = 3.45 s | we4_flightsim.py, we4_atmos_tvc.py |
-| PID gains (pitch = yaw, decoupled) | Kp=0.10, Ki=0.40, Kd=0.18 | wyvern_pid.h; margin-verified 24-point sweep, PID_TUNING_REPORT.md (PM=32.8°, GM=9.2 dB worst case) |
+| PID gains (pitch = yaw, decoupled) | Kp=0.10, Ki=0.40, Kd=0.18 | wyvern_pid.h; margin-verified 24-point sweep, PID_TUNING_REPORT.md (PM=40.0°, GM=11.3 dB worst case) |
 | Derivative filter time constant | tau_d = 0.02 s | wyvern_pid.h, pid_reference.py |
 | Integral clamp | ±0.4 (anti-windup) | wyvern_pid.h, pid_reference.py |
 | Output (gimbal) limit | ±8.0° (0.1396 rad) | wyvern_pid.h `OUT_LIM_DEG=8.0` (raised 5→8 for wind/weathercock authority) |

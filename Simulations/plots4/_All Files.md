@@ -29,8 +29,6 @@ updated_at: 2026-08-01
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots4/18_q_reynolds.png]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots4/19_margin_inflight.png]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots4/20_step_response.png]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots4/config_finned_ballast.json]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots4/config_optimized.json]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots4/flightsim_summary.json]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots4/results_summary.json]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots4/stability_summary.json]]
