@@ -1,4 +1,4 @@
-// WYVERN-E 4.0 — Raspberry Pi Pico 2 W (RP2350) flight computer + real-time TVC controller.
+// WYVERN-E — Raspberry Pi Pico 2 W (RP2350) flight computer + real-time TVC controller.
 // ===============================================================================================
 // Toolchain: Arduino-Pico core (earlephilhower), board "Raspberry Pi Pico 2 W".
 // Libraries (Library Manager): Adafruit_BNO08x, Adafruit_BMP3XX (BMP388), Adafruit_BME680, plus the

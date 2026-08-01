@@ -1,4 +1,4 @@
-# WYVERN-E 4.0 — Flight Computer Specification
+# WYVERN-E — Flight Computer Specification
 
 ### Single Raspberry Pi Pico 2 W (RP2350) — flight computer *and* real-time TVC controller
 
@@ -71,7 +71,7 @@ for clean pull-up isolation.
 - **Light 2S LiPo → 5 V UBEC:** one 2S LiPo (7.4 V, ~450 mAh; Zeee 4-pk) feeds a single 5 V/6 V UBEC
   set to **5 V**, whose one rail powers Pico 2 W VSYS (1.8–5.5 V, on-board buck-boost to 3.3 V for the
   IMUs/baros), the camera, and both TVC servos. The servos run happily at 5 V (~1.8 kg·cm, still >2×
-  the ~0.9 kg·cm gimbal demand). One BEC, one rail — no separate 6 V servo BEC needed at this scale.
+  the ~0.56 kg·cm gimbal demand). One BEC, one rail — no separate 6 V servo BEC needed at this scale.
 - **Decoupling:** servo stall/reversal transients (~1 A each) must not brown-out the Pico, so add a
   **1000 µF** low-ESR bulk cap across the servo V+/GND at the servos, **100 µF** at VSYS, and an
   **SS34 Schottky** from rail → VSYS as a hold-up diode; keep the servo feed and the VSYS feed as
@@ -84,7 +84,7 @@ for clean pull-up isolation.
 The Pico 2 W draws ~30–100 mA (Wi-Fi off/on); the avionics budget is dominated by the servos and
 camera. A 2S 450 mAh pack (~30 g) gives comfortable pad + flight endurance, and with the Hobbywing
 UBEC (~10 g) and the i3 4K Thumb Action Camera (~36 g) the power+camera group is ~76 g — consistent with the
-122 g FC-bay line and the 705 g / 435 ft / 1.10 cal flight budget.
+122 g FC-bay line and the 705 g / 429 ft / 1.10 cal flight budget.
 
 ## 5. Control loop (500 Hz, deterministic — core 0)
 

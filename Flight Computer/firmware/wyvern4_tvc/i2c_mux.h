@@ -1,4 +1,4 @@
-// WYVERN-E 4.0 — PCA9548A I2C mux driver (I2C0 trunk, address 0x70).
+// WYVERN-E — PCA9548A I2C mux driver (I2C0 trunk, address 0x70).
 // =====================================================================
 // Channel map (frozen, see ../../CONFLICTS.md section 5 / gen_wiring4.py):
 //   ch0 = body BNO085      (0x4A, primary attitude)

@@ -1,4 +1,4 @@
-# WYVERN-E 4.0 Flight Computer — Flight-Readiness Document
+# WYVERN-E Flight Computer — Flight-Readiness Document
 
 This is the top-level readiness summary for the Pico 2 W flight-computer firmware. Read
 `CONFLICTS.md` first — it's the frozen parameter table and the record of the resolved design
@@ -21,7 +21,7 @@ the air, and the go/no-go sequence.
   over the onboard CYW43439 (`wifi_telemetry.h`, disabled by default — `WIFI_ENABLED 0` in
   `wyvern4_tvc.ino`).
 - **The Pico never drives recovery.** Recovery is the **F15-4 motor's own ejection charge**, fired
-  4 s after burnout (t ≈ 7.45 s, 0.66 s past apogee) and routed through a solid-walled bypass tube
+  4 s after burnout (t ≈ 7.45 s, 0.63 s past apogee) and routed through a solid-walled bypass tube
   past the sealed FC bay into the recovery bay to release the nose. There is no pyro, e-match, CO2,
   or recovery computer of any kind in the vehicle — the FC only logs baro/IMU and streams WiFi
   telemetry. See `WYVERN_E4_Recovery.md` and the feasibility study (`Simulations/we4_ejection_feasibility.py`).
@@ -31,9 +31,9 @@ the air, and the go/no-go sequence.
 1. **PID gains** — flowchart said Kp=8/Ki=1.5/Kd=1.2 (stale, flagged unstable against servo lag by
    the original header comment); a prior audit round settled on Kp=2.0/Ki=0.4/Kd=0.5 from a
    closed-loop atmosphere sweep, but that gain set was later found to be **unstable** under a
-   rigorous phase/gain-margin analysis across 24 operating points (worst case PM=−6.2°, GM=−2.0 dB
+   rigorous phase/gain-margin analysis across 24 operating points (worst case PM=−6.5°, GM=−2.1 dB
    against a 30° target). **Firmware now uses the margin-verified retune: Kp=0.10/Ki=0.40/Kd=0.18**
-   (PM=33.1°, GM=9.3 dB worst case across all 24 points) — see `PID_TUNING_REPORT.md` for the full
+   (PM=32.8°, GM=9.2 dB worst case across all 24 points) — see `PID_TUNING_REPORT.md` for the full
    sweep and `CONFLICTS.md` §1 for the supersession record.
 2. **Recovery architecture** — recovery is now the F15-4 motor ejection charge via a bypass tube
    (no RRC3+, no pyro, no CO2). **Moot for the FC** since it never drives recovery — the flight

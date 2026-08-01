@@ -1,4 +1,4 @@
-# WYVERN-E 4.0 — Recovery (motor ejection via bypass tube — no CO2, no pyro bay, no recovery electronics)
+# WYVERN-E — Recovery (motor ejection via bypass tube — no CO2, no pyro bay, no recovery electronics)
 
 Huge simplification: recovery now runs entirely on the **F15-4's own ejection charge**. No CO2 system,
 no solenoids/drivers/cartridges/needles, no recovery battery, and the flight computer does **not**
@@ -61,7 +61,7 @@ O-ring sealed** pass-throughs. A **Nomex blanket** protects the chute from the h
    source* changed from CO2 to motor ejection).
 4. **Chute pack + Nomex:** verify the blanket fully shields the canopy from the tube outlet.
 
-## 6. Why this is the best recovery for WYVERN-E 4.0
+## 6. Why this is the best recovery for WYVERN-E
 Simplest and lightest path: the motor already carries a perfectly-timed ejection charge, so recovery
 needs **zero electronics, zero battery, zero pyro handling, and zero FC involvement** — just a printed
 tube, two bulkheads, a chute, cord, and a Nomex blanket. It's the most flight-proven recovery method

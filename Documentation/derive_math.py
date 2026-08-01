@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E 4.0 ground-test-rig math derivations: reproduces every number in MATH_DERIVATIONS.md.
+"""WYVERN-E ground-test-rig math derivations: reproduces every number in MATH_DERIVATIONS.md.
 
   1. Load-cell 3x3 cross-axis calibration matrix (both TVC-balance rigs) -- least-squares pinv fit.
      This resolves the full thrust vector (and hence gimbal deflection) directly from the balance.

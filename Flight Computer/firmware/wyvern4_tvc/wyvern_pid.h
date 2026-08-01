@@ -1,4 +1,4 @@
-// WYVERN-E 4.0 — flight PID controller for the servo-TVC pitch/yaw loops.
+// WYVERN-E — flight PID controller for the servo-TVC pitch/yaw loops.
 // =======================================================================
 // Algorithm is bit-for-bit the validated loop in ../../Simulations/pid_reference.py and
 // ../../Simulations/we4_atmos_tvc.py (closed-loop pitch-plane sim, run across 4 atmospheres +

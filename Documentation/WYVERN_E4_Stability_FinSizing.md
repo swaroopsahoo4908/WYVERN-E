@@ -1,20 +1,28 @@
-# WYVERN-E 4.0 — Stability & Fin Sizing (RESOLVED: 72 mm fins, NO ballast)
+# WYVERN-E — Stability & Fin Sizing (RESOLVED: 72 mm fins, NO ballast)
 
 *Barrowman + RK4 apogee sweep, `../Simulations/we4_stability.py`, `plots4/config_optimized.json`.*
 
 ## Why fins, why no ballast
 TVC engages only **after the first ~0.5 s** (past the F15 ignition spike). For launch + that window
-the rocket must be **passively stable**, or it tumbles — which is why a finless ork posts a ~17 m
-"apogee" in OpenRocket. So fins are mandatory. **Ballast is not:** an apogee sweep shows every gram
+the rocket must be **passively stable**, or it tumbles — which is why the historical finless
+variant posts a ~17 m "apogee" in OpenRocket. So fins are mandatory. **Ballast is not:** an apogee sweep shows every gram
 of nose ballast *lowers* apogee (dead weight costs more than the smaller fins it buys). So we drop
 ballast entirely and size the fins for the **minimum stable margin (1.0 cal)** to maximize altitude.
 
-## Apogee vs ballast (1.0 cal, RK4)
-| Ballast | Fin span | Mass | Apogee |
+## Apogee vs ballast (fins resized to hold 1.0 cal at each ballast, RK4 + Barrowman)
+Recomputed 2026-08 against the corrected F15 curve and the canonical mass stack. Every gram of nose
+ballast costs apogee: the smaller fins it buys never pay back the dead weight.
+
+| Ballast | Fin span for 1.0 cal | Liftoff mass | Apogee |
 |---|---|---|---|
-| **0 g (chosen)** | **72 mm** | **705 g** | **~435 ft** |
-| 60 g | 48.9 mm | 765 g | ~374 ft |
-| 150 g (old) | 40.6 mm | 855 g | ~291 ft |
+| **0 g (chosen)** | **68.7 mm** → flown at **72 mm** for margin | **705 g** | **~429 ft** |
+| 60 g | 55.6 mm | 758 g | ~362 ft |
+| 150 g (old) | 45.0 mm | 844 g | ~273 ft |
+
+The flown fin is 72 mm rather than the 68.7 mm minimum: 68.7 mm sits exactly on the 1.0 cal floor
+with no allowance for build tolerance, and the CG-tolerance sweep (`we4_deepsim.py` D) shows 1.0 cal
+survives only 7 mm of aft CG error. 72 mm buys +1.10 cal nominal and keeps 0.81 cal at the ±20 mm
+build-error limit.
 
 ## Chosen configuration
 | Parameter | Value |
@@ -23,7 +31,10 @@ ballast entirely and size the fins for the **minimum stable margin (1.0 cal)** t
 | Fins | **4 ×**, root 70 / tip 35 / LE-sweep 25 / **span 72 mm**, ASA-Aero 3 mm airfoil (~30 g) |
 | CG / CP / margin | 49.1 cm / 56.8 cm / **+1.10 cal** (stable; ASA nose moved CG aft → 72 mm fins) |
 | Liftoff / T-W | **705 g** / 2.08 avg, 3.66 peak |
-| Apogee (RK4+Barrowman) | **~435 ft @ 6.81 s**; F15-4 ejects +0.64 s past apogee @ ~6.3 m/s |
+| Apogee (RK4+Barrowman) | **~429 ft / 130.8 m @ 6.82 s**; F15-4 ejects t=7.45 s, +0.63 s past apogee @ ~6.1 m/s |
+| v_max / Mach | **36.5 m/s / Mach 0.107** |
+| Rail exit (1.0 m rail) | **6.1 m/s** — below the 15 m/s rule of thumb; see the weathercock discussion below |
+| 35 mm fin (rejected) | **−0.99 cal — UNSTABLE**; 1.0 cal needs ≥68.7 mm, 1.5 cal needs ~91.8 mm |
 
 1.0 cal is the minimum conventionally-stable margin — enough to hold attitude through launch and the
 0.5 s pre-TVC window while leaving the TVC free to maneuver, and the lightest path to maximum apogee.

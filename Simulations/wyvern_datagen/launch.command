@@ -1,5 +1,5 @@
 #!/bin/bash
-# Double-click this file in Finder to open the WYVERN-E 4.0 Simulation & Dataset Suite.
+# Double-click this file in Finder to open the WYVERN-E Simulation & Dataset Suite.
 # It picks the first Python that has a working GUI toolkit (Tk) + numpy.
 cd "$(dirname "$0")" || exit 1
 export TK_SILENCE_DEPRECATION=1

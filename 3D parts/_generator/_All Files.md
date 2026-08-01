@@ -1,15 +1,14 @@
 ---
-updated_at: 2026-07-30
+updated_at: 2026-08-01
 ---
 # _generator — All Files
 
-*Auto-generated index — every file in this folder linked for vault graph connectivity (re-index pass, 2026-07-30).*
+*Auto-generated index — every file and subfolder linked for vault graph connectivity.*
 
 ---
 
-## Linked Items (auto-added)
+## Files
 
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/_generator/__pycache__/_All Files.md]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/_generator/gen_rocket4.py]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/_generator/mass_report.json]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/_generator/wcad.py]]

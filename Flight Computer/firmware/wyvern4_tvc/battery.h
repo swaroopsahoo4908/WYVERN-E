@@ -1,4 +1,4 @@
-// WYVERN-E 4.0 — flight-battery (2S LiPo) ADC voltage monitor.
+// WYVERN-E — flight-battery (2S LiPo) ADC voltage monitor.
 // ===============================================================
 // Power architecture (see ../../CONFLICTS.md section 4): a light 2S LiPo (7.4 V, ~450 mAh) feeds a
 // single 5 V/6 V UBEC (set to 5 V), whose one rail powers Pico 2 W VSYS + camera + both servos

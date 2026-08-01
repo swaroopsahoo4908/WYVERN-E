@@ -1,4 +1,4 @@
-# WYVERN-E 4.0 — Ground Test Stands & Motor Plan
+# WYVERN-E — Ground Test Stands & Motor Plan
 
 ## 1. TVC thrust-vector balance (3-axis; magnetic & servo)
 The actuator under test (magnetic-solenoid gimbal *or* servo gimbal) bolts to a thrust block

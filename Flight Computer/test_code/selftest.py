@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E 4.0 preflight self-test runner.
+"""WYVERN-E preflight self-test runner.
 
 Connects to the Pico 2 W over USB serial, power-cycles or resets are NOT performed by this script
 (reset the board yourself, or it will simply listen to whatever the board is already printing), and
@@ -43,7 +43,7 @@ def main():
     ap.add_argument("--baud", type=int, default=115200)
     args = ap.parse_args()
 
-    print("WYVERN-E 4.0 PREFLIGHT SELF-TEST")
+    print("WYVERN-E PREFLIGHT SELF-TEST")
     print("Reset the Pico now if you haven't already -- BOOT self-test runs once at power-up.\n")
     rc = host_monitor.run(args.port, args.timeout, args.baud)
     print("\n>>> PREFLIGHT GO <<<" if rc == 0 else "\n>>> PREFLIGHT NO-GO -- see FAIL/NOT SEEN rows above <<<")

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E 4.0 — DEEP SIM BATCH  (F15-4 single-stage, servo TVC, ellipsoid nose + 72 mm fins)
+"""WYVERN-E — DEEP SIM BATCH  (F15-4 single-stage, servo TVC, ellipsoid nose + 72 mm fins)
 ================================================================================================
 Second-tier analyses beyond we4_validation.py — the engineering detail behind the GO verdict.
 All use the same vehicle constants / RK4 trajectory as we4_flightsim.py.
@@ -25,16 +25,26 @@ BLU,RED,GRN,ORG,PUR,TEAL="#2a6f97","#bc4749","#386641","#e09f3e","#6d597a","#43a
 g,rho0,a0=9.80665,1.225,343.0
 D=0.070; Rb=D/2; A=np.pi*Rb**2; Ltot=0.74; Lnose=0.12
 m_lift,m_dry,PROP,tb=0.705,0.603,0.060,3.45
-CG=0.467; Xcp=0.537; CN=2.0+ (lambda:0)()  # CN recomputed below
+# CANONICAL values (we4_flightsim.py / wyvern_datagen/core.py). This file previously carried
+# CG=0.467 / Xcp=0.537 -- the pre-ASA-Aero, pre-i3-camera numbers -- so every margin, flutter
+# and CG-tolerance result below was computed against a vehicle that no longer exists.
+CG=0.491; Xcp=0.568; CN=2.0+ (lambda:0)()  # CN recomputed below
 # fin geometry (4x): root cr, tip ct, semispan sp, thick th, sweep sw
-cr,ct,sp,th_fin,sw=0.070,0.035,0.060,0.0020,0.025
+cr,ct,sp,th_fin,sw=0.070,0.035,0.072,0.0030,0.025   # 72 mm span, 3 mm thick (matches 3D parts + .ork)
 Fc_t=np.array([0,0.05,0.12,0.2,0.3,0.5,1,1.5,2,2.5,3,3.3,3.45])
-Fc=np.array([0,12,25.3,22,16,13,12.5,12.2,12,11.8,11.5,7,0]); Fc*=49.6/_TRAPZ(Fc,Fc_t)
+# F15 thrust curve CORRECTED 2026-08. The digitized shape integrated to 41.97 N.s, so the
+# 49.6 N.s renormalization below scaled the whole curve by 1.1817 and pushed peak thrust to
+# 29.9 N -- against Estes' published 25.3 N peak, and against the 3.66 peak T/W quoted
+# throughout this repo (29.9 N gives 4.32). The sustain block (t >= 0.3 s) has been lifted by
+# +2.4408 N so the curve now matches ALL THREE published values simultaneously:
+# total impulse 49.6 N.s, peak 25.3 N, average 14.4 N. The renormalization is retained as a
+# guard (it is now a ~1.0000 no-op) so any future re-digitization still lands on 49.6 N.s.
+Fc=np.array([0, 12, 25.3, 22, 18.441, 15.441, 14.941, 14.641, 14.441, 14.241, 13.941, 9.441, 0]); Fc*=49.6/_TRAPZ(Fc,Fc_t)
 thrust=lambda t: float(np.interp(t,Fc_t,Fc,left=0,right=0)) if 0<=t<=tb else 0.0
 mass=lambda t: max(m_dry,m_lift-(PROP/tb)*min(max(t,0),tb))
 rho=lambda h: rho0*np.exp(-h/8500)
 Cd0=0.539
-def trajectory(cd=Cd0,dt=2e-3):
+def trajectory(cd=Cd0,dt=5e-4):   # 2e-3 -> 5e-4 (2026-08 fidelity pass)
     s=np.array([0.,0.]); t=0.; T=[];H=[];V=[]
     while True:
         def dz(st,tt):
@@ -57,7 +67,7 @@ def Vflutter(G,h):
     num=G
     den=(1.337*AR**3*p*(lam+1))/(2*(AR+2)*tc**3)
     return a0*np.sqrt(num/den)
-alts=np.linspace(0,200,40)
+alts=np.linspace(0,200,160)
 Vf_asa=np.array([Vflutter(G_ASA,h) for h in alts]); Vf_pcfr=np.array([Vflutter(G_PCFR,h) for h in alts])
 flutter_margin=float(Vf_pcfr.min()/vmax)
 res["A_flutter"]=dict(AR=round(AR,2), t_over_c=round(tc,3), v_max_ms=round(vmax,1),
@@ -109,7 +119,7 @@ ax[1].bar(["hold 0.2A","slew 0.7A","per-flight mAh"],[I_hold,I_slew,mAh/10],colo
 fig.tight_layout(); fig.savefig(f"{OUT}/C_servo_duty.png",dpi=130); plt.close()
 
 # ============ D. CG-TOLERANCE STABILITY SWEEP ============
-cg_err=np.linspace(-0.020,0.020,41); marg=(Xcp-(CG+cg_err))/D
+cg_err=np.linspace(-0.020,0.020,161); marg=(Xcp-(CG+cg_err))/D
 worst=float(marg[np.argmin(marg)]); cg_max_aft=float(cg_err[np.argmin(np.abs(marg-1.0))])
 res["D_cg_tol"]=dict(margin_nominal_cal=round((Xcp-CG)/D,2), margin_at_20mm_aft=round(float(marg[-1]),2),
     cg_aft_limit_mm_for_1cal=round(cg_max_aft*1000,1), **{"pass":bool(marg[-1]>=0.5)})
@@ -163,7 +173,7 @@ ax.set_title(f"F · TVC step response — rise {rise:.2f}s, overshoot {overshoot
 ax.grid(alpha=.3); fig.tight_layout(); fig.savefig(f"{OUT}/F_tvc_step.png",dpi=130); plt.close()
 
 # ============ G. DRAG / Cd SENSITIVITY (keep < 1000 ft) ============
-cds=np.linspace(Cd0*0.75,Cd0*1.25,21); aps=[]
+cds=np.linspace(Cd0*0.75,Cd0*1.25,81); aps=[]
 for cd in cds:
     _,Hc,_=trajectory(cd=cd); aps.append(float(Hc.max()))
 aps=np.array(aps)
@@ -175,7 +185,10 @@ ax.set_xlabel("Cd"); ax.set_ylabel("apogee (ft)"); ax.set_title(f"G · Drag sens
 ax.legend(); ax.grid(alpha=.3); fig.tight_layout(); fig.savefig(f"{OUT}/G_drag_sensitivity.png",dpi=130); plt.close()
 
 # ============ H. BATTERY ENDURANCE ============
-pack_mAh=850; I_idle=0.12; I_active_avg=(0.4*0.7+0.6*0.2)*2+0.10   # servos + Pico/sensors
+# Zeee 2S 450 mAh, per the BOM and CONFLICTS.md 4. This was 850 mAh, which is not a pack that
+# appears anywhere in the BOM or the power-tree flowchart.
+pack_mAh=450; I_idle=0.12
+I_active_avg=(0.4*0.7+0.6*0.2)*2+0.10   # servos + Pico/sensors
 flight_s=12; per_flight_mAh=I_active_avg*flight_s/3600*1000 + res["C_servo"]["mAh_per_flight"]*0
 idle_h=2.0; usable=pack_mAh*0.8
 flights=(usable - I_idle*1000*idle_h)/max(per_flight_mAh,1e-3)
@@ -194,7 +207,7 @@ tb_=ax.table(cellText=rows,colLabels=["analysis","result","key numbers"],loc="ce
 tb_.auto_set_font_size(False); tb_.set_fontsize(8.5); tb_.scale(1,1.6)
 for i,(k,v) in enumerate(items,1):
     tb_[(i,1)].set_facecolor(GRN if v.get("pass") else RED); tb_[(i,1)].set_text_props(color="white",fontweight="bold")
-ax.set_title(f"WYVERN-E 4.0 — deep sim batch  [{np_}/{nt} pass]",fontweight="bold")
+ax.set_title(f"WYVERN-E — deep sim batch  [{np_}/{nt} pass]",fontweight="bold")
 fig.tight_layout(); fig.savefig(f"{OUT}/H_summary.png",dpi=130); plt.close()
 
 print(json.dumps(res,indent=2)); print(f"\n{np_}/{nt} deep checks pass -> {OUT}")

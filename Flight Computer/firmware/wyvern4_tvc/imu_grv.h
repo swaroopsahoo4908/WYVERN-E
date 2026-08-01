@@ -1,4 +1,4 @@
-// WYVERN-E 4.0 — tri-IMU (3x BNO085) Game Rotation Vector driver with 2-of-3 voting fault detection.
+// WYVERN-E — tri-IMU (3x BNO085) Game Rotation Vector driver with 2-of-3 voting fault detection.
 // =====================================================================================================
 // Three identical Adafruit BNO085 (BNO080-family) modules, all run in SH2_GAME_ROTATION_VECTOR mode
 // (gyro+accel sensor fusion, NO magnetometer -- a rocket's motor/avionics fields make raw magnetic

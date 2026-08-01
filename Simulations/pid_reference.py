@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E 4.0 — PID reference implementation (matches firmware/wyvern_pid.h exactly).
+"""WYVERN-E — PID reference implementation (matches firmware/wyvern_pid.h exactly).
 Discrete PID: integral-clamp anti-windup + first-order filtered derivative + output clamp.
 
 Flight gains (re-tuned numerically; see ../Documentation/PID_TUNING_REPORT.md):
@@ -7,8 +7,8 @@ Kp=0.10 Ki=0.40 Kd=0.18, out_lim=5° (0.0873 rad), tau_d=0.02 s, i_lim=0.4.
 Selected by sweeping >800 (Kp,Ki,Kd) triples against a linearized pitch plant + 40 ms servo lag +
 2 ms loop delay (Pade-2) at 24 operating points (4 atmospheres x 6 burn-time slices), keeping only
 gains with worst-case phase margin >=30 deg and gain margin >=6 dB at every point, then minimizing
-nonlinear gust-rejection pitch deviation. Worst-case result: PM=33.1 deg, GM=9.3 dB, gust pitch
-deviation 1.36 deg, gimbal usage 1.72 deg (limit +-8 deg). The old Kp=2.0/Ki=0.4/Kd=0.5 gains
+nonlinear gust-rejection pitch deviation. Worst-case result: PM=32.8 deg, GM=9.2 dB, gust pitch
+deviation 1.31 deg, gimbal usage 1.68 deg (limit +-8 deg). The old Kp=2.0/Ki=0.4/Kd=0.5 gains
 fail the margin check (PM=-6.2 deg, GM=-2.0 dB at Cold -15C, t=0.6s) once the loop delay is
 modeled -- this script's nonlinear sim alone doesn't show that because it never modeled the
 delay; the linearized margin analysis is the authoritative check.

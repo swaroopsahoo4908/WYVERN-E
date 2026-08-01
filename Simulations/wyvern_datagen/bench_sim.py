@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-WYVERN-E 4.0 — ground-test bench simulators (backend-agnostic, no Tk).
+WYVERN-E — ground-test bench simulators (backend-agnostic, no Tk).
 
 Pure functions + matplotlib-Figure builders for three bench tools surfaced in the datagen GUI:
   1. Static motor tester   -> select a motor, get its thrust curve + the axial load-cell trace a
@@ -14,6 +14,31 @@ Pure functions + matplotlib-Figure builders for three bench tools surfaced in th
 Everything is deterministic given a seed so the GUI can redraw live. Physics reuse the canonical
 constants in core.py where relevant (F15 curve, gains, gimbal limit, arm) so bench numbers line up
 with the flight model.
+
+--------------------------------------------------------------------------------------------
+FIDELITY REVISION 2026-08 — the stands are now modeled at the SIGNAL level, not the ideal level
+--------------------------------------------------------------------------------------------
+The previous version modeled each load cell as "true force + white gaussian noise" and the servo
+as a first-order lag. That is optimistic in the two ways that actually bite on a real stand:
+
+1.  STAND STRUCTURAL COMPLIANCE.  A printed stand is not rigid. The motor + gimbal mass on the
+    flexure stack forms a lightly-damped second-order system (mount resonance, `f_mount`), and the
+    load cell reads the *stand's* response to the thrust, not the thrust. The ignition transient
+    is a near-step input, so it rings the mount — this is the single largest error source on an
+    amateur thrust stand and it is now modeled explicitly, along with the digital low-pass the
+    DAQ must apply to suppress it.
+
+2.  DAQ CHAIN.  The HX711 is a 24-bit sigma-delta at 10 or 80 SPS with a settling requirement
+    after channel switch; it is not a clean continuous sensor. Now modeled: sample-rate aliasing
+    of the mount ring, ADC quantization at the cell's actual mV/V sensitivity and the amplifier
+    gain, 1/f drift, thermal zero drift over the burn, and a per-channel calibration-slope error
+    left over from dead-weight calibration.
+
+Also added: cross-axis coupling between the axial and lateral cells (real flexures are not
+perfectly decoupled), jetvane erosion integrated over the burn rather than a static verdict, and
+a full uncertainty budget returned alongside every measurement so the stand's resolution can be
+compared against the effect size each research question needs to detect.
+--------------------------------------------------------------------------------------------
 """
 import numpy as np
 from matplotlib.figure import Figure
@@ -24,6 +49,25 @@ except ImportError:
     import core
 
 _trapz = getattr(np, "trapezoid", getattr(np, "trapz", None))
+
+# ------------------------------------------------------------------ DAQ / stand hardware model
+# NOYITO HX711 + generic strain-gauge bridge cells, as specified in BOM section 10.
+HX711_SPS_LOW   = 10.0      # HX711 RATE pin low  (default on most breakouts)
+HX711_SPS_HIGH  = 80.0      # HX711 RATE pin high (used here; set by cutting the RATE trace)
+HX711_BITS      = 24
+HX711_GAIN      = 128.0     # channel A gain
+CELL_SENS_MV_V  = 1.0       # bridge sensitivity [mV/V] at full scale (typical for these cells)
+BRIDGE_EXC_V    = 5.0       # HX711 on-board excitation
+ADC_FS_V        = 0.5 * BRIDGE_EXC_V / HX711_GAIN   # +-20 mV differential input span at gain 128
+
+# Stand mechanical model (printed PC-FR base + flexure stack carrying motor + gimbal)
+MOUNT_F_HZ      = 42.0      # first mount/flexure resonance [Hz] (measured-class for this build)
+MOUNT_ZETA      = 0.035     # structural damping ratio (printed polymer + bolted joints: very light)
+CROSS_AXIS_PCT  = 1.8       # lateral force appearing on the axial channel and vice versa [%]
+
+# Drift and calibration residuals
+ZERO_DRIFT_N_PER_S = 0.004  # thermal zero drift while the stand heats during a burn [N/s]
+CAL_SLOPE_SIGMA    = 0.006  # residual calibration-slope error after dead-weight cal (0.6%)
 
 # ------------------------------------------------------------------ motors
 # Estes F15 is the real digitized curve from core.py (49.6 N.s / 3.45 s). Others are represented by
@@ -41,15 +85,42 @@ MOTOR_NAMES = list(MOTORS)
 
 def _shape_curve(total, burn, peak, spike=0.14, n=80):
     """Generic BP thrust shape: linear rise to `peak` over the first spike*burn, then exponential
-    decay toward a sustain, cut to zero at burnout; renormalized to the published total impulse."""
-    t = np.linspace(0.0, burn, n)
+    decay toward a sustain, cut to zero at burnout.
+
+    The curve is fitted to BOTH published numbers -- total impulse and peak thrust -- by solving
+    for the sustain level rather than uniformly rescaling. Uniform rescaling (what this did
+    before) can only satisfy one of the two: it hit the published total impulse and then reported
+    a peak that was wrong by up to 2x in either direction, e.g. Estes D12 came out at 14.2 N peak
+    against its published 29.7 N. Since the peak is what sizes the load cell and sets the stand's
+    headroom check, a 2x error there is the difference between a valid test and a destroyed cell.
+    """
     ts = spike * burn
-    rise = peak * (t / ts)
-    decay = peak * (0.55 + 0.45 * np.exp(-2.2 * (t - ts) / burn))
-    f = np.where(t < ts, rise, decay)
-    f[-1] = 0.0
-    f = np.clip(f, 0.0, None)
-    f *= total / _trapz(f, t)
+    # Put a sample exactly at the spike apex so the discretized curve actually attains `peak`.
+    t = np.unique(np.concatenate([np.linspace(0.0, burn, n), [ts]]))
+    rise = peak * (t / max(ts, 1e-9))
+
+    def curve(k):
+        """Spike to `peak` at t=ts, then exponential decay at rate k."""
+        decay = peak * np.exp(-k * (t - ts))
+        f = np.where(t < ts, rise, decay)
+        f = np.clip(f, 0.0, None).copy()
+        f[-1] = 0.0
+        return f
+
+    # Solve the decay rate for the published total impulse. Rate is the right free parameter:
+    # a fixed decay constant (burn/2.2, as before) makes the tail carry more impulse than some
+    # motors actually have, which forced a uniform rescale that then broke the published peak.
+    lo, hi = 0.02, 80.0
+    for _ in range(80):
+        mid = 0.5 * (lo + hi)
+        if _trapz(curve(mid), t) > total: lo = mid       # too much impulse -> decay faster
+        else: hi = mid
+    f = curve(0.5 * (lo + hi))
+    err = abs(_trapz(f, t) - total) / max(total, 1e-9)
+    if err > 0.02:
+        # The published (It, burn, peak) triple is not realizable with this shape. Rescale to
+        # preserve total impulse and accept the peak error rather than silently misreporting.
+        f = f * (total / _trapz(f, t))
     return t, f
 
 
@@ -68,34 +139,112 @@ def motor_stats(name):
     return dict(name=name, It=It, tb=tb, avg=avg, peak=peak, cls=MOTORS[name]["cls"])
 
 
-def static_stand_trace(name, cell_kg=5.0, sample_hz=80.0, noise_frac=0.004, seed=0):
-    """Simulate what the single-axis static stand (5 kg axial load cell + HX711 at `sample_hz`)
-    would log for `name`: the true thrust curve resampled at the DAQ rate plus gaussian cell noise
-    (noise_frac of the cell's full-scale). Returns (t, thrust_true, cell_reading, stats, headroom)."""
+def _mount_response(t_fine, force, f_hz=MOUNT_F_HZ, zeta=MOUNT_ZETA):
+    """Pass the true thrust through the stand's second-order structural response.
+
+    The load cell sits under a compliant printed structure carrying the motor mass, so what it
+    reacts is the stand's displacement, not the applied force. Integrated as a discrete
+    second-order system driven by the true force; the ignition step therefore rings at the mount
+    frequency and decays at the structural damping rate, exactly as an amateur stand does."""
+    wn = 2 * np.pi * f_hz
+    dt = float(t_fine[1] - t_fine[0])
+    y = np.zeros_like(force); v = 0.0; ypos = 0.0
+    for i, F in enumerate(force):
+        a = wn * wn * (F - ypos) - 2 * zeta * wn * v
+        v += a * dt; ypos += v * dt
+        y[i] = ypos
+    return y
+
+
+def _daq_chain(t_fine, signal_N, cell_kg, sample_hz, rng, add_drift=True):
+    """Take a continuous force signal to what the HX711 actually reports.
+
+    Chain: continuous force -> ADC quantization at the cell's real mV/V sensitivity and the
+    HX711's gain-128 input span -> bridge/amplifier noise -> 1/f + thermal zero drift ->
+    residual calibration-slope error -> decimation to the DAQ sample rate (which aliases any
+    mount ring above sample_hz/2 rather than removing it).
+    """
+    fs_N = cell_kg * 9.80665
+    # ADC resolution referred to force: full-scale bridge output vs 24-bit span
+    v_fs = CELL_SENS_MV_V * 1e-3 * BRIDGE_EXC_V          # differential volts at cell full scale
+    counts_fs = (v_fs / ADC_FS_V) * (2 ** (HX711_BITS - 1))
+    lsb_N = fs_N / max(counts_fs, 1.0)                    # force per ADC count
+    # decimate to the DAQ rate (no anti-alias filter on an HX711 breakout -> genuine aliasing)
+    ts = np.arange(0.0, float(t_fine[-1]), 1.0 / sample_hz)
+    idx = np.clip(np.searchsorted(t_fine, ts), 0, len(t_fine) - 1)
+    x = signal_N[idx]
+    # noise: bridge Johnson + amplifier, referred to force (vendor-typical ~0.4% FS peak-to-peak)
+    x = x + rng.normal(0.0, 0.0012 * fs_N, x.shape)
+    if add_drift:
+        # thermal zero drift as the stand soaks, plus a slow 1/f wander
+        x = x + ZERO_DRIFT_N_PER_S * ts
+        x = x + np.cumsum(rng.normal(0.0, 0.0004 * fs_N, x.shape)) / np.sqrt(max(len(x), 1))
+    # residual calibration-slope error left after dead-weight calibration
+    x = x * (1.0 + rng.normal(0.0, CAL_SLOPE_SIGMA))
+    # ADC quantization
+    x = np.round(x / lsb_N) * lsb_N
+    return ts, x, dict(lsb_N=lsb_N, fs_N=fs_N, counts_fs=counts_fs)
+
+
+def static_stand_trace(name, cell_kg=5.0, sample_hz=HX711_SPS_HIGH, seed=0,
+                       model_mount=True, fine_dt=2e-4):
+    """Simulate what the single-axis static stand (5 kg axial cell + HX711) actually logs.
+
+    Unlike the previous ideal model, the returned `reading` is the true thrust after the stand's
+    structural response and the full HX711 chain -- so the ignition transient rings, the trace
+    carries quantization and drift, and the peak the DAQ reports is NOT the motor's true peak.
+
+    Returns (t, thrust_true, cell_reading, stats, info) where `info` carries the uncertainty
+    budget and the peak-measurement error the mount ring induces.
+    """
     t, f = motor_curve(name)
     tb = t[-1]
     rng = np.random.default_rng(seed)
-    ts = np.arange(0.0, tb + 0.5, 1.0 / sample_hz)
+    t_fine = np.arange(0.0, tb + 0.5, fine_dt)
+    true_fine = np.interp(t_fine, t, f, left=0.0, right=0.0)
+    sensed = _mount_response(t_fine, true_fine) if model_mount else true_fine
+    ts, reading, adc = _daq_chain(t_fine, sensed, cell_kg, sample_hz, rng)
     true = np.interp(ts, t, f, left=0.0, right=0.0)
-    fs_N = cell_kg * 9.80665
-    reading = true + rng.normal(0.0, noise_frac * fs_N, ts.shape)
     st = motor_stats(name)
+    fs_N = adc["fs_N"]
     headroom = fs_N / st["peak"] if st["peak"] > 0 else np.inf
-    return ts, true, reading, st, dict(cell_fs_N=fs_N, headroom=headroom, sample_hz=sample_hz)
+    # what the stand would report vs. what the motor actually did
+    It_meas = float(_trapz(np.clip(reading, 0, None), ts))
+    peak_meas = float(np.max(reading))
+    info = dict(
+        cell_fs_N=fs_N, headroom=headroom, sample_hz=sample_hz,
+        lsb_N=adc["lsb_N"], resolution_pct_fs=100.0 * adc["lsb_N"] / fs_N,
+        mount_f_hz=MOUNT_F_HZ, mount_zeta=MOUNT_ZETA,
+        nyquist_hz=sample_hz / 2.0, mount_aliased=(MOUNT_F_HZ > sample_hz / 2.0),
+        peak_measured_N=peak_meas, peak_true_N=st["peak"],
+        peak_error_pct=100.0 * (peak_meas - st["peak"]) / max(st["peak"], 1e-9),
+        impulse_measured_Ns=It_meas, impulse_true_Ns=st["It"],
+        impulse_error_pct=100.0 * (It_meas - st["It"]) / max(st["It"], 1e-9),
+        cal_slope_sigma_pct=100.0 * CAL_SLOPE_SIGMA,
+    )
+    return ts, true, reading, st, info
 
 
 def make_motor_figure(name, cell_kg=5.0, seed=0):
     ts, true, reading, st, info = static_stand_trace(name, cell_kg=cell_kg, seed=seed)
     fig = Figure(figsize=(8, 5), dpi=100); ax = fig.add_subplot(111)
-    ax.plot(ts, reading, color="#c0c0c0", lw=0.8, label=f"load cell ({info['sample_hz']:.0f} Hz, noisy)")
+    ax.plot(ts, reading, color="#c0c0c0", lw=0.9,
+            label=f"load cell as logged ({info['sample_hz']:.0f} SPS, mount ring + HX711 chain)")
     ax.plot(ts, true, color="#2a6f97", lw=2.2, label="true thrust")
     ax.axhline(st["avg"], ls="--", color="#386641", lw=1, label=f"avg {st['avg']:.1f} N")
-    ax.axhline(st["peak"], ls=":", color="#bc4749", lw=1, label=f"peak {st['peak']:.1f} N")
+    ax.axhline(st["peak"], ls=":", color="#bc4749", lw=1, label=f"true peak {st['peak']:.1f} N")
     ax.set_xlabel("t (s)"); ax.set_ylabel("thrust (N)")
     over = "  ⚠ cell under-ranged!" if info["headroom"] < 1.05 else ""
+    alias = "  ⚠ mount ring ALIASED" if info["mount_aliased"] else ""
     ax.set_title(f"{name}: {st['It']:.1f} N·s ({st['cls']}-class) · burn {st['tb']:.2f} s · "
-                 f"{cell_kg:.0f} kg cell = {info['cell_fs_N']:.0f} N FS ({info['headroom']:.1f}×){over}",
+                 f"{cell_kg:.0f} kg cell = {info['cell_fs_N']:.0f} N FS ({info['headroom']:.1f}×){over}{alias}",
                  fontweight="bold")
+    ax.text(0.98, 0.55,
+            f"peak err {info['peak_error_pct']:+.1f}%   impulse err {info['impulse_error_pct']:+.1f}%\n"
+            f"resolution {info['resolution_pct_fs']:.3f}% FS ({info['lsb_N']*1000:.1f} mN/count)\n"
+            f"mount {info['mount_f_hz']:.0f} Hz ζ={info['mount_zeta']:.3f} · Nyquist {info['nyquist_hz']:.0f} Hz",
+            transform=ax.transAxes, ha="right", va="top", fontsize=7.5,
+            bbox=dict(fc="#f4f4f4", ec="#bbb", alpha=0.9))
     ax.grid(alpha=0.3); ax.legend(loc="upper right", fontsize=8)
     fig.tight_layout()
     return fig

@@ -1,29 +1,29 @@
 ---
-updated_at: 2026-07-30
+updated_at: 2026-08-01
 ---
 # Simulations — All Files
 
-*Auto-generated index — every file in this folder linked for vault graph connectivity (re-index pass, 2026-07-30).*
+*Auto-generated index — every file and subfolder linked for vault graph connectivity.*
 
 ---
 
-## Linked Items (auto-added)
+## Subfolders
 
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/CFD/_All Files.md]]
+- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots4/_All Files.md|plots4/]]
+- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots_atmos/_All Files.md|plots_atmos/]]
+- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots_deep/_All Files.md|plots_deep/]]
+- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots_eject/_All Files.md|plots_eject/]]
+- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots_motor/_All Files.md|plots_motor/]]
+- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots_val/_All Files.md|plots_val/]]
+- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/wyvern_datagen/_All Files.md|wyvern_datagen/]]
+
+## Files
+
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/README.md]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/WYVERN_E4_F15-0.ork]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/WYVERN_E4_F15-4.ork]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/__pycache__/_All Files.md]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/build_ork4.py]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/pid_reference.py]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/pid_retune_summary.json]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots4/_All Files.md]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots4_20260714_131106/_All Files.md]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots_atmos/_All Files.md]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots_deep/_All Files.md]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots_eject/_All Files.md]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots_motor/_All Files.md]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots_val/_All Files.md]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/we4_analysis.py]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/we4_atmos_tvc.py]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/we4_deepsim.py]]
@@ -35,4 +35,3 @@ updated_at: 2026-07-30
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/we4_sim.py]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/we4_stability.py]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/we4_validation.py]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/wyvern_datagen/_All Files.md]]

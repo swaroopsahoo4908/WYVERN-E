@@ -1,13 +1,13 @@
 ---
-updated_at: 2026-07-30
+updated_at: 2026-08-01
 ---
 # TVC Thrust-Vector Balance — All Files
 
-*Auto-generated index — every file in this folder linked for vault graph connectivity (re-index pass, 2026-07-30).*
+*Auto-generated index — every file and subfolder linked for vault graph connectivity.*
 
 ---
 
-## Linked Items (auto-added)
+## Files
 
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Motor Test Stand/TVC Thrust-Vector Balance/TVC_balance_base.step]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Motor Test Stand/TVC Thrust-Vector Balance/TVC_balance_base.stl]]

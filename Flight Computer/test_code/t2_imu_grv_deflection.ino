@@ -1,4 +1,4 @@
-// WYVERN-E 4.0 · T2 — BNO085 Game Rotation Vector + gimbal deflection (q_body^-1 ⊗ q_gimbal) on Pico 2 W.
+// WYVERN-E · T2 — BNO085 Game Rotation Vector + gimbal deflection (q_body^-1 ⊗ q_gimbal) on Pico 2 W.
 // gimbal = I2C1 (Wire1, dedicated); body = I2C0 behind PCA9548A mux ch0. Core TVC sensing test.
 #include <Wire.h>
 #include <Adafruit_BNO08x.h>

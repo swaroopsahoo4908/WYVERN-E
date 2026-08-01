@@ -1,4 +1,4 @@
-// WYVERN-E 4.0 — barometric altitude driver: BME688 (mux ch2, 0x76) + BMP388 (mux ch3, 0x77).
+// WYVERN-E — barometric altitude driver: BME688 (mux ch2, 0x76) + BMP388 (mux ch3, 0x77).
 // =================================================================================================
 // Two independent baro sources behind the PCA9548A mux on I2C0, matching t4_sensors_sdlog.ino's
 // wiring exactly. Both are read every cycle on core 1 (baro is not control-loop-critical at 500 Hz;
@@ -65,7 +65,7 @@ public:
 
   // Barometric altitude above the BOOT-time pad datum, meters. Standard hypsometric approximation
   // (ISA, valid for the few-hundred-meter altitudes this vehicle flies -- see Stability_FinSizing.md
-  // apogee ~435 ft / 133 m).
+  // apogee ~429 ft / 130.8 m).
   float altitude_agl_m() const {
     float p = pressure_hpa();
     if (!isfinite(p) || !isfinite(datum_hpa_) || datum_hpa_ <= 0.0f) return NAN;

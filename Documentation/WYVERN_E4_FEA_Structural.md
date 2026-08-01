@@ -1,4 +1,4 @@
-# WYVERN-E 4.0 — Structural & Thermal Analysis (first-order FEA)
+# WYVERN-E — Structural & Thermal Analysis (first-order FEA)
 
 *First-order analytical margins from `../Simulations/we4_analysis.py` → `plots4/08_fea_loads.png`,
 `09_thermal.png`. A 25 N motor on a 70 mm tube is handling/print-limited, not load-limited.*

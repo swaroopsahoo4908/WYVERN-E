@@ -1,4 +1,4 @@
-# WYVERN-E 4.0 — Component Compatibility Audit
+# WYVERN-E — Component Compatibility Audit
 
 **Scope:** Every I2C, SPI, PWM, ADC, and power pairing across the flight computer (Raspberry Pi Pico 2 W / RP2350, `wyvern4_tvc.ino` + headers) and the ground-test rig (3-axis TVC balance harness + static thrust stand), cross-checked against the BOM part list and the frozen pin map in `Documentation/CONFLICTS.md` §5.
 
@@ -88,7 +88,7 @@ The BOM lists three NOYITO HX711 load-cell amplifiers on the balance rig (5 kg a
 
 ### 3. Flight TVC servos (GP14 pitch / GP15 yaw) — PASS
 
-`wyvern4_tvc.ino`: `#define PIN_SERVO_P 14 // pitch servo (PWM)`, `#define PIN_SERVO_Y 15 // yaw servo (PWM)`, driven through the Arduino-Pico `Servo` library (`g_servo_pitch.attach(PIN_SERVO_P)`), with commands clamped to `SERVO_NEUTRAL_DEG +/- 8.0 deg` (via `wyvern_pid.h OUT_LIM_DEG=8.0`) before being written — matching the CONFLICTS.md frozen value (`Output (gimbal) limit +/-8.0 deg`, raised 5->8 for wind/weathercock authority) and the EMAX ES08MA II's mechanical/electrical rating as a standard-PWM analog micro servo (~2.0 kg·cm at 6 V, well above the ~0.9 kg·cm gimbal demand). Two independent RP2350 PWM slices, no pin sharing, no conflict. **Verdict PASS.**
+`wyvern4_tvc.ino`: `#define PIN_SERVO_P 14 // pitch servo (PWM)`, `#define PIN_SERVO_Y 15 // yaw servo (PWM)`, driven through the Arduino-Pico `Servo` library (`g_servo_pitch.attach(PIN_SERVO_P)`), with commands clamped to `SERVO_NEUTRAL_DEG +/- 8.0 deg` (via `wyvern_pid.h OUT_LIM_DEG=8.0`) before being written — matching the CONFLICTS.md frozen value (`Output (gimbal) limit +/-8.0 deg`, raised 5->8 for wind/weathercock authority) and the EMAX ES08MA II's mechanical/electrical rating as a standard-PWM analog micro servo (~2.0 kg·cm at 6 V, well above the ~0.56 kg·cm gimbal demand). Two independent RP2350 PWM slices, no pin sharing, no conflict. **Verdict PASS.**
 
 ### 3b. Ground-rig solenoid actuator (50N 12V solenoids x2 via IRF520, "Actuator A" swap-in) — CAUTION
 
@@ -142,7 +142,7 @@ represented across `gen_wiring4.py`, `gen_connected_sch.py`, and the power-tree 
 - **2S LiPo -> arming switch/fuse -> 5 V UBEC -> single +5V rail -> Pico VSYS + camera + 2 servos.**
   Every load is inside its input range: Pico VSYS 1.8–5.5 V, servos 4.8–6 V (run at 5 V), camera 5 V.
   One UBEC and one rail — a separate 6 V servo BEC isn't needed since 5 V gives the servos ~1.8 kg·cm,
-  well above the ~0.9 kg·cm demand.
+  well above the ~0.56 kg·cm demand.
 - **Shared-rail decoupling is mandatory** (the one real trade of a single rail): run the servo feed and
   the VSYS feed as separate star runs off the UBEC output, put **1000 µF** low-ESR bulk across the
   servo V+/GND at the servos, **100 µF** at VSYS, and an **SS34 Schottky** from rail → VSYS as a
@@ -178,7 +178,7 @@ RP2350 parts, native-compatible with the HX711 DT/SCK lines and STEMMA-QT I2C at
 
 ### 6b. Ground-rig GPIO budget under a Pico substitution — CAUTION, provisional
 
-If the ground rig is redesigned around a Raspberry Pi Pico (per the deliverable spec) rather than the BOM's Nano, a first-pass GPIO budget (the Pico/Pico 2 W has 26 usable GPIO pins, as WYVERN-E4's own flight design already relies on):
+If the ground rig is redesigned around a Raspberry Pi Pico (per the deliverable spec) rather than the BOM's Nano, a first-pass GPIO budget (the Pico/Pico 2 W has 26 usable GPIO pins, as WYVERN-E's own flight design already relies on):
 
 | Function | GPIO pins consumed |
 |---|---|
@@ -206,4 +206,4 @@ Without the VL53L4CD ring, a Pico-based ground rig fits with wide GPIO margin (1
 
 ---
 
-*Audit compiled from static review of the provided WYVERN-E 4.0 firmware/wiring/documentation bundle and the given BOM. No physical hardware was measured; all "PASS" verdicts reflect internal design/documentation consistency, not bench validation.*
+*Audit compiled from static review of the provided WYVERN-E firmware/wiring/documentation bundle and the given BOM. No physical hardware was measured; all "PASS" verdicts reflect internal design/documentation consistency, not bench validation.*

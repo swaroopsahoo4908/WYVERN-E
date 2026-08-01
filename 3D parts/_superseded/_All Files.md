@@ -1,13 +1,13 @@
 ---
-updated_at: 2026-07-30
+updated_at: 2026-08-01
 ---
 # _superseded — All Files
 
-*Auto-generated index — every file in this folder linked for vault graph connectivity (re-index pass, 2026-07-30).*
+*Auto-generated index — every file and subfolder linked for vault graph connectivity.*
 
 ---
 
-## Linked Items (auto-added)
+## Files
 
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/_superseded/01_nose_cone_PCFR.step]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/_superseded/01_nose_cone_PCFR.stl]]

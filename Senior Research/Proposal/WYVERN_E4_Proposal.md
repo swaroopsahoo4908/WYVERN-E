@@ -1,10 +1,10 @@
-# WYVERN-E 4.0 — Research Proposal
+# WYVERN-E — Research Proposal
 
 ### A Skylight Rocketry Venture · 70 mm Single-Stage Servo-TVC Sustainer
 ##### Allison Hong · Chris Liu · Swaroop K. Sahoo
 
 ## Executive Summary
-WYVERN-E 4.0 is a 70 mm, single-stage, **3D-printed active-thrust-vector-control (TVC)** research
+WYVERN-E is a 70 mm, single-stage, **3D-printed active-thrust-vector-control (TVC)** research
 rocket that demonstrates closed-loop flight stabilization on a bare-metal **Raspberry Pi Pico 2 W (RP2350)** flight
 computer, powered by the **Estes F15-4**. It carries four 72 mm fins (no ballast) for
 **passive stability during launch and the F15 ignition spike**, after which (t ≥ 0.5 s) the TVC loop
@@ -12,8 +12,9 @@ engages on the smooth portion of the thrust curve to stabilize and execute a com
 two candidate TVC actuators — a tri-solenoid *magnetic* gimbal and a *servo* gimbal — are compared
 quantitatively on a purpose-built **3-axis thrust-vector balance** that resolves both thrust
 magnitude and vector direction; the flight vehicle carries the servo system. The program retains the
-WYVERN aerofoil wind-tunnel (RQ1/RQ2) and static motor/materials test regimens. All flights are FAA
-Class-1 (no waiver, no certification). Predicted apogee ≈ 435 ft; project cost ≈ $1,882.
+static motor/materials test regimen; the aerofoil wind-tunnel campaign was removed in 2026-08 and its
+aerodynamic question is now answered analytically and validated in flight (RQ3). All flights are FAA
+Class-1 (no waiver, no certification). Predicted apogee ≈ 429 ft; project cost ≈ $1,725.
 
 ## 1. Background & Motivation
 ### 1.1 Thrust vector control
@@ -34,12 +35,16 @@ hand authority to a closed-loop TVC system on the smooth thrust curve — and th
 magnetic vs servo gimbals can be measured directly on the ground before flight.*
 
 ## 2. Research Questions
-| # | Question | Method | Primary metric |
-|---|---|---|---|
-| RQ1 | Aerofoil lift/drag & deflection behaviour | Hofferth wind tunnel, 0.5° sweeps | Cl, Cd, Cl/Cd vs α |
-| RQ2 | Print-material flame/erosion as jetvane candidates | F15-0 plume on static stand + deflector | mass-loss, char depth |
-| RQ3 | Magnetic vs servo TVC (ground) | 3-axis thrust-vector balance | bandwidth, slew, overshoot, SSE, max vector angle |
-| RQ4 | Closed-loop flight stabilization + maneuver | onboard log, up to 4 flights | pitch error, gimbal track, recovery |
+Numbering matches `WYVERN_E4_Proposal_rev2.md` §2 (canonical). The wind tunnel and the airfoil-CFD
+package were removed from the program in 2026-08; the aerofoil-polar question they served is replaced
+by RQ3 below, which is answered analytically and validated in flight.
+
+| # | Question | Method A | Method B | Primary metric |
+|---|---|---|---|---|
+| RQ1 | Magnetic vs servo TVC actuation | 3-axis thrust-vector balance, F15-0 | bench signal model + SIL | bandwidth, slew, overshoot, SSE, max vector angle |
+| RQ2 | Zoned print-material structure + jetvane erosion | 3-point bend coupons; F15-0 plume on static stand + deflector | lumped-capacitance thermal + first-order FEA | flexural stiffness, mass-loss, char depth, HDT margin |
+| RQ3 | Predicted vs in-situ passive stability | Barrowman CP/CN + RK4 dispersion | flight-telemetry reconstruction of margin and coast Cd | Δ static margin (cal), Δ Cd |
+| RQ4 | Closed-loop gain sensitivity in flight | 24-point phase/gain-margin sweep + Monte Carlo | onboard log, up to 4 flights | pitch error, gimbal track, PM/GM, recovery |
 
 ## 3. Vehicle Architecture
 ### 3.1 Configuration & mass budget
@@ -67,7 +72,7 @@ magnetic vs servo gimbals can be measured directly on the ground before flight.*
 An apogee sweep shows ballast lowers altitude, so we use **no ballast** and size fins to the minimum stable 1.0 cal: 4 × 72 mm fins → CP 56.8 cm, CG 49.1 cm = **+1.10 cal**
 static margin (stable). This passive margin holds the vehicle through launch and the F15 ignition
 spike; the TVC controller is **inhibited until t = 0.5 s**, then engages on the smooth curve. A
-finless variant (margin −5.6 cal) was rejected because it is statically unstable and cannot survive
+historical finless variant (margin −5.6 cal) was rejected because it is statically unstable and cannot survive
 the pre-TVC transient.
 
 ### 3.4 Structural & thermal margins
@@ -84,7 +89,7 @@ flight regime; engine-bay thermal margin to PC-FR HDT > 70 °C.
 | Estes E16-4 | ~16 N avg | stand commissioning | 6 |
 
 ### 4.2 Predicted performance (unified RK4 + Barrowman, `we4_flightsim.py`)
-T/W 2.08 avg / 3.66 peak; Cd 0.54; burnout 3.45 s, ~75 m, ~36 m/s; **apogee ~435 ft @ 6.81 s**; deploy
+T/W 2.08 avg / 3.66 peak; Cd 0.54; burnout 3.45 s, ~75 m, ~36 m/s; **apogee ~429 ft @ 6.82 s**; deploy
 forced t = 4.0 s @ ~29 m/s; 18″ chute → ~6 m/s descent. Dispersion (±5 % mass, ±15 % Cd): see
 `plots4/06_dispersion.png`.
 
@@ -118,7 +123,7 @@ recovery bay to release a friction-fit nose — **no RRC3+, no 9 V, no e-match/B
 involvement**. Feasibility (`we4_ejection_feasibility.py`): tube loss ≈ 0.06 kPa; bay pressurizes to
 ~140 kPa vs a 14–41 kPa nose-release threshold = **3.4× margin**. F15-4 is the closest Estes delay
 to the ~3.5 s coast optimum (F15-6/-8 eject 2.5 s/4.5 s late, too fast/low). Single passive event,
-no electronic backup. Opening at ~6.5 m/s; 1/8″ Kevlar cord (> 800× margin) + Nomex protector; 18″
+no electronic backup. Opening at ~6.1 m/s; 1/8″ Kevlar cord (> 800× margin) + Nomex protector; 18″
 chute → ~6 m/s.
 
 ## 7. Ground Test Program
@@ -131,9 +136,12 @@ Axial cell + steel deflector: validates the F15-0 curve and screens jetvane mate
 ### 7.3 Motor & calibration plan
 Load cells dead-weight calibrated, then commissioned with **6 × E16-4** (3 per stand). Counts: F15-4 ×4 (flight), F15-0 ×13 (ground), E16-4 ×6.
 
-## 8. Wind Tunnel (RQ1/RQ2)
-Hofferth modular STEM tunnel with the AC Infinity Cloudline A8 (724 CFM) for force-capable
-test-section velocity; fin articles on the Gridfinity strut/sting and sidewall half-span mounts.
+## 8. Simulation Suite (RQ3/RQ4 Method A)
+RK4 + Barrowman trajectory with componentwise drag buildup, power-law wind shear, and Monte Carlo
+dispersion over the atmospheric and build-tolerance envelope; 500 Hz closed-loop pitch model with
+servo lag, transport delay, and Dryden-spectrum gust forcing; phase/gain-margin sweep across the
+burn-time × atmosphere grid; and a software-in-the-loop flight computer writing logs in the onboard
+recorder's schema. See `Simulations/README.md`.
 
 ## 9. Safety & Regulatory
 Single F15-4: 49.6 N·s, 60 g propellant, ≤ F class, liftoff 705 g < 1500 g → **FAA Class-1, no waiver,
@@ -141,8 +149,10 @@ no Level-1 certification**. Remote ignition, ≥ 3 m standoff on the stands, gim
 motor-integral ejection (igniter installed at the pad; no electronic ejection circuit to arm or inhibit).
 
 ## 10. Budget
-≈ **$1,882** total program spend (vehicle + 3-axis balance + static/materials stand + wind tunnel +
-one-time tools + all motors): $1,403 still to buy + $479 already acquired, with live links in
+≈ **$1,725** total program spend (vehicle + 3-axis balance + static/materials stand + one-time tools
++ all motors): $1,246 still to buy + $479 already acquired. This is down from the $1,882 originally
+scoped; the Hofferth wind tunnel section was deleted from the BOM in the 2026-08 scope change. Live
+per-line pricing in
 `Documentation/WYVERN_E4_BOM.xlsx`. Per-flight consumable ≈ F15-4 $17 (integral delay/ejection; no
 separate initiator or BP charge).
 
@@ -151,28 +161,27 @@ separate initiator or BP charge).
 |---|---|---|
 | Print + assemble | 1–3 | airframe, gimbal, both stands |
 | Bench bring-up | 4 | self-test all-PASS, control loop dry-run |
-| TVC balance A/B (RQ3) | 5–6 | magnetic vs servo dataset |
+| TVC balance A/B (RQ1) | 5–6 | magnetic vs servo dataset |
 | Static fires + jetvane (RQ2) | 7 | thrust-curve + material ranking |
-| Wind tunnel (RQ1) | 8–9 | aerofoil polars |
-| Flight tests (RQ4) | 10–11 | up to 4 flights, onboard logs |
+| Sim + margin analysis (RQ3/RQ4) | 8–9 | dispersion, PM/GM sweep, SIL |
+| Flight tests (RQ3/RQ4) | 10–11 | up to 4 flights, onboard logs |
 | Analysis + paper | 12–14 | results, paper |
 
 ## 12. Risk Register
 | Risk | Likelihood | Mitigation |
 |---|---|---|
-| Pre-TVC instability | Med | fins + ballast (+1.5 cal); TVC inhibit 0.5 s |
+| Pre-TVC instability | Med | 4× 72 mm fins, no ballast (+1.10 cal at liftoff); TVC inhibit 0.5 s |
 | Servo slew too slow | Med | bench-verify on balance before flight; fast digital micro |
-| Hard 19 m/s deploy | Low | Kevlar > 60× margin, elastic leader, ground-tested charge |
+| Hard deploy at ~6.1 m/s (motor ejection, +0.63 s past apogee) | Low | Kevlar harness >800× margin, Nomex protector, ground-tested charge |
 | Launch-detect miss at low T/W | Low | tune arming alt; verify on 2.2 g spike |
 | Camera/SD throughput | Low | self-contained i3 4K Thumb Action Camera (decoupled from FC) |
 
 ## 13. Expected Outcomes & Deliverables
-A flight-validated small TVC vehicle; a quantitative magnetic-vs-servo TVC dataset; aerofoil polars
-and jetvane material rankings; full open documentation (CAD, firmware, wiring, sims) and a research
-paper.
+A flight-validated small TVC vehicle; a quantitative magnetic-vs-servo TVC dataset; a quantified
+accuracy bound on Barrowman-class stability prediction versus flight telemetry; jetvane material
+rankings; full open documentation (CAD, firmware, wiring, sims) and a research paper.
 
 ## References
-Hofferth, J. *Modular Wind Tunnel for STEM Education*, AIAA SCITECH 2025, doi:10.2514/6.2025-2560.
 Barrowman, J. *The Practical Calculation of the Aerodynamic Characteristics of Slender Finned
 Vehicles*, NASA, 1967. Box, J. (BPS.space) *Signal/Echo* TVC flight series. NAR/Tripoli Model Rocket
 Safety Codes. Bosch Sensortec BNO085 datasheet; Raspberry Pi RP2350 / Pico 2 W datasheet.

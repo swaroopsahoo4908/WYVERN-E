@@ -1,4 +1,4 @@
-# WYVERN-E 4.0 — Camera Solution
+# WYVERN-E — Camera Solution
 
 ## The problem
 The OV2640 over SPI (ArduCAM-style) cannot sustain 720p30 — SPI readout caps it at roughly VGA/SVGA
@@ -15,7 +15,7 @@ runs on **its own battery** and records to **its own microSD**, wholly independe
   down. Chosen over a ~10 g RunCam Thumb-class cam purely on cost.
   ⚠ **Mass note (folded into the flight numbers):** the i3 is ~26 g heavier than the ~10 g thumb-cam
   the budget originally assumed. This has been **carried through the whole cascade** — FC bay 96 → 122 g,
-  liftoff 679 → **705 g**, apogee 471 → **435 ft**, T/W 2.16/3.80 → **2.08/3.66**. Because the camera
+  liftoff 679 → **705 g**, apogee 471 → **429 ft**, T/W 2.16/3.80 → **2.08/3.66**. Because the camera
   sits at ~0.42 m (forward of the 0.49 m CG), the aft-CG shift is *favourable*: static margin rises
   from 1.04 to **1.10 cal** (more stable). Net: a small altitude/TWR cost for the cheaper camera, with
   a slight stability *gain*.

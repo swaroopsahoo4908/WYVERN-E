@@ -4,17 +4,17 @@ def mc(name,off,mass,frm="top"): return f'<masscomponent><name>{name}</name><id>
 FINS=f'''<trapezoidfinset><name>Stabilizing fins (ASA-Aero, 4x 72mm)</name><id>{uuid.uuid4()}</id>
 <instancecount>4</instancecount><fincount>4</fincount><radiusoffset method="surface">0.0</radiusoffset><angleoffset method="relative">0.0</angleoffset><rotation>0.0</rotation>
 <axialoffset method="bottom">0.0</axialoffset><position type="bottom">0.0</position><finish>normal</finish>
-<material type="bulk" density="1250.0">PC-FR</material><thickness>0.003</thickness><crosssection>airfoil</crosssection><cant>0.0</cant>
+<material type="bulk" density="650.0">ASA-Aero</material><thickness>0.003</thickness><crosssection>airfoil</crosssection><cant>0.0</cant>
 <filletradius>0.0</filletradius><rootchord>0.070</rootchord><tipchord>0.035</tipchord><sweeplength>0.025</sweeplength><height>0.072</height></trapezoidfinset>'''
 cfg=str(uuid.uuid4())
 xml=f'''<?xml version='1.0' encoding='utf-8'?>
 <openrocket version="1.9" creator="OpenRocket 23.09"><rocket>
-<name>WYVERN-E 4.0 70mm Single-Stage F15-4 TVC (ellipsoid nose, finned 72mm no-ballast, 1.0 cal)</name><id>{uuid.uuid4()}</id>
+<name>WYVERN-E 70mm Single-Stage F15-4 TVC (ellipsoid nose, finned 72mm no-ballast, 1.0 cal)</name><id>{uuid.uuid4()}</id>
 <axialoffset method="absolute">0.0</axialoffset><position type="absolute">0.0</position>
 <motorconfiguration configid="{cfg}" default="true"><stage number="0" active="true"/></motorconfiguration>
 <referencetype>maximum</referencetype><subcomponents><stage><name>Sustainer</name><id>{uuid.uuid4()}</id><subcomponents>
 <nosecone><name>Nose (ASA-Aero)</name><id>{uuid.uuid4()}</id><overridemass>0.021</overridemass><overridesubcomponentsmass>false</overridesubcomponentsmass><finish>normal</finish>
-<material type="bulk" density="1250.0">PC-FR</material><length>0.120</length><thickness>0.0016</thickness><shape>ellipsoid</shape><shapeclipped>false</shapeclipped><shapeparameter>1.0</shapeparameter>
+<material type="bulk" density="650.0">ASA-Aero</material><length>0.120</length><thickness>0.0016</thickness><shape>ellipsoid</shape><shapeclipped>false</shapeclipped><shapeparameter>1.0</shapeparameter>
 <aftradius>0.035</aftradius><aftshoulderradius>0.033</aftshoulderradius><aftshoulderlength>0.03</aftshoulderlength><aftshoulderthickness>0.0015</aftshoulderthickness><aftshouldercapped>false</aftshouldercapped><isflipped>false</isflipped>
 </nosecone>
 <bodytube><name>Recovery bay (ASA-Aero)</name><id>{uuid.uuid4()}</id><overridemass>0.058</overridemass><overridesubcomponentsmass>false</overridesubcomponentsmass><finish>normal</finish>
@@ -41,5 +41,5 @@ xml=f'''<?xml version='1.0' encoding='utf-8'?>
 </openrocket>'''
 p=f"{OUT}/WYVERN_E4_F15-4{os.environ.get('WYVERN_RUN_TAG','')}.ork"
 with zipfile.ZipFile(p,"w",zipfile.ZIP_DEFLATED) as z: z.writestr("rocket.ork",xml)
-import xml.dom.minidom as M; M.parseString(xml); print("ork OK (finned+ballast, fins + 150g nose ballast):",os.path.getsize(p),"bytes")
-print("OpenRocket should now show ~1.5 cal stability + a real apogee (no more tumble/17m).")
+import xml.dom.minidom as M; M.parseString(xml); print("ork OK (FLOWN config: 4x 72 mm ASA-Aero fins, NO ballast, +1.10 cal):",os.path.getsize(p),"bytes")
+print("OpenRocket should show ~1.1 cal static margin and ~429 ft apogee on the F15-4.")

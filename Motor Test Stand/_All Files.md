@@ -1,13 +1,13 @@
 ---
-updated_at: 2026-07-30
+updated_at: 2026-08-01
 ---
 # Motor Test Stand — All Files
 
-*Auto-generated index — every file in this folder linked for vault graph connectivity (re-index pass, 2026-07-30).*
+*Auto-generated index — every file and subfolder linked for vault graph connectivity.*
 
 ---
 
-## Linked Items (auto-added)
+## Subfolders
 
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Motor Test Stand/Static Stand (deflector + jetvane)/_All Files.md]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Motor Test Stand/TVC Thrust-Vector Balance/_All Files.md]]
+- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Motor Test Stand/Static Stand (deflector + jetvane)/_All Files.md|Static Stand (deflector + jetvane)/]]
+- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Motor Test Stand/TVC Thrust-Vector Balance/_All Files.md|TVC Thrust-Vector Balance/]]

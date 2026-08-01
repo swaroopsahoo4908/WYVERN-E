@@ -1,4 +1,4 @@
-// WYVERN-E 4.0 · T1 — Pico 2 W I2C scan. I2C0 = PCA9548A mux trunk (+ behind each channel),
+// WYVERN-E · T1 — Pico 2 W I2C scan. I2C0 = PCA9548A mux trunk (+ behind each channel),
 // I2C1 = gimbal BNO085 (dedicated). Confirms every sensor enumerates.
 #include <Wire.h>
 #define SDA0 16

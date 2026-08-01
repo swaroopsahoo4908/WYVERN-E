@@ -1,13 +1,19 @@
 ---
-updated_at: 2026-07-30
+updated_at: 2026-08-01
 ---
 # 3D parts — All Files
 
-*Auto-generated index — every file in this folder linked for vault graph connectivity (re-index pass, 2026-07-30).*
+*Auto-generated index — every file and subfolder linked for vault graph connectivity.*
 
 ---
 
-## Linked Items (auto-added)
+## Subfolders
+
+- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/MTVC/_All Files.md|MTVC/]]
+- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/_generator/_All Files.md|_generator/]]
+- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/_superseded/_All Files.md|_superseded/]]
+
+## Files
 
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/00_full_assembly.step]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/00_full_assembly.stl]]
@@ -33,6 +39,3 @@ updated_at: 2026-07-30
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/08b_fin_single_ASA.stl]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/09_bypass_tube_PCFR.step]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/09_bypass_tube_PCFR.stl]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/MTVC/_All Files.md]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/_generator/_All Files.md]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/_superseded/_All Files.md]]

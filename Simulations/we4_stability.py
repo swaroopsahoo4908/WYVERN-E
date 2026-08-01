@@ -1,89 +1,222 @@
 #!/usr/bin/env python3
-"""WYVERN-E 4.0 — finned config: Barrowman stability, optimal fin sizing, remass, re-trajectory,
-rail-exit, weathercock, flutter, drift -> plots4/. Adds fins to the (now passively-stable) TVC vehicle."""
-import os,json,numpy as np
-_TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None))  # NumPy 2.x renamed trapz
+"""WYVERN-E — fin sizing and passive-stability trade study (Barrowman), remass, re-trajectory,
+rail-exit, weathercock, flutter, drift -> plots4/.
+
+REWRITTEN 2026-08. The previous version of this file was internally inconsistent in four ways,
+every one of which propagated into the documentation:
+
+  1. It reported `fin_span_mm: 35.0` while the variable it actually evaluated was `s35=0.055`
+     -- i.e. it labelled a 55 mm fin as 35 mm. README's "35 mm fins are unstable (-0.52 cal)"
+     and this file's own "+0.91 cal" were therefore both quoting the same mislabelled run.
+  2. It hardcoded `CG0=0.45`, a pre-ASA-Aero, pre-i3-camera value, against the canonical
+     CG = 0.491 m used by we4_flightsim.py, wyvern_datagen/core.py and the proposal.
+  3. It never evaluated the 72 mm fin that the vehicle actually flies.
+  4. It carried two fin-mass functions, one of which (`fin_mass`) had a unit error its own
+     inline comment flagged but never fixed.
+
+This version evaluates the real trade: static margin vs. fin semispan for the canonical mass
+stack, with the historical 35 mm candidate and the flown 72 mm configuration both marked, and
+it reproduces the canonical CG/CP/margin (49.1 cm / 56.8 cm / +1.10 cal) exactly at 72 mm.
+"""
+import os, json, numpy as np
+_TRAPZ = getattr(np, "trapezoid", getattr(np, "trapz", None))   # NumPy 2.x renamed trapz
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
-HERE=os.path.dirname(os.path.abspath(__file__)); OUT=os.path.join(HERE,"plots4"+os.environ.get("WYVERN_RUN_TAG","")); os.makedirs(OUT,exist_ok=True)
-g=9.80665; rho=1.225; D=0.070; Rb=D/2; A=np.pi*Rb**2
-# --- geometry (from we4_sim mass stack) ---
-Lnose=0.12; Ltot=0.74; CG0=0.45     # dry/CG approx; fins add mass aft -> recompute below
-# --- Barrowman ---
-def barrowman(cr,ct,span,sweepLE,N=4,xroot=None):
-    if xroot is None: xroot=Ltot-cr      # fin root LE near base
-    CNn=2.0; Xn=0.333*Lnose
-    Lf=np.sqrt(span**2+(sweepLE+(ct-cr)/2)**2)   # mid-chord line length
-    kfb=1+Rb/(span+Rb)
-    CNf=kfb*(4*N*(span/D)**2)/(1+np.sqrt(1+(2*Lf/(cr+ct))**2))
-    Xf=xroot+(sweepLE/3)*(cr+2*ct)/(cr+ct)+(1/6)*((cr+ct)-cr*ct/(cr+ct))
-    CP=(CNn*Xn+CNf*Xf)/(CNn+CNf)
-    return CP,CNn+CNf,CNf
-# fin mass (ASA-Aero 0.65, t=3mm)
-def fin_mass(cr,ct,span,N=4,t=0.003): return N*0.5*(cr+ct)*span*t*0.65e6  # grams (ASA-Aero 0.65 g/cm3)
-# correct: vol_m3=0.5*(cr+ct)*span*t ; g = vol*1e6*1.25 (cm3*1.25)
-def finmass_g(cr,ct,span,N=4,t=0.003): return N*(0.5*(cr+ct)*span*t)*1e6*0.65
-# --- sweep span to hit ~1.5 cal margin (4 fins, cr=70 ct=35 sweepLE=25mm) ---
-cr,ct,swLE=0.070,0.035,0.025
-spans=np.linspace(0.018,0.055,40); margins=[]; cps=[]
-m_dry0=0.603; m_lift0=0.705
-for s in spans:
-    fm=finmass_g(cr,ct,s)/1000
-    CGf=(CG0*m_lift0 + (Ltot-cr*0.4)*fm)/(m_lift0+fm)   # fins shift CG aft
-    CP,_,_=barrowman(cr,ct,s,swLE)
-    margins.append((CP-CGf)/D); cps.append(CP)
-margins=np.array(margins)
-# optimal: smallest span giving >=1.5 cal (keep TVC able to maneuver)
-target=1.5; idx=np.argmin(np.abs(margins-target)); s_opt=spans[idx]
-# user proposed 35mm:
-s35=0.055; CP35,CNt35,CNf35=barrowman(cr,ct,s35,swLE); fm35=finmass_g(cr,ct,s35)/1000
-m_lift=m_lift0+fm35; m_dry=m_dry0+fm35
-CGf35=(CG0*m_lift0+(Ltot-cr*0.4)*fm35)/m_lift; marg35=(CP35-CGf35)/D
-res=dict(fin_count=4,fin_root_mm=cr*1000,fin_tip_mm=ct*1000,fin_sweepLE_mm=swLE*1000,
- fin_span_mm=35.0,fin_mass_g=round(fm35*1000,1),m_lift_finned_g=round(m_lift*1000,1),
- CG_finned_cm=round(CGf35*100,1),CP_cm=round(CP35*100,1),static_margin_cal=round(marg35,2),
- optimal_span_for_1p5cal_mm=round(s_opt*1000,1))
-# --- re-trajectory with fins (Cd up to ~0.58) ---
-Cd=0.58; mdot=0.060/3.45; dt=2e-3
-tc=np.array([0,0.05,0.12,0.2,0.3,0.5,1,1.5,2,2.5,3,3.3,3.45]); Fc=np.array([0,12,25.3,22,16,13,12.5,12.2,12,11.8,11.5,7,0]); Fc*=49.6/_TRAPZ(Fc,tc)
-def thr(t): return float(np.interp(t,tc,Fc,left=0,right=0)) if 0<=t<=3.45 else 0
-def rhoh(h): return rho*np.exp(-h/8500)
-t=0;v=0;h=0;m=m_lift;T=[];H=[];V=[]
+HERE = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.join(HERE, "plots4" + os.environ.get("WYVERN_RUN_TAG", "")); os.makedirs(OUT, exist_ok=True)
+
+g = 9.80665; rho0 = 1.225; D = 0.070; Rb = D / 2; A = np.pi * Rb**2
+Lnose = 0.12; Ltot = 0.74
+
+# ---- canonical mass stack (we4_sim.py) -----------------------------------------------------
+M_LIFT_FLOWN = 0.705      # kg, incl. 4x 72 mm ASA-Aero fins and the loaded F15-4
+M_DRY_FLOWN  = 0.603
+CG_FLOWN     = 0.491      # m from nose, flown config
+SPAN_FLOWN   = 0.072      # m semispan
+PROP         = 0.060; TB = 3.45
+CD_NOMINAL   = 0.539      # componentwise Barrowman buildup, shared with we4_flightsim/core.py
+FIN_RHO      = 650.0      # kg/m^3, foamed ASA-Aero
+FIN_T        = 0.003      # m fin thickness
+cr, ct, swLE = 0.070, 0.035, 0.025   # root chord, tip chord, LE sweep
+
+def fin_mass_kg(span, N=4, t=FIN_T):
+    """Mass of N trapezoidal fins [kg]. Single definition -- the duplicate, unit-broken
+    `fin_mass()` that used to sit alongside this has been deleted."""
+    return N * (0.5 * (cr + ct) * span * t) * FIN_RHO
+
+# Back out the fins-excluded CG so the model reproduces the canonical flown CG exactly.
+X_FIN = Ltot - cr * 0.4                       # fin-set centroid station [m]
+M_FIN_FLOWN = fin_mass_kg(SPAN_FLOWN)
+M_EX_FINS = M_LIFT_FLOWN - M_FIN_FLOWN
+CG_EX_FINS = (CG_FLOWN * M_LIFT_FLOWN - X_FIN * M_FIN_FLOWN) / M_EX_FINS
+
+def barrowman(span, N=4, xroot=None):
+    """Barrowman CP and normal-force slope for the nose + fin set."""
+    if xroot is None: xroot = Ltot - cr        # fin root LE near the base
+    CNn = 2.0; Xn = 0.333 * Lnose
+    Lf = np.sqrt(span**2 + (swLE + (ct - cr) / 2) ** 2)     # mid-chord line length
+    kfb = 1 + Rb / (span + Rb)                              # body-interference factor
+    CNf = kfb * (4 * N * (span / D) ** 2) / (1 + np.sqrt(1 + (2 * Lf / (cr + ct)) ** 2))
+    Xf = xroot + (swLE / 3) * (cr + 2 * ct) / (cr + ct) + (1 / 6) * ((cr + ct) - cr * ct / (cr + ct))
+    CP = (CNn * Xn + CNf * Xf) / (CNn + CNf)
+    return CP, CNn + CNf, CNf
+
+def config(span):
+    """Full stability state for a given semispan: (m_lift, CG, CP, margin_cal, CN)."""
+    mf = fin_mass_kg(span)
+    m_lift = M_EX_FINS + mf
+    cg = (CG_EX_FINS * M_EX_FINS + X_FIN * mf) / m_lift
+    cp, cn, _ = barrowman(span)
+    return m_lift, cg, cp, (cp - cg) / D, cn
+
+# ---- span sweep ----------------------------------------------------------------------------
+spans = np.linspace(0.015, 0.140, 600)
+sweep = np.array([config(s)[1:4] for s in spans])       # (CG, CP, margin)
+margins = sweep[:, 2]
+
+def span_for_margin(target):
+    """Smallest span meeting `target` calibers, by interpolation on the monotone branch."""
+    ok = np.where(margins >= target)[0]
+    return float(spans[ok[0]]) if ok.size else float("nan")
+
+s_1p0 = span_for_margin(1.0); s_1p5 = span_for_margin(1.5)
+
+# ---- the two named configurations ----------------------------------------------------------
+m35, cg35, cp35, marg35, _ = config(0.035)              # historical candidate, ACTUALLY 35 mm
+m72, cg72, cp72, marg72, cn72 = config(SPAN_FLOWN)      # flown
+
+res = dict(
+    fin_count=4, fin_root_mm=cr * 1000, fin_tip_mm=ct * 1000, fin_sweepLE_mm=swLE * 1000,
+    fin_thickness_mm=FIN_T * 1000, fin_material="ASA-Aero (650 kg/m^3)",
+    cg_excl_fins_cm=round(CG_EX_FINS * 100, 2),
+    # flown configuration (must reproduce the canonical 49.1 / 56.8 / 1.10)
+    flown_span_mm=SPAN_FLOWN * 1000, flown_fin_mass_g=round(M_FIN_FLOWN * 1000, 1),
+    flown_m_lift_g=round(m72 * 1000, 1), flown_CG_cm=round(cg72 * 100, 1),
+    flown_CP_cm=round(cp72 * 100, 1), flown_static_margin_cal=round(marg72, 2),
+    flown_CN_total=round(cn72, 2),
+    # historical 35 mm candidate, correctly evaluated this time
+    cand35_span_mm=35.0, cand35_fin_mass_g=round(fin_mass_kg(0.035) * 1000, 1),
+    cand35_CG_cm=round(cg35 * 100, 1), cand35_CP_cm=round(cp35 * 100, 1),
+    cand35_static_margin_cal=round(marg35, 2),
+    cand35_verdict="UNSTABLE" if marg35 < 0 else ("under 1.0 cal" if marg35 < 1.0 else "stable"),
+    min_span_for_1p0cal_mm=round(s_1p0 * 1000, 1),
+    min_span_for_1p5cal_mm=round(s_1p5 * 1000, 1),
+)
+
+# ---- re-trajectory for the flown config (RK4, matches we4_flightsim) -----------------------
+T_DEPLOY = TB + 4.0        # F15-4 ejection charge: 4 s after burnout
+tc = np.array([0, .05, .12, .2, .3, .5, 1, 1.5, 2, 2.5, 3, 3.3, 3.45])
+# F15 thrust curve CORRECTED 2026-08. The digitized shape integrated to 41.97 N.s, so the
+# 49.6 N.s renormalization below scaled the whole curve by 1.1817 and pushed peak thrust to
+# 29.9 N -- against Estes' published 25.3 N peak, and against the 3.66 peak T/W quoted
+# throughout this repo (29.9 N gives 4.32). The sustain block (t >= 0.3 s) has been lifted by
+# +2.4408 N so the curve now matches ALL THREE published values simultaneously:
+# total impulse 49.6 N.s, peak 25.3 N, average 14.4 N. The renormalization is retained as a
+# guard (it is now a ~1.0000 no-op) so any future re-digitization still lands on 49.6 N.s.
+Fc = np.array([0, 12, 25.3, 22, 18.441, 15.441, 14.941, 14.641, 14.441, 14.241, 13.941, 9.441, 0], dtype=float)
+Fc *= 49.6 / _TRAPZ(Fc, tc)
+thr = lambda t: float(np.interp(t, tc, Fc, left=0, right=0)) if 0 <= t <= TB else 0.0
+mdot = PROP / TB
+rhoh = lambda h: rho0 * np.exp(-h / 8500)
+m_dry72 = m72 - 0.102       # loaded F15-4 is 102 g
+
+def deriv(s, t, m_lift):
+    h, v = s
+    m = max(m_dry72, m_lift - mdot * min(max(t, 0), TB))
+    Dd = 0.5 * rhoh(h) * CD_NOMINAL * A * v * abs(v)
+    return np.array([v, (thr(t) - Dd - m * g) / m])
+
+dt = 5e-4; t = 0.0; s = np.array([0.0, 0.0]); T = []; H = []; V = []
 while True:
-    F=thr(t);m=max(m_dry,m_lift-mdot*min(t,3.45));Dd=0.5*rhoh(h)*Cd*A*v*abs(v);v+=(F-Dd-m*g)/m*dt;h+=v*dt;t+=dt;T.append(t);H.append(h);V.append(v)
-    if v<0 and t>3.45: break
-    if t>14: break
-T=np.array(T);H=np.array(H);V=np.array(V); ap=np.argmax(H)
-res.update(apogee_ft_finned=round(H[ap]*3.281,0),apogee_m_finned=round(H[ap],1),apogee_t=round(T[ap],2),burnout_v=round(V[np.argmin(np.abs(T-3.45))],1))
-# rail exit (1.5m rail) + stability margin there
-def vrail(L):
-    v=0;h=0;tt=0
-    while h<L:
-        F=thr(tt);m=m_lift-mdot*min(tt,3.45);v+=(F-m*g)/m*dt;h+=v*dt;tt+=dt
-        if tt>3.45: break
+    k1 = deriv(s, t, m72); k2 = deriv(s + .5*dt*k1, t + .5*dt, m72)
+    k3 = deriv(s + .5*dt*k2, t + .5*dt, m72); k4 = deriv(s + dt*k3, t + dt, m72)
+    s = s + dt/6*(k1 + 2*k2 + 2*k3 + k4); t += dt
+    T.append(t); H.append(s[0]); V.append(s[1])
+    if s[0] < 0 and t > TB: break
+    if t >= T_DEPLOY: break
+T = np.array(T); H = np.array(H); V = np.array(V); ap = int(np.argmax(H))
+res.update(apogee_ft_flown=round(float(H[ap]) * 3.281, 0), apogee_m_flown=round(float(H[ap]), 1),
+           apogee_t=round(float(T[ap]), 2),
+           burnout_v=round(float(V[np.argmin(np.abs(T - TB))]), 1),
+           deploy_t=round(T_DEPLOY, 2), deploy_v=round(float(V[-1]), 1))
+
+# ---- rail exit -----------------------------------------------------------------------------
+def vrail(L, m_lift):
+    v = 0.0; h = 0.0; tt = 0.0
+    while h < L:
+        m = max(m_dry72, m_lift - mdot * min(tt, TB))
+        v += (thr(tt) - m * g) / m * dt; h += v * dt; tt += dt
+        if tt > TB: break
     return v
-res["rail_exit_v_1p5m"]=round(vrail(1.5),1)
-# weathercock angle vs wind (finned): tan(theta)=Vw/Vrail
-Vw=np.array([1,2,3,4,5,6]); wc=np.degrees(np.arctan(Vw/max(vrail(1.5),1)))
-# flutter velocity (NACA TN-4197 simplified) for ASA-Aero fin (lower G than PC-FR; margin still ample at Mach ~0.4)
-G=0.9e9; t_f=0.003; eps=ct/cr; ARf=(s35**2)/(0.5*(cr+ct)*s35)
-Vf=np.sqrt(G/( (1.337*rho* (cr* (s35) ) )/(t_f**3) ))  # rough flutter speed (m/s) proxy
-res["fin_flutter_v_ms"]=round(min(Vf,400),0)
-# descent drift under 18in chute at 6 m/s from apogee with wind
-res["drift_m_per_ms_wind"]=round(H[ap]/6.0,1)  # m drift per (m/s) wind
+
+v_rail_1p0 = vrail(1.0, m72); v_rail_1p5 = vrail(1.5, m72)
+res["rail_exit_v_1p0m"] = round(v_rail_1p0, 1)
+res["rail_exit_v_1p5m"] = round(v_rail_1p5, 1)
+
+# weathercock: tan(theta) = Vwind / Vrail_exit
+Vw = np.linspace(0, 12, 25)
+wc = np.degrees(np.arctan(Vw / max(v_rail_1p5, 1e-3)))
+res["weathercock_deg_at_5ms"] = round(float(np.degrees(np.arctan(5.0 / max(v_rail_1p5, 1e-3)))), 1)
+
+# ---- fin flutter (NACA TN-4197 form) --------------------------------------------------------
+# Vf = a * sqrt( G / ( (1.337 M^2 (lambda+1) / (2 (AR+2)) ) * (t/c)^-3 * P ) ), evaluated at the
+# flight ambient pressure. G is the fin material's shear modulus.
+G_SHEAR = 0.9e9                      # Pa, foamed ASA-Aero (conservative)
+lam = ct / cr                        # taper ratio
+S_fin = 0.5 * (cr + ct) * SPAN_FLOWN
+AR = SPAN_FLOWN**2 / S_fin
+tc_ratio = FIN_T / (0.5 * (cr + ct))
+P_amb = 101325.0 * np.exp(-float(H[ap]) / 8500.0)
+a_snd = 340.3
+denom = (1.337 * AR**3 * P_amb * (lam + 1.0)) / (2.0 * (AR + 2.0) * tc_ratio**3)
+Vf = a_snd * np.sqrt(G_SHEAR / denom)
+v_max = float(np.max(V))
+res["fin_flutter_v_ms"] = round(float(Vf), 1)
+res["max_flight_v_ms"] = round(v_max, 1)
+res["flutter_margin_x"] = round(float(Vf) / max(v_max, 1e-6), 1)
+res["max_flight_mach"] = round(v_max / a_snd, 3)
+
+# ---- descent drift --------------------------------------------------------------------------
+res["drift_m_per_ms_wind"] = round(float(H[ap]) / 6.2, 1)   # 18" chute, ~6.2 m/s descent
+
 # ---------- PLOTS ----------
-def sv(fig,n): fig.tight_layout(); fig.savefig(f"{OUT}/{n}.png",dpi=130); plt.close(fig)
-fig,ax=plt.subplots(figsize=(8.5,5)); ax.plot(spans*1000,margins,c="#2a6f97",lw=2)
-ax.axhline(1.0,ls=':',c='orange',label="1.0 cal (min stable)"); ax.axhline(2.0,ls=':',c='r',label="2.0 cal (over-stiff for TVC)")
-ax.axvline(35,ls='--',c='g',label=f"35 mm → {marg35:.2f} cal"); ax.scatter([s_opt*1000],[target],c='k',zorder=5,label=f"optimal {s_opt*1000:.0f} mm @1.5 cal")
-ax.set_xlabel("fin semispan (mm)"); ax.set_ylabel("static margin (cal)"); ax.legend(); ax.grid(alpha=.3)
-ax.set_title("WYVERN-E 4.0 · fin sizing — Barrowman static margin vs span (4 fins)",fontweight='bold'); sv(fig,"13_fin_sizing")
-fig,ax=plt.subplots(figsize=(10,2.6)); ax.axvline(CGf35*100,c='r',lw=2,label=f"CG {CGf35*100:.1f} cm"); ax.axvline(CP35*100,c='b',lw=2,label=f"CP {CP35*100:.1f} cm")
-ax.annotate('',xy=(CP35*100,0.5),xytext=(CGf35*100,0.5),arrowprops=dict(arrowstyle='<->',color='g'));ax.text((CGf35+CP35)*50,0.6,f"{marg35:.2f} cal",ha='center',color='g')
-ax.set_xlim(0,Ltot*100);ax.set_ylim(0,1);ax.set_yticks([]);ax.set_xlabel("station from nose (cm)");ax.legend(loc='upper left')
-ax.set_title("WYVERN-E 4.0 · CG / CP (35 mm fins) — passively stable + TVC",fontweight='bold');sv(fig,"14_cp_cg")
-fig,ax=plt.subplots(figsize=(8.5,5)); ax.plot(T,H,c="#2a6f97",label="alt"); ax.set_xlabel("t (s)"); ax.set_ylabel("altitude (m)")
-ax.axvline(4.0,ls='--',c='k',label="deploy t=4s"); ax.legend()
-ax.set_title(f"WYVERN-E 4.0 finned · apogee {H[ap]*3.281:.0f} ft (Cd 0.58, fly-light {m_lift*1000:.0f} g)",fontweight='bold'); ax.grid(alpha=.3); sv(fig,"15_trajectory_finned")
-fig,ax=plt.subplots(figsize=(8,4.5)); ax.plot(Vw,wc,'o-',c="#bc4749"); ax.set_xlabel("crosswind (m/s)"); ax.set_ylabel("weathercock angle (deg)")
-ax.set_title(f"WYVERN-E 4.0 · weathercock vs wind (rail-exit {vrail(1.5):.1f} m/s)",fontweight='bold'); ax.grid(alpha=.3); sv(fig,"16_weathercock")
-json.dump(res,open(f"{OUT}/stability_summary.json","w"),indent=1); print(json.dumps(res,indent=1))
+def sv(fig, n): fig.tight_layout(); fig.savefig(f"{OUT}/{n}.png", dpi=130); plt.close(fig)
+
+fig, ax = plt.subplots(figsize=(8.5, 5))
+ax.plot(spans * 1000, margins, c="#2a6f97", lw=2)
+ax.axhline(0.0, ls='-', c='k', lw=0.8)
+ax.axhline(1.0, ls=':', c='orange', label="1.0 cal (min conventionally stable)")
+ax.axhline(2.0, ls=':', c='r', label="2.0 cal (over-stiff for TVC)")
+ax.axvline(35, ls='--', c='#bc4749', label=f"35 mm candidate → {marg35:+.2f} cal ({res['cand35_verdict']})")
+ax.axvline(SPAN_FLOWN * 1000, ls='--', c='#386641', label=f"72 mm FLOWN → {marg72:+.2f} cal")
+ax.scatter([s_1p0 * 1000], [1.0], c='k', zorder=5, label=f"min span @1.0 cal = {s_1p0*1000:.0f} mm")
+ax.set_xlabel("fin semispan (mm)"); ax.set_ylabel("static margin (cal)")
+ax.legend(fontsize=8); ax.grid(alpha=.3)
+ax.set_title("WYVERN-E · fin sizing — Barrowman static margin vs semispan (4 fins, canonical mass stack)",
+             fontweight='bold'); sv(fig, "13_fin_sizing")
+
+fig, ax = plt.subplots(figsize=(10, 2.8))
+ax.axvline(cg72 * 100, c='r', lw=2, label=f"CG {cg72*100:.1f} cm")
+ax.axvline(cp72 * 100, c='b', lw=2, label=f"CP {cp72*100:.1f} cm")
+ax.annotate('', xy=(cp72 * 100, 0.5), xytext=(cg72 * 100, 0.5), arrowprops=dict(arrowstyle='<->', color='g'))
+ax.text((cg72 + cp72) * 50, 0.6, f"{marg72:.2f} cal", ha='center', color='g')
+ax.set_xlim(0, Ltot * 100); ax.set_ylim(0, 1); ax.set_yticks([])
+ax.set_xlabel("station from nose (cm)"); ax.legend(loc='upper left')
+ax.set_title("WYVERN-E · CG / CP, FLOWN 72 mm fins — passively stable through the ignition transient",
+             fontweight='bold'); sv(fig, "14_cp_cg")
+
+fig, ax = plt.subplots(figsize=(8.5, 5))
+ax.plot(T, H, c="#2a6f97", label="altitude")
+ax.axvline(TB, ls=':', c='g', label="burnout 3.45 s")
+ax.axvline(T_DEPLOY, ls='--', c='k', label=f"motor eject {T_DEPLOY:.2f} s")
+ax.set_xlabel("t (s)"); ax.set_ylabel("altitude (m)"); ax.legend(); ax.grid(alpha=.3)
+ax.set_title(f"WYVERN-E finned (72 mm) · apogee {H[ap]*3.281:.0f} ft · Cd {CD_NOMINAL} · {m72*1000:.0f} g liftoff",
+             fontweight='bold'); sv(fig, "15_trajectory_finned")
+
+fig, ax = plt.subplots(figsize=(8, 4.5))
+ax.plot(Vw, wc, '-', c="#bc4749", lw=2)
+ax.set_xlabel("crosswind (m/s)"); ax.set_ylabel("weathercock angle (deg)"); ax.grid(alpha=.3)
+ax.set_title(f"WYVERN-E · weathercock vs wind (rail-exit {v_rail_1p5:.1f} m/s off a 1.5 m rail)",
+             fontweight='bold'); sv(fig, "16_weathercock")
+
+json.dump(res, open(f"{OUT}/stability_summary.json", "w"), indent=1)
+print(json.dumps(res, indent=1))

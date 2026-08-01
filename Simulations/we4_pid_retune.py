@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E 4.0 — pitch-axis TVC PID re-tune (numerical, margin + nonlinear validated).
+"""WYVERN-E — pitch-axis TVC PID re-tune (numerical, margin + nonlinear validated).
 =========================================================================================
 Re-derives the flight PID gains in firmware/wyvern_pid.h and Simulations/pid_reference.py.
 
@@ -30,6 +30,7 @@ Run: python3 we4_pid_retune.py  ->  prints the margin table + writes pid_retune_
 Requires: numpy, scipy, python-control (pip install control)
 """
 import json
+import os
 import numpy as np
 _TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None))  # NumPy 2.x renamed trapz
 import control as ct
@@ -42,7 +43,14 @@ m_lift, m_dry, PROP, tb = 0.705, 0.603, 0.060, 3.45
 CG = 0.467; Xcp = 0.537; CN = 2.0; x_gimbal = 0.72; Rspec = 287.05
 I_pitch = (1/12)*m_lift*Ltot**2
 Fc_t = np.array([0,0.05,0.12,0.2,0.3,0.5,1,1.5,2,2.5,3,3.3,3.45])
-Fc = np.array([0,12,25.3,22,16,13,12.5,12.2,12,11.8,11.5,7,0]); Fc = Fc * (49.6/trapz(Fc,Fc_t))
+# F15 thrust curve CORRECTED 2026-08. The digitized shape integrated to 41.97 N.s, so the
+# 49.6 N.s renormalization below scaled the whole curve by 1.1817 and pushed peak thrust to
+# 29.9 N -- against Estes' published 25.3 N peak, and against the 3.66 peak T/W quoted
+# throughout this repo (29.9 N gives 4.32). The sustain block (t >= 0.3 s) has been lifted by
+# +2.4408 N so the curve now matches ALL THREE published values simultaneously:
+# total impulse 49.6 N.s, peak 25.3 N, average 14.4 N. The renormalization is retained as a
+# guard (it is now a ~1.0000 no-op) so any future re-digitization still lands on 49.6 N.s.
+Fc = np.array([0, 12, 25.3, 22, 18.441, 15.441, 14.941, 14.641, 14.441, 14.241, 13.941, 9.441, 0]); Fc = Fc * (49.6/trapz(Fc,Fc_t))
 thrust = lambda t: float(np.interp(t,Fc_t,Fc,left=0,right=0)) if 0<=t<=tb else 0.0
 mass = lambda t: max(m_dry, m_lift-(PROP/tb)*min(max(t,0),tb))
 Cd0 = 0.539
@@ -161,10 +169,17 @@ if __name__ == "__main__":
     print(f"OLD  Kp=2.0 Ki=0.4 Kd=0.5:  worst PM={wpm_old:6.1f} deg  worst GM={wgm_old:6.1f} dB")
 
     # Coarse-to-fine grid search: keep triples clearing PM>=30deg, GM>=6dB at every op point.
+    # WYVERN_PID_GRID=coarse (default) searches a 6x4x5 grid; =fine searches the original
+    # 15x12x20 grid (3,600 triples x 24 operating points, several minutes). The adopted gains are
+    # verified directly below either way, so the grid pass is exploratory, not authoritative.
+    _fine = os.environ.get("WYVERN_PID_GRID", "coarse") == "fine"
+    _kp_r = np.arange(0.1, 1.51, 0.1) if _fine else np.arange(0.1, 1.51, 0.25)
+    _ki_r = np.arange(0.05, 0.61, 0.05) if _fine else np.arange(0.05, 0.61, 0.15)
+    _kd_r = np.arange(0.05, 1.01, 0.05) if _fine else np.arange(0.05, 1.01, 0.20)
     safe = []
-    for kp in np.arange(0.1, 1.51, 0.1):
-        for ki in np.arange(0.05, 0.61, 0.05):
-            for kd in np.arange(0.05, 1.01, 0.05):
+    for kp in _kp_r:
+        for ki in _ki_r:
+            for kd in _kd_r:
                 wpm, wgm = worst_case_margins(kp, ki, kd, OPS)
                 if wpm >= 30.0 and wgm >= 6.0:
                     safe.append((kp,ki,kd,wpm,wgm))

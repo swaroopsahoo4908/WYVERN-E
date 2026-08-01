@@ -1,4 +1,4 @@
-// WYVERN-E 4.0 · T4 — baro (BMP388 Adafruit 3966 + BME688, behind PCA9548A mux) → SPI microSD CSV @100Hz on Pico 2 W.
+// WYVERN-E · T4 — baro (BMP388 Adafruit 3966 + BME688, behind PCA9548A mux) → SPI microSD CSV @100Hz on Pico 2 W.
 // Matches the flight baro (baro.h): BMP388 on mux ch3 @0x77, BME688 on ch2 @0x76. 3.3 V STEMMA-QT.
 #include <Wire.h>
 #include <SPI.h>

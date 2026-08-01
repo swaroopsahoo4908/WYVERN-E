@@ -1,4 +1,4 @@
-# WYVERN-E 4.0 — Ground-Test Rig Math Derivations
+# WYVERN-E — Ground-Test Rig Math Derivations
 
 This document derives the math the two ground-test-stand sketches
 (`wyvern4_gse_servo_rig/` and `wyvern4_gse_solenoid_rig/`) depend on: the **3-axis load-cell

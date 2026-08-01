@@ -1,4 +1,4 @@
-# WYVERN-E 4.0 — Test Programs
+# WYVERN-E — Test Programs
 **Raspberry Pi Pico 2 W (RP2350)** Arduino sketches + host monitor. Build with the **Arduino-Pico
 core** (earlephilhower), board *"Raspberry Pi Pico 2 W"*. Flash each, watch USB serial at 115200.
 

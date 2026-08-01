@@ -1,10 +1,15 @@
-# WYVERN-E 4.0
+# WYVERN-E
 
-A single-stage, 70 mm, finless **active-TVC sustainer** demonstrating closed-loop thrust-vector
+A single-stage, 70 mm, **finned active-TVC sustainer** demonstrating closed-loop thrust-vector
 control on a **Raspberry Pi Pico 2 W (RP2350)** flight computer, powered by the **Estes F15-4**. The two TVC actuation
-methods (magnetic-solenoid vs servo) are now compared **on the ground** on a 3-axis thrust-vector
-balance; the vehicle flies the servo system. Ground-support carries over from 3.0: the Hofferth
-wind tunnel (RQ1/RQ2 aerofoil testing) and the static thrust + materials (jetvane) stand.
+methods (magnetic-solenoid vs servo) are compared **on the ground** on a 3-axis thrust-vector
+balance; the vehicle flies the servo system. Ground support is the 3-axis TVC balance plus the
+static thrust + materials (jetvane) stand.
+
+> **Scope change (2026-08):** the wind tunnel and the airfoil-CFD work that fed it are **removed
+> from the program.** Aerodynamic characterization now rests on the Barrowman/drag-buildup model
+> inside the flight-sim suite, cross-validated against flight telemetry and the instrumented
+> ground stands. See `Documentation/CONFLICTS.md` §7.
 
 A Skylight Rocketry venture. *Supersedes 3.0 (two-stage Pi-5 vehicle).* Completely off-the-shelf,
 no custom PCBs — a single Raspberry Pi Pico 2 W (RP2350) runs everything bare-metal.
@@ -23,22 +28,22 @@ no custom PCBs — a single Raspberry Pi Pico 2 W (RP2350) runs everything bare-
 |---|---|
 | Liftoff mass | **705 g** (finned 72 mm, no ballast) | ASA-Aero main airframe; PC-FR only at bulkheads/tube/engine (was 812 g all-PC-FR) |
 | T/W | **2.08 avg / 3.66 peak** |
-| CG / gimbal pivot / control arm | 45.0 cm / 62 cm / **17.0 cm** from nose |
-| Pitch inertia Iyy | 0.0219 kg·m² |
-| Burnout | 3.45 s · 83.6 m · 39.6 m/s |
-| Apogee | **~435 ft / 133 m** (RK4+Barrowman, stable +1.10 cal) @ 6.81 s |
-| Recovery | F15-4 motor ejection via bypass tube; ejects t≈7.45 s (+0.66 s past apogee) @ ~6.5 m/s; 18″ chute → 6 m/s descent |
+| CG / gimbal pivot / control arm | 49.1 cm / 62 cm / **12.9 cm** from nose |
+| Pitch inertia Iyy | 0.0209 kg·m² |
+| Burnout | 3.45 s · 72.8 m · 35.7 m/s |
+| Apogee | **~429 ft / 130.8 m** (RK4+Barrowman, stable +1.10 cal) @ 6.82 s |
+| Recovery | F15-4 motor ejection via bypass tube; ejects t≈7.45 s (+0.63 s past apogee) @ ~6.1 m/s; 18″ chute → 6.2 m/s descent |
 | TVC | gimbal stays within ±8°; control authority positive throughout the burn |
 
 > **Apogee/deploy note:** the ASA-Aero airframe (PC-FR only at bulkheads/tube/engine) drops liftoff to
-> 705 g and lifts apogee to ~435 ft. Recovery is the F15-4 motor ejection charge (fixed 4 s delay),
-> firing +0.64 s past apogee at a gentle ~6.3 m/s — no timer to retune. The lighter ASA nose moved the
+> 705 g and lifts apogee to ~429 ft. Recovery is the F15-4 motor ejection charge (fixed 4 s delay),
+> firing +0.63 s past apogee at a gentle ~6.1 m/s — no timer to retune. The lighter ASA nose moved the
 > CG aft, so fins were grown 58→72 mm to hold the 1.0-cal margin without ballast.
 
 ## Repository structure
 
 ```
-WYVERN-E 4.0/
+WYVERN Project/
 ├── README.md                        ← this file
 ├── .gitignore
 ├── Documentation/                   ← all engineering docs, BOM, and build readiness
@@ -51,7 +56,7 @@ WYVERN-E 4.0/
 │   ├── WYVERN_E4_Camera_Solution.md
 │   ├── WYVERN_E4_GSE_TestStands.md
 │   ├── WYVERN_E4_PID_AUTOTUNE_REPORT.md
-│   ├── WYVERN_E4_BOM.xlsx           ← 60-line master BOM + purchase links
+│   ├── WYVERN_E4_BOM.xlsx           ← master BOM (8 sections) + purchase links
 │   ├── FLIGHT_READINESS.md
 │   ├── COMPATIBILITY.md
 │   └── CONFLICTS.md
@@ -62,16 +67,15 @@ WYVERN-E 4.0/
 │   └── wyvern_datagen/              ← Monte Carlo atmospheric dataset generator + GUI
 │       └── README.md
 ├── 3D parts/                        ← 70 mm 3-bay airframe + gimbal STL/STEP
-├── Wind Tunnel/                     ← Hofferth tunnel (carried over from 3.0)
 ├── Motor Test Stand/                ← static thrust + jetvane stand + 3-axis TVC balance
 ├── Senior Research/                 ← proposal documents (DOCX / MD / PDF)
-├── Data/                            ← flight, tunnel, and motor data (populated during testing)
+├── Data/                            ← flight and motor data (populated during testing)
 └── Paper/                           ← final research paper
 ```
 
 
 ## Fin finding (2026-06-21)
-35 mm fins are **unstable** (−0.52 cal) on this aft-CG vehicle; 1.5 cal needs ~75 mm fins or nose ballast. **Finned TVC (1.0 cal) is the flown config** — see `Documentation/WYVERN_E4_Stability_FinSizing.md`. Motor prices corrected: F15-4 $17/ea, E16-4 $15/ea.
+35 mm fins are **unstable** (−0.99 cal) on this aft-CG vehicle; 1.0 cal needs ≥68.8 mm and 1.5 cal would need ~91.8 mm fins (or nose ballast, which costs apogee). **Finned TVC at 72 mm / +1.10 cal is the flown config** — see `Documentation/WYVERN_E4_Stability_FinSizing.md`. Motor prices corrected: F15-4 $17/ea, E16-4 $15/ea.
 
 
 ## Latest spec deltas (2026-07)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-WYVERN-E 4.0 — Monte-Carlo dataset generator.
+WYVERN-E — Monte-Carlo dataset generator.
 
 Streams millions of datapoints to disk in chunks so memory stays flat regardless of dataset size.
 Three dataset types (all selectable from the GUI or CLI):
@@ -35,15 +35,27 @@ except Exception:
 
 
 # ---------------------------------------------------------------- column orders
-OUTCOME_COLS = ["flight_id", "wind_ms", "wind_dir_deg", "turb_pct", "temp_C", "pressure_mbar",
-                "launch_tilt_deg", "site_alt_m", "apogee_m", "apogee_ft", "apogee_t",
-                "max_speed_ms", "max_mach", "max_q_pa", "max_accel_g", "burnout_alt_m",
-                "burnout_speed_ms", "deploy_alt_m", "deploy_vspeed_ms", "descent_rate_ms",
+# Column sets widened in the 2026-08 fidelity revision: the sampled vehicle build dispersion
+# (mass/CG/Cd/impulse/misalignment) and the wind-shear exponent are now first-class columns, so a
+# downstream model can condition on them instead of treating them as unobserved noise. Rail-exit
+# speed, max-q altitude and the reconstructed coast Cd are added because they are the quantities
+# the flight-telemetry comparison in Proposal RQ3 is actually scored against.
+OUTCOME_COLS = ["flight_id", "wind_ms", "wind_dir_deg", "turb_pct", "shear_alpha", "temp_C",
+                "pressure_mbar", "launch_tilt_deg", "site_alt_m",
+                "m_lift_kg", "cg_m", "cd_scale", "impulse_scale", "misalign_deg",
+                "static_margin_cal",
+                "apogee_m", "apogee_ft", "apogee_t",
+                "max_speed_ms", "max_mach", "max_q_pa", "max_q_alt_m", "max_accel_g",
+                "rail_exit_speed_ms", "rail_exit_t_s", "burnout_alt_m", "burnout_speed_ms",
+                "coast_cd_eff", "deploy_alt_m", "deploy_vspeed_ms", "descent_rate_ms",
                 "flight_time_s", "landing_x_m", "drift_from_pad_m"]
-TVC_COLS = ["flight_id", "wind_ms", "turb_pct", "temp_C", "pressure_mbar", "launch_tilt_deg",
-            "peak_pitch_err_deg", "rms_gimbal_deg", "gimbal_saturation_pct", "settle_time_s"]
-TRACE_COLS = ["flight_id", "t", "x", "z", "vx", "vz", "accel_g", "mach", "q",
-              "wind_ms", "turb_pct", "temp_C", "pressure_mbar", "site_alt_m"]
+TVC_COLS = ["flight_id", "wind_ms", "turb_pct", "shear_alpha", "temp_C", "pressure_mbar",
+            "launch_tilt_deg", "cg_m", "static_margin_cal", "misalign_deg",
+            "peak_pitch_err_deg", "rms_pitch_err_deg", "rms_gimbal_deg",
+            "gimbal_saturation_pct", "peak_gimbal_rate_dps", "settle_time_s"]
+TRACE_COLS = ["flight_id", "t", "x", "z", "vx", "vz", "accel_g", "mach", "q", "rho",
+              "wind_local_ms", "wind_ms", "turb_pct", "shear_alpha", "temp_C", "pressure_mbar",
+              "site_alt_m", "m_lift_kg", "cd_scale"]
 FLIGHTLOG_COLS = ["flight_id", "t_s", "state_id", "alt_m", "vz_ms", "pitch_deg", "gimbal_deg",
                   "baro_m", "batt_v", "wind_ms", "turb_pct", "temp_C"]
 COMBINED_SUMMARY_COLS = ["flight_id", "wind_ms", "turb_pct", "temp_C", "apogee_true_m", "apogee_baro_m",
@@ -57,10 +69,12 @@ def _default_fmt(fmt):
     return "parquet" if HAVE_PARQUET else "csv"
 
 
-# GitHub hard-blocks files >= 100 MiB. Cap every generated file at 99 MiB so nothing datagen
-# writes can ever break a `git push`. Files that would exceed this are split into
+# Hard project rule: no single file in this repository may exceed 100 MB. GitHub also hard-blocks
+# files >= 100 MiB. Cap every generated file at 80 MiB, which leaves headroom for the row-group
+# footer that Parquet writes on close (the size estimator below works off an observed bytes/row
+# average and can undershoot on the final chunk). Files that would exceed this are split into
 # `..._part001.parquet`, `..._part002.parquet`, etc.
-MAX_FILE_BYTES = 99 * 1024 * 1024
+MAX_FILE_BYTES = 80 * 1024 * 1024
 
 
 def _part_path(base_path, part):
@@ -166,7 +180,7 @@ def _timestamped(path):
 
 
 # ---------------------------------------------------------------- estimators
-def estimate(kind, n=None, flights=None, stride=10, dt=0.005):
+def estimate(kind, n=None, flights=None, stride=10, dt=0.002):
     """Return (n_rows, note) preview for the GUI, before committing to a run."""
     if kind == "timeseries":
         pts = int(np.ceil(core.DEPLOY_T / dt / max(stride, 1))) + 1
@@ -183,7 +197,7 @@ def _emit(progress_cb, done, total, rows, t0):
 
 
 def generate_outcomes(n_total, out, fmt="auto", chunk=100_000, seed=0, envelope=None,
-                      dt=0.005, timestamp=True, progress_cb=None, cancel_cb=None,
+                      dt=0.002, timestamp=True, progress_cb=None, cancel_cb=None,
                       max_bytes=MAX_FILE_BYTES):
     fmt = _default_fmt(fmt); out = _resolve_path(out, fmt)
     if timestamp: out = _timestamped(out)
@@ -202,7 +216,7 @@ def generate_outcomes(n_total, out, fmt="auto", chunk=100_000, seed=0, envelope=
 
 
 def generate_tvc(n_total, out, fmt="auto", chunk=100_000, seed=0, envelope=None,
-                 dt=0.002, timestamp=True, progress_cb=None, cancel_cb=None,
+                 dt=0.001, timestamp=True, progress_cb=None, cancel_cb=None,
                  max_bytes=MAX_FILE_BYTES):
     fmt = _default_fmt(fmt); out = _resolve_path(out, fmt)
     if timestamp: out = _timestamped(out)
@@ -220,7 +234,7 @@ def generate_tvc(n_total, out, fmt="auto", chunk=100_000, seed=0, envelope=None,
 
 
 def generate_timeseries(n_flights, out, fmt="auto", flight_chunk=2000, stride=10, seed=0,
-                        envelope=None, dt=0.005, timestamp=True, progress_cb=None, cancel_cb=None,
+                        envelope=None, dt=0.002, timestamp=True, progress_cb=None, cancel_cb=None,
                         max_bytes=MAX_FILE_BYTES):
     fmt = _default_fmt(fmt); out = _resolve_path(out, fmt)
     if timestamp: out = _timestamped(out)
@@ -235,9 +249,10 @@ def generate_timeseries(n_flights, out, fmt="auto", flight_chunk=2000, stride=10
         # flatten (nsp, m) -> (nsp*m,), flight-major
         fid = np.repeat(np.arange(fid0, fid0 + m), nsp)
         col = {"flight_id": fid}
-        for k in ("t", "x", "z", "vx", "vz", "accel_g", "mach", "q"):
+        for k in ("t", "x", "z", "vx", "vz", "accel_g", "mach", "q", "rho", "wind_local_ms"):
             col[k] = tr[k].T.reshape(-1)            # (m, nsp) -> flat
-        for k in ("wind_ms", "turb_pct", "temp_C", "pressure_mbar", "site_alt_m"):
+        for k in ("wind_ms", "turb_pct", "shear_alpha", "temp_C", "pressure_mbar",
+                  "site_alt_m", "m_lift_kg", "cd_scale"):
             col[k] = np.repeat(cond[k], nsp)
         w.write(col); rows += fid.size; done += m; fid0 += m
         _emit(progress_cb, done, n_flights, rows, t0)
@@ -358,7 +373,7 @@ def _cli_progress(done, total, rows, rate):
 
 
 def main(argv=None):
-    p = argparse.ArgumentParser(description="WYVERN-E 4.0 Monte-Carlo dataset generator")
+    p = argparse.ArgumentParser(description="WYVERN-E Monte-Carlo dataset generator")
     sub = p.add_subparsers(dest="kind", required=True)
     for k in ("outcomes", "tvc"):
         s = sub.add_parser(k); s.add_argument("--n", type=int, required=True)
@@ -366,7 +381,7 @@ def main(argv=None):
         s.add_argument("--chunk", type=int, default=100_000); s.add_argument("--seed", type=int, default=0)
         s.add_argument("--no-timestamp", dest="timestamp", action="store_false",
                        help="overwrite --out instead of writing a new timestamped file")
-        s.add_argument("--max-mb", type=float, default=99.0,
+        s.add_argument("--max-mb", type=float, default=80.0,
                        help="split output into _partNNN files once a file would exceed this size (MiB)")
     st = sub.add_parser("timeseries")
     st.add_argument("--flights", type=int, required=True); st.add_argument("--out", required=True)
@@ -374,21 +389,21 @@ def main(argv=None):
     st.add_argument("--flight-chunk", type=int, default=2000); st.add_argument("--seed", type=int, default=0)
     st.add_argument("--no-timestamp", dest="timestamp", action="store_false",
                     help="overwrite --out instead of writing a new timestamped file")
-    st.add_argument("--max-mb", type=float, default=99.0,
+    st.add_argument("--max-mb", type=float, default=80.0,
                     help="split output into _partNNN files once a file would exceed this size (MiB)")
     fl = sub.add_parser("flightlog")
     fl.add_argument("--flights", type=int, required=True); fl.add_argument("--out", required=True)
     fl.add_argument("--fmt", default="auto"); fl.add_argument("--seed", type=int, default=0)
     fl.add_argument("--t-max", type=float, default=9.0, dest="t_max")
     fl.add_argument("--no-timestamp", dest="timestamp", action="store_false")
-    fl.add_argument("--max-mb", type=float, default=99.0,
+    fl.add_argument("--max-mb", type=float, default=80.0,
                     help="split output into _partNNN files once a file would exceed this size (MiB)")
     cb = sub.add_parser("combined")
     cb.add_argument("--flights", type=int, default=25000); cb.add_argument("--out", required=True)
     cb.add_argument("--fmt", default="auto"); cb.add_argument("--seed", type=int, default=0)
     cb.add_argument("--gimbal", type=float, default=8.0, dest="gimbal_deg")
     cb.add_argument("--no-timestamp", dest="timestamp", action="store_false")
-    cb.add_argument("--max-mb", type=float, default=99.0,
+    cb.add_argument("--max-mb", type=float, default=80.0,
                     help="split output into _partNNN files once a file would exceed this size (MiB)")
     a = p.parse_args(argv)
     max_bytes = int(a.max_mb * 1024 * 1024)

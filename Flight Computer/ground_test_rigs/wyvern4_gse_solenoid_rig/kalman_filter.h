@@ -1,4 +1,4 @@
-// WYVERN-E 4.0 — REMOVED (2026-07).
+// WYVERN-E — REMOVED (2026-07).
 // This 2-state steady-state Kalman filter existed only to fuse the (now-removed) VL53L4CD ToF-ring
 // angle with BNO085 gyro rate. With the ToF ring gone, there is no plane-fit angle to fuse; the
 // solenoid rig reads gimbal deflection directly from the load balance + BNO085 attitude (see the

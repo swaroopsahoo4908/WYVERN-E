@@ -1,12 +1,12 @@
 ---
-updated_at: 2026-07-30
+updated_at: 2026-08-01
 ---
 # Senior Research — All Files
 
-*Auto-generated index — every file in this folder linked for vault graph connectivity (re-index pass, 2026-07-30).*
+*Auto-generated index — every file and subfolder linked for vault graph connectivity.*
 
 ---
 
-## Linked Items (auto-added)
+## Subfolders
 
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Senior Research/Proposal/_All Files.md]]
+- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Senior Research/Proposal/_All Files.md|Proposal/]]

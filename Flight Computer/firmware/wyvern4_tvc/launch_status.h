@@ -1,4 +1,4 @@
-// WYVERN-E 4.0 — launch detect, camera gate, status LED/buzzer.
+// WYVERN-E — launch detect, camera gate, status LED/buzzer.
 // =================================================================
 #pragma once
 #include <Arduino.h>

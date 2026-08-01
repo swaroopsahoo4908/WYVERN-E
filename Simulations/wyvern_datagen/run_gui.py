@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Launch the WYVERN-E 4.0 Simulation & Dataset Suite GUI.
+"""Launch the WYVERN-E Simulation & Dataset Suite GUI.
 
 Recommended interpreter (macOS): Homebrew Python, which ships a modern Tk 8.6.
     /opt/homebrew/bin/python3 run_gui.py      # Apple Silicon

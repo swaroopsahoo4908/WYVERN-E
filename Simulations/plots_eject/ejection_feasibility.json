@@ -1,28 +1,28 @@
 {
-  "apogee_m": 132.6,
-  "apogee_t_s": 6.81,
+  "apogee_m": 130.8,
+  "apogee_t_s": 6.83,
   "burnout_s": 3.45,
-  "optimal_delay_s": 3.36,
+  "optimal_delay_s": 3.38,
   "timing": {
     "F15-4": {
       "t_eject_s": 7.45,
-      "dt_vs_apogee_s": 0.64,
-      "v_at_eject_ms": -6.3,
-      "h_at_eject_m": 130.6,
+      "dt_vs_apogee_s": 0.62,
+      "v_at_eject_ms": -6.1,
+      "h_at_eject_m": 128.8,
       "verdict": "near-optimal"
     },
     "F15-6": {
       "t_eject_s": 9.45,
-      "dt_vs_apogee_s": 2.64,
-      "v_at_eject_ms": -24.8,
-      "h_at_eject_m": 99.0,
+      "dt_vs_apogee_s": 2.62,
+      "v_at_eject_ms": -24.7,
+      "h_at_eject_m": 97.7,
       "verdict": "late/hard"
     },
     "F15-8": {
       "t_eject_s": 11.45,
-      "dt_vs_apogee_s": 4.64,
-      "v_at_eject_ms": -40.2,
-      "h_at_eject_m": 33.4,
+      "dt_vs_apogee_s": 4.62,
+      "v_at_eject_ms": -40.0,
+      "h_at_eject_m": 32.3,
       "verdict": "late/hard"
     }
   },
@@ -43,16 +43,16 @@
   },
   "opening_loads": {
     "F15-4": {
-      "v": 6.3,
-      "F": 11
+      "v": 6.1,
+      "F": 10
     },
     "F15-6": {
-      "v": 24.8,
-      "F": 167
+      "v": 24.7,
+      "F": 165
     },
     "F15-8": {
-      "v": 40.2,
-      "F": 438
+      "v": 40.0,
+      "F": 434
     }
   },
   "verdict": "FEASIBLE. F15-6 ejects +2.6s past apogee at 25 m/s (hard/late). Optimal delay 3.4s -> F15-4."

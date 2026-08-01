@@ -1,4 +1,4 @@
-# WYVERN-E 4.0 — Mathematics & Recalculated Mass Budget
+# WYVERN-E — Mathematics & Recalculated Mass Budget
 
 *All values from `../Simulations/we4_sim.py`. Single-stage finned F15-4 TVC sustainer (motor-ejection recovery), 70 mm OD.*
 
@@ -22,27 +22,29 @@ ASA-Aero (foamed, ~0.5–0.7 g/cm³) for the body cuts ~100–110 g vs PC-FR (1.
 
 ## 2. CG, inertia, control arm
 
-$$x_{cg}=\frac{\sum m_i x_i}{\sum m_i}=45.0\ \mathrm{cm\ (liftoff)},\ 42.7\ \mathrm{cm\ (burnout)};\quad
-I_{yy}=\sum m_i (x_i-x_{cg})^2 + \tfrac14 m r^2 = 0.0219\ \mathrm{kg\,m^2}$$
+$$x_{cg}=\frac{\sum m_i x_i}{\sum m_i}=49.1\ \mathrm{cm\ (liftoff)},\ 47.4\ \mathrm{cm\ (burnout)};\quad
+I_{yy}=\sum m_i (x_i-x_{cg})^2 + \tfrac14 m r^2 = 0.0209\ \mathrm{kg\,m^2}$$
 
-Gimbal pivot at 62 cm from the nose → **control arm $L=x_{pivot}-x_{cg}=17.0$ cm (liftoff), 19.3 cm
-(burnout)**. For a finless vehicle there is no static margin; stability is *active* (TVC) — the
-control arm and gimbal authority replace the fin/CP role.
+Gimbal pivot at 62 cm from the nose → **control arm $L=x_{pivot}-x_{cg}=12.9$ cm (liftoff), 14.6 cm
+(burnout)**. The vehicle is *finned*, so it also carries a real static margin: CP at 56.8 cm gives
+**+1.10 cal** at liftoff, rising toward 1.3 cal at burnout as the CG moves forward. Stability is
+therefore hybrid — passive fins through the ignition transient, active TVC from t = 0.5 s.
 
 ## 3. Thrust-to-weight
 
 $$\mathrm{(T/W)_{avg}}=\frac{14.4}{0.705\cdot 9.81}=2.08,\qquad \mathrm{(T/W)_{peak}}=\frac{25.3}{0.705\cdot 9.81}=3.66$$
 
-The F15 black-powder curve is front-loaded (25.3 N spike → ~12 N sustain), so the rocket gets a
-~3.9 T/W kick off the rail, then holds ~2.0. Comfortable for a TVC launch (3.0's two-stage F-boost
+The F15 black-powder curve is front-loaded (25.3 N spike → ~14 N sustain), so the rocket gets a
+**3.66** T/W kick off the rail, then holds ~2.0. Comfortable for a TVC launch (3.0's two-stage F-boost
 was marginal at ~1.8; the lighter single stage is better).
 
 ## 4. Trajectory (RK4 + Barrowman engine)
-*Solved by `we4_flightsim.py` — 4th-order Runge-Kutta with Barrowman drag buildup; finless ⇒ static margin −5.6 cal ⇒ active TVC.*
- (RK4 point mass, Cd = 0.5, A = π(0.035)² m²)
+*Solved by `we4_flightsim.py` — 4th-order Runge-Kutta (dt = 2×10⁻⁴ s) with Barrowman drag buildup;
+finned ⇒ static margin +1.10 cal, with active TVC taking over at t = 0.5 s.*
+ (RK4 point mass, Cd = 0.539, A = π(0.035)² m²)
 
-Burnout 3.45 s at **75.3 m, 35.5 m/s**; coast to apogee **133 m / ~435 ft at t = 6.81 s** (unified RK4 + Barrowman engine, `we4_flightsim.py`, Cd 0.539). Monte-Carlo
-(±5 % mass, ±15 % Cd) → 5–95 % apogee **423–595 ft**. *Higher than the 291 ft spec because of the
+Burnout 3.45 s at **72.8 m, 35.7 m/s**; coast to apogee **130.8 m / ~429 ft at t = 6.82 s** (unified RK4 + Barrowman engine, `we4_flightsim.py`, Cd 0.539). Monte-Carlo
+(±5 % mass, ±15 % Cd, N = 1000) → 5–95 % apogee **356–513 ft**. *Higher than the 291 ft spec because of the
 ASA-Aero mass cut* — still low and no-waiver (< 125 g propellant, < G, < 1.5 kg).
 
 ## 5. TVC control (rigid-body pitch, servo lag τ=0.04 s, PID)
@@ -54,11 +56,11 @@ The loop stabilizes to vertical then tracks a 4° commanded maneuver with the **
 ±8°** and peak pitch deviation <4°. Control authority (restoring moment $T\sin8°\,L$ vs a 2°-AoA-
 equivalent disturbance) is **positive throughout the burn and falls to zero only as thrust → 0 at
 burnout** — which is exactly why recovery is forced right after burnout (no thrust ⇒ no control on a
-finless body). See `plots4/03_tvc_control.png`, `04_control_authority.png`.
+finned body plus the gimbal). See `plots4/03_tvc_control.png`, `04_control_authority.png`.
 
 ## 6. Recovery
 
-Deploy is by the **F15-4 motor ejection charge**, fired 4 s after burnout at **t ≈ 7.45 s** (0.66 s past apogee), routed through the bypass tube into the recovery bay; the finned
+Deploy is by the **F15-4 motor ejection charge**, fired 4 s after burnout at **t ≈ 7.45 s** (0.63 s past apogee), routed through the bypass tube into the recovery bay; the finned
 uncontrolled body can tumble far. At t = 4.0 s the vehicle is still ascending at **~33 m/s** (faster
 than the 812 g spec's ~20 m/s, because lighter) — size the chute/cord for a hard opening, or push
 the timer to ~5 s for ~20 m/s. An **18″ chute** gives terminal **~6 m/s**:

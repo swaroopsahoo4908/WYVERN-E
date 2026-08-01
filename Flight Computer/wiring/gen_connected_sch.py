@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E 4.0 — fully-routed flight wiring schematic (KiCad-7 .kicad_sch).
+"""WYVERN-E — fully-routed flight wiring schematic (KiCad-7 .kicad_sch).
 Unlike the flat-netlist harness, every component is DRAWN and PHYSICALLY WIRED pin-to-pin with
 orthogonal wire segments, junctions, power rails (2S LiPo -> 5V UBEC / 3V3 / GND) and net labels.
 No symbol library required — components are documentation rectangles with real pin stubs + wires."""
@@ -178,12 +178,12 @@ for sv in [sv1,sv2]:
 g=cam.p("GND"); poly([g,(g[0]+12,g[1]),(g[0]+12,RAIL_GND)]); junc(g[0]+12,RAIL_GND)
 
 # title + notes
-text(40,8,"WYVERN-E 4.0 — Flight Wiring (fully routed, all components connected)",2.4)
+text(40,8,"WYVERN-E — Flight Wiring (fully routed, all components connected)",2.4)
 text(40,300,"All sensors GRV (mag off). 3 BNO085 @0x4A: gimbal on dedicated I2C1; body/recovery isolated on PCA9548A ch0/ch1. RP2350 is 3.3V logic; all STEMMA-QT sensors (incl. BMP388) run at 3.3V.",1.1)
 
 body_s="\n  ".join(S)
 out=f'''(kicad_sch (version 20230121) (generator "wyvern4_connected") (paper "A1")
-  (title_block (title "WYVERN-E 4.0 Flight Wiring — fully routed") (company "Skylight Rocketry") (rev "4.0"))
+  (title_block (title "WYVERN-E Flight Wiring — fully routed") (company "Skylight Rocketry") (rev "4.0"))
   (lib_symbols)
   {body_s}
   (sheet_instances (path "/" (page "1"))))'''

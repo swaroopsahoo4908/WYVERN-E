@@ -1,4 +1,4 @@
-# WYVERN-E 4.0 — Pitch/Yaw TVC PID Re-Tune Report
+# WYVERN-E — Pitch/Yaw TVC PID Re-Tune Report
 
 **Result: firmware gains changed from Kp=2.0/Ki=0.4/Kd=0.5 to Kp=0.10/Ki=0.40/Kd=0.18.**
 Both `Flight Computer/firmware/wyvern_pid.h` and `Simulations/pid_reference.py` now implement the
@@ -57,8 +57,8 @@ and gain margin (GM). Worst case (Cold −15°C, t=0.6 s into burn, low-*q*/high
 
 | Gains | Worst-case PM | Worst-case GM |
 |---|---|---|
-| Kp=2.0 Ki=0.4 Kd=0.5 (old) | **−6.2°** | **−2.0 dB** |
-| Kp=0.10 Ki=0.40 Kd=0.18 (new) | **+33.1°** | **+9.3 dB** |
+| Kp=2.0 Ki=0.4 Kd=0.5 (old) | **−6.5°** | **−2.1 dB** |
+| Kp=0.10 Ki=0.40 Kd=0.18 (new) | **+32.8°** | **+9.2 dB** |
 
 Negative margin means the closed-loop poles are in the right half-plane at that operating point —
 genuinely unstable, not merely lightly damped. Re-running the *nonlinear* time-domain gust test
@@ -83,10 +83,10 @@ from before).
 
 | Metric | Old (Kp=2.0/Ki=0.4/Kd=0.5) | New (Kp=0.10/Ki=0.40/Kd=0.18) |
 |---|---|---|
-| Worst-case phase margin | −6.2° (unstable) | +33.1° |
-| Worst-case gain margin | −2.0 dB (unstable) | +9.3 dB |
-| Worst-case gust pitch deviation | 0.43° (misleadingly good — delay-free sim) | 1.36° |
-| Worst-case gimbal usage | up to 1.98° (chattering) | 1.72° (smooth) |
+| Worst-case phase margin | −6.5° (unstable) | +32.8° |
+| Worst-case gain margin | −2.1 dB (unstable) | +9.2 dB |
+| Worst-case gust pitch deviation | 0.43° (misleadingly good — delay-free sim) | 1.31° |
+| Worst-case gimbal usage | up to 1.98° (chattering) | 1.68° (smooth) |
 | 2° step: rise time | ~273 ms | ~1037 ms |
 | 2° step: overshoot | ~11.9% (rings) | ~3.4% (clean) |
 | 2° step: gimbal-rate zero-crossings, t>2s | 12 (chatter) | 2 (normal) |

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-WYVERN-E 4.0 — Flight-Computer Software-in-the-Loop (SIL) digital twin.
+WYVERN-E — Flight-Computer Software-in-the-Loop (SIL) digital twin.
 
 Steps the *actual flight-computer processes* at 500 Hz against a simulated vehicle + atmosphere:
 
@@ -10,8 +10,10 @@ Steps the *actual flight-computer processes* at 500 Hz against a simulated vehic
   - Sensors         : baro altitude, IMU pitch, and body accel — each with realistic noise/bias.
                       The PID closes on the *measured* attitude (not the true state), like the real FC.
   - Control loop    : firmware PID (Kp/Ki/Kd, ±8° gimbal, anti-windup) → thrust-vector moment.
-  - Atmosphere      : altitude-varying wind (power-law shear) + turbulence gusts — conditions change
-                      through the flight, not a single fixed wind.
+  - Atmosphere      : ISA troposphere + power-law wind shear + Dryden-form turbulence, all shared
+                      with core.py so the SIL and the Monte-Carlo core cannot drift apart.
+  - Actuator        : second-order servo with slew-rate limit and an explicit sense->actuate
+                      transport delay, driven by a 500 Hz zero-order hold (as on the vehicle).
   - Recovery        : motor ejection (no FC pyro) → 18" parachute descent.
   - Outputs         : a full state time-series, a flight-log frame stream (sd_logger schema), and a
                       simulated Wi-Fi heartbeat telemetry stream (the `HB:` lines the FC broadcasts).
@@ -33,10 +35,10 @@ LAND_SPEED = 1.0         # |v| < 1 m/s after apogee -> LANDED
 BATT_FULL = 7.9          # 2S nominal at arm
 
 
-def wind_at(z, wind0, shear=0.14):
-    """Power-law wind shear referenced to 10 m; wind grows gently with altitude (0.6·wind0 at pad)."""
-    z = max(z, 0.0)
-    return wind0 * (0.6 + 0.4 * min((z / 30.0) ** shear if z > 0 else 0.0, 1.0))
+# Wind shear is core.wind_at (standard power law referenced to 10 m). The bespoke profile that
+# used to live here disagreed with core.py's, which meant the SIL and the Monte-Carlo core were
+# quietly flying two different atmospheres.
+wind_at = core.wind_at
 
 
 def run_sil(kp=None, ki=None, kd=None, wind_ms=6.0, turb_pct=12.0, temp_C=15.0,
@@ -48,10 +50,16 @@ def run_sil(kp=None, ki=None, kd=None, wind_ms=6.0, turb_pct=12.0, temp_C=15.0,
     kd = core.KD if kd is None else kd
     rng = np.random.default_rng(seed)
 
-    T0 = core.T0_ISA + (temp_C - 15.0); rho0 = (pressure_mbar * 100.0) / (core.R_AIR * T0)
+    T0 = core.T0_ISA + (temp_C - 15.0); P0 = pressure_mbar * 100.0
     lim = np.deg2rad(gimbal_deg); I_MAX = lim / ki if ki > 1e-9 else 1e6
     ZETA = 0.15; arm_len = core.PIVOT - core.CG
     tilt = np.deg2rad(launch_tilt_deg); turb = turb_pct / 100.0
+    shear_alpha = 0.16
+    # actuator + control-timing state (matches core.simulate_tvc)
+    delta = 0.0; delta_rate = 0.0; d_state = 0.0; prev_err = 0.0; cmd_held = 0.0
+    ctrl_every = max(1, int(round(core.CTRL_DT / dt)))
+    ndelay = max(1, int(round(core.CTRL_DELAY_S / dt)))
+    delay_buf = np.zeros(ndelay); di = 0
 
     # true state
     x = z = vx = vz = 0.0
@@ -69,10 +77,12 @@ def run_sil(kp=None, ki=None, kd=None, wind_ms=6.0, turb_pct=12.0, temp_C=15.0,
     log_every = max(1, int(round((1.0 / log_hz) / dt)))
     # pre-draw all sensor/gust noise for the flight (one vectorized RNG call each, ~3x faster loop)
     n_baro = rng.normal(0, 0.4, steps); n_imu = rng.normal(0, np.deg2rad(0.2), steps)
-    n_accel = rng.normal(0, 0.05, steps); n_gust = rng.standard_normal(steps); n_batt = rng.normal(0, 0.005, steps)
+    n_accel = rng.normal(0, 0.05, steps); n_batt = rng.normal(0, 0.005, steps)
+    n_gyro = rng.normal(0, core.GYRO_NOISE_RAD_S, steps)
+    gyro_bias = rng.normal(0, core.GYRO_BIAS_RAD_S)
     t_arr = dt * np.arange(steps)                            # precompute time-only quantities
     Th_arr = np.asarray(core.thrust(t_arr), dtype=float); m_arr = np.asarray(core.mass(t_arr), dtype=float)
-    gust_sin = np.sin(2 * np.pi * 0.7 * t_arr + np.arange(steps) * 0.11)
+    gust = core._DrydenGust(rng, 1, sigma=np.array([wind_ms * turb]))
 
     T = []; Z = []; VZ = []; TH = []; DE = []; BALT = []; STt = []
     telem = []; logs = []
@@ -80,13 +90,13 @@ def run_sil(kp=None, ki=None, kd=None, wind_ms=6.0, turb_pct=12.0, temp_C=15.0,
     for i in range(steps):
         Th = Th_arr[i]; m = m_arr[i]
         # --- translation (vertical dominant; wind drift horizontal) ---
-        rho = rho0 * np.exp(-max(z, 0) / (core.R_AIR * T0 / core.G))
-        a_snd = np.sqrt(1.4 * core.R_AIR * max(T0 - core.LAPSE * max(z, 0), 216.65))
-        w = wind_at(z, wind_ms) * (1.0 + turb * gust_sin[i] + turb * 0.5 * n_gust[i] * 0.15)
+        rho, a_snd, _Tk = core.isa_state(z, P0, T0)
+        w = wind_at(z, wind_ms, shear_alpha) + float(gust.step(dt, np.array([max(vz, 1.0)]))[0])
         rvx = vx - w; rvz = vz
         vrel = np.hypot(rvx, rvz) + 1e-9; mach = vrel / a_snd
         if not deployed:
-            Cd = core.cd_of_mach(mach); Aref = core.A
+            re = rho * vrel * core.LTOT / core.MU_AIR
+            Cd = float(core.cd_buildup(mach, re)); Aref = core.A
         else:
             Cd = core.CHUTE_CD; Aref = core.CHUTE_A          # under parachute
         drag = 0.5 * rho * Cd * Aref * vrel * vrel
@@ -95,7 +105,14 @@ def run_sil(kp=None, ki=None, kd=None, wind_ms=6.0, turb_pct=12.0, temp_C=15.0,
         az = (thz - drag * rvz / vrel) / m - core.G
         vx += ax * dt; vz += az * dt; x += vx * dt; z += vz * dt
         if z < 0: z = 0.0
-        a_mag_g = np.hypot(ax, az) / core.G
+        # BUG FIX (2026-08): an accelerometer measures SPECIFIC FORCE, not kinematic acceleration —
+        # it reads +1 g sitting on the pad and (thrust-drag)/m in flight. The previous line used the
+        # kinematic magnitude hypot(ax, az), which subtracts gravity and therefore peaked at only
+        # ~2.65 g on this vehicle. Against the firmware's 3 g launch latch that meant the SIL state
+        # machine NEVER left ARMED: no BOOST, no TVC engage, no deploy, and a ballistic ~70 m/s
+        # "touchdown" in every logged flight. Specific force peaks at 3.66 g (= T/W peak), which is
+        # what the real BNO085 reports and what the 3 g threshold was chosen against.
+        a_mag_g = np.hypot(ax, az + core.G) / core.G
 
         # --- sensors (what the FC actually sees) ---
         baro_alt = z + baro_bias + n_baro[i]
@@ -109,10 +126,24 @@ def run_sil(kp=None, ki=None, kd=None, wind_ms=6.0, turb_pct=12.0, temp_C=15.0,
         c_aero = 2.0 * ZETA * np.sqrt(max(k_aero, 0.0) * core.IYY)
         on_rail = z < core.RAIL_LEN
         engaged = (STATES[st] in ("BOOST", "COAST")) and (t >= core.TVC_ENGAGE_T) and (Th > 1.0) and (not on_rail)
-        err = imu_theta
-        integ = float(np.clip(integ + err * dt, -I_MAX, I_MAX))
-        delta_cmd = kp * err + ki * integ + kd * omega
-        delta = float(np.clip(delta_cmd, -lim, lim)) if engaged else 0.0
+        # --- controller runs at the firmware's 500 Hz, held between updates (ZOH) ---
+        if i % ctrl_every == 0:
+            omega_meas = omega + gyro_bias + n_gyro[i]
+            omega_meas = round(omega_meas / core.GYRO_LSB_RAD_S) * core.GYRO_LSB_RAD_S
+            err = imu_theta
+            integ = float(np.clip(integ + err * core.CTRL_DT, -I_MAX, I_MAX))
+            raw_d = (err - prev_err) / core.CTRL_DT
+            alpha_f = core.CTRL_DT / (core.TAU_D + core.CTRL_DT)
+            d_state += alpha_f * (raw_d - d_state)
+            prev_err = err
+            delta_cmd = kp * err + ki * integ + kd * (0.5 * d_state + 0.5 * omega_meas)
+            cmd_held = float(np.clip(delta_cmd, -lim, lim)) if engaged else 0.0
+        # --- transport delay + second-order servo with slew-rate limit ---
+        delay_buf[di] = cmd_held; di = (di + 1) % ndelay
+        cmd_delayed = delay_buf[di]
+        sacc = core.SERVO_WN**2 * (cmd_delayed - delta) - 2 * core.SERVO_ZETA * core.SERVO_WN * delta_rate
+        delta_rate = float(np.clip(delta_rate + sacc * dt, -core.SERVO_RATE, core.SERVO_RATE))
+        delta = float(np.clip(delta + delta_rate * dt, -lim, lim))
         M_tvc = -Th * np.sin(delta) * arm_len
         ang = (k_aero * (alpha_w - theta) - c_aero * omega + M_tvc) / core.IYY
         if on_rail:

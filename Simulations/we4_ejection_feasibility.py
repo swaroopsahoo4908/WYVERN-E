@@ -5,7 +5,14 @@ OUT=os.path.join(os.path.dirname(os.path.abspath(__file__)),"plots_eject"+os.env
 BLU,RED,GRN,ORG,PUR="#2a6f97","#bc4749","#386641","#e09f3e","#6d597a"
 g,rho0=9.80665,1.225; D=0.070; A=np.pi*(D/2)**2; m_lift,m_dry,PROP,tb=0.705,0.603,0.060,3.45; Cd0=0.539
 Fc_t=np.array([0,0.05,0.12,0.2,0.3,0.5,1,1.5,2,2.5,3,3.3,3.45])
-Fc=np.array([0,12,25.3,22,16,13,12.5,12.2,12,11.8,11.5,7,0]); Fc*=49.6/_TRAPZ(Fc,Fc_t)
+# F15 thrust curve CORRECTED 2026-08. The digitized shape integrated to 41.97 N.s, so the
+# 49.6 N.s renormalization below scaled the whole curve by 1.1817 and pushed peak thrust to
+# 29.9 N -- against Estes' published 25.3 N peak, and against the 3.66 peak T/W quoted
+# throughout this repo (29.9 N gives 4.32). The sustain block (t >= 0.3 s) has been lifted by
+# +2.4408 N so the curve now matches ALL THREE published values simultaneously:
+# total impulse 49.6 N.s, peak 25.3 N, average 14.4 N. The renormalization is retained as a
+# guard (it is now a ~1.0000 no-op) so any future re-digitization still lands on 49.6 N.s.
+Fc=np.array([0, 12, 25.3, 22, 18.441, 15.441, 14.941, 14.641, 14.441, 14.241, 13.941, 9.441, 0]); Fc*=49.6/_TRAPZ(Fc,Fc_t)
 thrust=lambda t: float(np.interp(t,Fc_t,Fc,left=0,right=0)) if 0<=t<=tb else 0.0
 mass=lambda t: max(m_dry,m_lift-(PROP/tb)*min(max(t,0),tb)); rho=lambda h: rho0*np.exp(-h/8500)
 def traj(dt=1e-3):

@@ -1,4 +1,4 @@
-// WYVERN-E 4.0 -- SPI microSD flight logger, drained from the inter-core FIFO on core 1.
+// WYVERN-E -- SPI microSD flight logger, drained from the inter-core FIFO on core 1.
 // ==========================================================================================
 // Core 0 pushes one LogFrame per 500 Hz control tick into the RP2350 inter-core FIFO
 // (pico/multicore.h, 32-bit words -- a LogFrame is split across N words and reassembled here).

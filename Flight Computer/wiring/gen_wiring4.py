@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E 4.0 wiring — KiCad-7 .kicad_sch (flat netlist via global labels). Raspberry Pi Pico 2 W
+"""WYVERN-E wiring — KiCad-7 .kicad_sch (flat netlist via global labels). Raspberry Pi Pico 2 W
 flight harness + 3-axis TVC-balance harness. No symbol library required (documentation schematic)."""
 import os
 HERE=os.path.dirname(os.path.abspath(__file__))
@@ -54,8 +54,8 @@ BAL_SOLENOID=[
  ("GIMBAL BNO085 (I2C0 0x4A)",["Game Rotation Vector + gyro rate -> deflection from 3-axis load balance"],48),
  ("SOLENOIDS x4 via IRF520 (+ 1N4007 flyback EACH)",["PITCH+: GP16","PITCH-: GP17","YAW+: GP18","YAW-: GP19","V12: coil supply"],62),
 ]
-open("WYVERN_E4_flight_harness.kicad_sch","w").write(sch("WYVERN-E 4.0 — RPi Pico 2 W flight harness",FLIGHT))
-open("WYVERN_E4_tvc_balance_servo_harness.kicad_sch","w").write(sch("WYVERN-E 4.0 — TVC balance harness (servo rig, Pico)",BAL_SERVO))
-open("WYVERN_E4_tvc_balance_solenoid_harness.kicad_sch","w").write(sch("WYVERN-E 4.0 — TVC balance harness (solenoid rig, Pico)",BAL_SOLENOID))
+open("WYVERN_E4_flight_harness.kicad_sch","w").write(sch("WYVERN-E — RPi Pico 2 W flight harness",FLIGHT))
+open("WYVERN_E4_tvc_balance_servo_harness.kicad_sch","w").write(sch("WYVERN-E — TVC balance harness (servo rig, Pico)",BAL_SERVO))
+open("WYVERN_E4_tvc_balance_solenoid_harness.kicad_sch","w").write(sch("WYVERN-E — TVC balance harness (solenoid rig, Pico)",BAL_SOLENOID))
 for f in ("WYVERN_E4_flight_harness.kicad_sch","WYVERN_E4_tvc_balance_servo_harness.kicad_sch","WYVERN_E4_tvc_balance_solenoid_harness.kicad_sch"):
     s=open(f).read(); print(f,"parens",s.count("("),"==",s.count(")"),"OK" if s.count("(")==s.count(")") else "BAD")

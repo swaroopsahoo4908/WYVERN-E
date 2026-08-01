@@ -1,4 +1,4 @@
-# WYVERN-E 4.0 — Design-Conflict Memo & Frozen Firmware Parameters
+# WYVERN-E — Design-Conflict Memo & Frozen Firmware Parameters
 
 This firmware was written against the project's design files as they exist today. Two design
 conflicts are recorded below: the PID-gain supersession (§1) and the recovery-architecture change
@@ -18,11 +18,11 @@ read `Kp=2.0/Ki=0.4/Kd=0.5` anywhere in this repo as current — it is a documen
   rigorously: a phase/gain-margin sweep across 24 operating points (4 atmospheres — ISA T_sl=288.15K,
   cold=258.15K, hot=313.15K, high-DA=298.15K — × 6 burn-time slices at 0.6/1.0/1.7/2.5/2.9/3.4 s
   into the 3.45 s burn) with the servo modeled as `TAU_SERVO=0.04 s` plus a ~2 ms Padé-2 transport
-  delay found a **worst-case phase margin of −6.2° and gain margin of −2.0 dB** against a 30° PM
+  delay found a **worst-case phase margin of −6.5° and gain margin of −2.1 dB** against a 30° PM
   target — i.e. genuinely unstable at some points in the envelope, not merely under-margined.
 - A re-tune against the same 24-point sweep (see `Documentation/PID_TUNING_REPORT.md` for the full
   margin tables and `Simulations/we4_pid_retune.py` for the search) found
-  **Kp=0.10, Ki=0.40, Kd=0.18** achieves **PM=33.1°, GM=9.3 dB at every one of the 24 points** —
+  **Kp=0.10, Ki=0.40, Kd=0.18** achieves **PM=32.8°, GM=9.2 dB at every one of the 24 points** —
   clearing the 30° target with margin to spare across the full atmosphere/burn-time envelope.
 - **Resolution: firmware (`wyvern_pid.h`) now uses Kp=0.10, Ki=0.40, Kd=0.18.** The Kp=2.0/Ki=0.4/
   Kd=0.5 gains recorded earlier in this memo (and still in `we4_atmos_tvc.py`'s in-file defaults,
@@ -56,7 +56,7 @@ not included by the flight sketch.
 
 The vehicle runs the entire avionics domain off a **light 2S LiPo (7.4 V, ~450 mAh; Zeee 4-pk)**
 feeding a single **5 V/6 V UBEC set to 5 V**. That one rail powers Pico 2 W VSYS (1.8–5.5 V range),
-the camera, and both servos — the servos run fine at 5 V (~1.8 kg·cm, >2× the ~0.9 kg·cm demand), so
+the camera, and both servos — the servos run fine at 5 V (~1.8 kg·cm, >2× the ~0.56 kg·cm demand), so
 a separate 6 V servo BEC is not needed at this scale. Because the servos and the Pico share the 5 V
 rail, add decoupling — **1000 µF** low-ESR bulk cap at the servos, **100 µF** at VSYS, and an **SS34
 Schottky** from rail → VSYS as a hold-up diode — and run the servo feed and the VSYS feed as separate
@@ -83,7 +83,7 @@ rail or any existing net (there is no recovery power domain — recovery is the 
 | Control loop rate | 500 Hz (dt = 2.0 ms) on core 0 | 01_FlightComputer_Spec.md, flowcharts/02 |
 | TVC engage delay | t ≥ 0.5 s after launch detect (past F15 ignition spike) | we4_atmos_tvc.py |
 | Burnout / TVC cutoff | t = 3.45 s | we4_flightsim.py, we4_atmos_tvc.py |
-| PID gains (pitch = yaw, decoupled) | Kp=0.10, Ki=0.40, Kd=0.18 | wyvern_pid.h; margin-verified 24-point sweep, PID_TUNING_REPORT.md (PM=33.1°, GM=9.3 dB worst case) |
+| PID gains (pitch = yaw, decoupled) | Kp=0.10, Ki=0.40, Kd=0.18 | wyvern_pid.h; margin-verified 24-point sweep, PID_TUNING_REPORT.md (PM=32.8°, GM=9.2 dB worst case) |
 | Derivative filter time constant | tau_d = 0.02 s | wyvern_pid.h, pid_reference.py |
 | Integral clamp | ±0.4 (anti-windup) | wyvern_pid.h, pid_reference.py |
 | Output (gimbal) limit | ±8.0° (0.1396 rad) | wyvern_pid.h `OUT_LIM_DEG=8.0` (raised 5→8 for wind/weathercock authority) |
@@ -103,7 +103,7 @@ rail or any existing net (there is no recovery power domain — recovery is the 
 | RBF (remove-before-flight) sense | GP22 | wyvern4_tvc.ino |
 | Battery ADC (NEW — gap filled, §4) | GP26 (ADC0), 100k/62k divider, V_BAT = V_ADC/0.3827 | this memo |
 | WiFi/BLE | Onboard CYW43439, bench-only UDP broadcast, never blocks core 0 | 01_FlightComputer_Spec.md |
-| Recovery sequencing | F15-4 motor ejection charge via bypass tube, t ≈ 7.45 s (0.66 s past apogee); no electronic deploy; FC only observes/logs | WYVERN_E4_Recovery.md |
+| Recovery sequencing | F15-4 motor ejection charge via bypass tube, t ≈ 7.45 s (0.63 s past apogee); no electronic deploy; FC only observes/logs | WYVERN_E4_Recovery.md |
 
 All seven firmware modules below are written to this table. If the bench reveals a different real
 pin/address (e.g., the LAUNCH_IRQ assumption above), update this table and the `#define`s in
@@ -126,6 +126,7 @@ policy this memo already follows for §1–3:
    which case it should be removed from the BOM) or a real level-shifted net was designed but never
    wired (in which case identify which net and route it). Unresolved pending a BOM/schematic review.
 3. **Ground-rig DAQ MCU: BOM says Arduino Nano/Teensy, deliverable spec says Raspberry Pi Pico.**
+   *(historical — see §6.3 resolution text below)*
    Every wiring diagram and design document that predates this audit round specifies a Nano-class
    board for the ground-test load-cell/IMU DAQ. The two ground-test rig sketches delivered in this
    round (`wyvern4_gse_servo_rig.ino`, `wyvern4_gse_solenoid_rig.ino`) target the **Pico** per the
@@ -134,3 +135,41 @@ policy this memo already follows for §1–3:
    the bench, the ground-rig sketches need porting (bit-banged HX711 timing and pin numbers are
    MCU-specific) before they'll run as-is. Treat "Pico" as the resolution going forward for any new
    ground-rig work, and update or retire the older Nano-based wiring references accordingly.
+
+## 7. Wind tunnel + airfoil CFD: REMOVED FROM PROGRAM — RESOLVED (2026-08 scope change)
+
+The custom open-return low-speed wind tunnel (Hofferth 2025 modular design) and the entire
+airfoil-CFD package that fed it (`Simulations/CFD/` — vortex-panel solver, airfoil profile library,
+`airfoil_polars.csv`, `WYVERN_E2_airfoil_polars.xlsx`, `cl_alpha.png`, `cp_distribution.png`) are
+**deleted from the repository and struck from the program.** This is a scope decision, not a
+technical failure of either artifact.
+
+**What was removed**
+
+| Artifact | Disposition |
+|---|---|
+| `Simulations/CFD/` (whole directory) | deleted |
+| Tunnel STLs, print plates, 120 mm fan collar, `Wind Tunnel/README.md` | not built; directory never existed in 4.0 |
+| BOM §11 (wind tunnel line items) | struck; BOM is now 10 live sections |
+| Proposal RQ3 (aerofoil polars) and RQ4 (tunnel calibration) | consolidated away — see below |
+| References: Hofferth, Bell & Mehta, Maskell, Mehta & Bradshaw, Pope & Harper, Kuethe & Chow, Selig ×2 | removed from the reference list (tunnel-only citations) |
+
+**Research-question consequence.** The proposal previously carried five research questions, two of
+which (RQ3 aerofoil polars, RQ4 tunnel-vs-flight calibration) were answerable *only* in the tunnel.
+Those two are consolidated into a single new **RQ3 — Predicted versus In-Situ Passive Stability**,
+answered by two independent methods that survive the scope change: (A) Barrowman CP/CN plus the RK4
+trajectory and Monte Carlo dispersion suite; (B) reconstruction of static margin and coast-phase
+drag coefficient from recovered flight telemetry. The old RQ5 (control gain sensitivity) renumbers
+to **RQ4**. RQ1 (actuator class) and RQ2 (zoned AM materials) are unchanged. Every surviving
+question retains two independent, mutually cross-validating methods — see Proposal §3, Table 0.
+
+**What this costs the program, stated plainly.** Independent control of angle of attack, freestream
+velocity, and Reynolds number is lost. Stall onset angle and the viscous portion of fin drag are no
+longer measured anywhere — they are now modeled only, and the model is unvalidated in that regime.
+The honest form of the surviving aerodynamic claim is therefore a *predictive-accuracy bound* on a
+Barrowman-class model versus flight telemetry, not a measured polar. Documents and analyses must not
+assert a measured Cl/Cd/stall result for the fin section.
+
+**Resolution:** wind tunnel and airfoil CFD are out of scope. Any surviving reference to a tunnel
+campaign, aerofoil polars, tunnel-derived coefficients, or the `CFD/` directory in any file is a
+defect and should be removed on sight.

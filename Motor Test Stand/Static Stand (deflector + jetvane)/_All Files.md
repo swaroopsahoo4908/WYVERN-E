@@ -1,13 +1,13 @@
 ---
-updated_at: 2026-07-30
+updated_at: 2026-08-01
 ---
 # Static Stand (deflector + jetvane) — All Files
 
-*Auto-generated index — every file in this folder linked for vault graph connectivity (re-index pass, 2026-07-30).*
+*Auto-generated index — every file and subfolder linked for vault graph connectivity.*
 
 ---
 
-## Linked Items (auto-added)
+## Files
 
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Motor Test Stand/Static Stand (deflector + jetvane)/README.md]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Motor Test Stand/Static Stand (deflector + jetvane)/TS_base_plate.step]]

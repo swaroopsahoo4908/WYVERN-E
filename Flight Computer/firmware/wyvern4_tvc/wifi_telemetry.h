@@ -1,4 +1,4 @@
-// WYVERN-E 4.0 — optional WiFi/UDP bench telemetry broadcaster on the Pico 2 W's onboard CYW43439.
+// WYVERN-E — optional WiFi/UDP bench telemetry broadcaster on the Pico 2 W's onboard CYW43439.
 // =====================================================================================================
 // Purpose: bench/preflight monitoring only -- a live readout of attitude/deflection/baro/battery
 // without a USB cable, e.g. while the vehicle is on the rail. Per 01_FlightComputer_Spec.md, this

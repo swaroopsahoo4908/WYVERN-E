@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E 4.0 — MOTOR TRADE STUDY
+"""WYVERN-E — MOTOR TRADE STUDY
 ================================================================================
 Question: the F15-4 is underpowered for 705 g (T/W 4.3, rail-exit 6.7 m/s). Fix it by
 (A) swapping to a higher-thrust single-stage motor, or (B) going two-stage with a punchy booster.
@@ -140,7 +140,7 @@ fig,ax=plt.subplots(figsize=(10,5.5)); cmap={"F15-4":GRY,"F67W":"#43aa8b","G74W"
 for n,(T,H,V) in traj.items():
     ax.plot(T,H,c=cmap[n],lw=2,label=f"{n}  ({rows[n]['apogee_ft']} ft)")
 ax.set_xlabel("t (s)"); ax.set_ylabel("altitude (m)"); ax.grid(alpha=.3); ax.legend()
-ax.set_title("WYVERN-E 4.0 — apogee by motor option (RK4 + Barrowman)")
+ax.set_title("WYVERN-E — apogee by motor option (RK4 + Barrowman)")
 fig.tight_layout(); fig.savefig(f"{OUT}/01_apogee_overlay.png",dpi=130); plt.close()
 
 # 2. metric bars: rail-exit v and T/W

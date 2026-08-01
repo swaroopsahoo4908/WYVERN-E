@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E 4.0 — 70 mm single-stage FINNED TVC sustainer (F15-4, motor-ejection recovery via bypass tube) + 3-axis TVC balance + static deflector.
+"""WYVERN-E — 70 mm single-stage FINNED TVC sustainer (F15-4, motor-ejection recovery via bypass tube) + 3-axis TVC balance + static deflector.
 PC-FR: both bulkheads (A+B), bypass tube, and the engine assembly (engine/TVC bay + motor mount + gimbal).
 ASA-Aero: nose, body tube, FC/recovery bays, fins."""
 import os, json

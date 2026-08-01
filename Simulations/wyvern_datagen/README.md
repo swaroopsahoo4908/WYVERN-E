@@ -1,15 +1,15 @@
-# WYVERN-E 4.0 — Simulation & Dataset Suite
+# WYVERN-E — Simulation & Dataset Suite
 
 Start from loaded:
 cd ~/"Library/Mobile Documents/iCloud~md~obsidian/Documents/Skylight/Projects/Skylight/WYVERN/WYVERN-E/Simulations/wyvern_datagen"
 /opt/homebrew/bin/python3 run_gui.py
 
-One Python GUI + engine that generates **millions of atmospheric datapoints** for the WYVERN-E 4.0
+One Python GUI + engine that generates **millions of atmospheric datapoints** for the WYVERN-E
 rocket, and links the project's existing single-run simulation engines under the same window.
 
 This replaces the old Java/OpenRocket `arc-sim` tool (which was wired to the CSW project — its
 `CSWARCMOD*.ork` files have been removed). The physics here matches the project's canonical engine
-`../we4_flightsim.py` (nominal apogee **132.6 m / 435 ft @ ~6.81 s**), so datasets are consistent
+`../we4_flightsim.py` (nominal apogee **130.8 m / 429 ft @ ~6.82 s**), so datasets are consistent
 with the rest of the WYVERN sim suite.
 
 ## Quick start
@@ -125,7 +125,7 @@ million-flight datasets tractable in pure Python. It reuses the canonical WYVERN
   1 m rail then released. Peak pitch error scales with wind (≈0° calm → ≈19° at 10 m/s), consistent
   with the documented low-speed weathercocking of this low-T/W vehicle.
 
-Nominal check: `python3 core.py` → `132.6 m / 435 ft @ 6.81 s` (matches `we4_flightsim.py`).
+Nominal check: `python3 core.py` → `130.8 m / 429 ft @ 6.82 s` (matches `we4_flightsim.py`).
 
 ## Throughput & scale
 

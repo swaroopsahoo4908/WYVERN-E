@@ -1,4 +1,4 @@
-# WYVERN-E 4.0 — Flight Computer
+# WYVERN-E — Flight Computer
 
 *Single Raspberry Pi Pico 2 W (RP2350) — flight computer and real-time TVC controller.*
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E 4.0 — ATMOSPHERIC EFFECTS ON TVC HANDLING  (F15-4, servo TVC, pitch-plane closed loop)
+"""WYVERN-E — ATMOSPHERIC EFFECTS ON TVC HANDLING  (F15-4, servo TVC, pitch-plane closed loop)
 ================================================================================================
 How do real atmospheric conditions change how the TVC must work? Air density (set by temperature,
 pressure, field elevation, humidity) drives dynamic pressure q = ½ρv², which sets:
@@ -25,7 +25,14 @@ m_lift,m_dry,PROP,tb=0.705,0.603,0.060,3.45
 CG=0.467; Xcp=0.537; CN=2.0; x_gimbal=0.72; Rspec=287.05
 I_pitch=(1/12)*m_lift*Ltot**2                      # slender-body pitch inertia (kg·m²)
 Fc_t=np.array([0,0.05,0.12,0.2,0.3,0.5,1,1.5,2,2.5,3,3.3,3.45])
-Fc=np.array([0,12,25.3,22,16,13,12.5,12.2,12,11.8,11.5,7,0]); Fc*=49.6/_TRAPZ(Fc,Fc_t)
+# F15 thrust curve CORRECTED 2026-08. The digitized shape integrated to 41.97 N.s, so the
+# 49.6 N.s renormalization below scaled the whole curve by 1.1817 and pushed peak thrust to
+# 29.9 N -- against Estes' published 25.3 N peak, and against the 3.66 peak T/W quoted
+# throughout this repo (29.9 N gives 4.32). The sustain block (t >= 0.3 s) has been lifted by
+# +2.4408 N so the curve now matches ALL THREE published values simultaneously:
+# total impulse 49.6 N.s, peak 25.3 N, average 14.4 N. The renormalization is retained as a
+# guard (it is now a ~1.0000 no-op) so any future re-digitization still lands on 49.6 N.s.
+Fc=np.array([0, 12, 25.3, 22, 18.441, 15.441, 14.941, 14.641, 14.441, 14.241, 13.941, 9.441, 0]); Fc*=49.6/_TRAPZ(Fc,Fc_t)
 thrust=lambda t: float(np.interp(t,Fc_t,Fc,left=0,right=0)) if 0<=t<=tb else 0.0
 mass=lambda t: max(m_dry,m_lift-(PROP/tb)*min(max(t,0),tb))
 Cd0=0.539

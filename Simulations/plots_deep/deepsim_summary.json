@@ -1,11 +1,11 @@
 {
   "A_flutter": {
-    "AR": 1.14,
-    "t_over_c": 0.038,
-    "v_max_ms": 36.4,
-    "Vflutter_ASA_ms": 358.0,
-    "Vflutter_PCFR_ms": 532.0,
-    "flutter_margin_PCFR": 14.6,
+    "AR": 1.37,
+    "t_over_c": 0.057,
+    "v_max_ms": 36.5,
+    "Vflutter_ASA_ms": 518.0,
+    "Vflutter_PCFR_ms": 770.0,
+    "flutter_margin_PCFR": 21.1,
     "pass": true
   },
   "B_heating": {
@@ -23,33 +23,33 @@
     "pass": true
   },
   "D_cg_tol": {
-    "margin_nominal_cal": 1.0,
-    "margin_at_20mm_aft": 0.71,
-    "cg_aft_limit_mm_for_1cal": 0.0,
+    "margin_nominal_cal": 1.1,
+    "margin_at_20mm_aft": 0.81,
+    "cg_aft_limit_mm_for_1cal": 7.0,
     "pass": true
   },
   "E_dispersion": {
-    "apogee_vertical_m": 132.6,
-    "apogee_15deg_m": 128.1,
-    "max_drift_m": 269.0,
+    "apogee_vertical_m": 130.8,
+    "apogee_15deg_m": 126.3,
+    "max_drift_m": 265.0,
     "pass": true
   },
   "F_step": {
-    "rise_time_s": 0.359,
+    "rise_time_s": 0.361,
     "overshoot_pct": -0.0,
-    "settle_2pct_s": 0.459,
+    "settle_2pct_s": 0.454,
     "pass": true
   },
   "G_drag": {
-    "apogee_lowdrag_m": 137.8,
-    "apogee_highdrag_m": 128.0,
+    "apogee_lowdrag_m": 135.8,
+    "apogee_highdrag_m": 126.3,
     "stays_under_305m": true,
     "pass": true
   },
   "H_battery": {
-    "pack_mAh": 850,
+    "pack_mAh": 450,
     "per_flight_mAh": 3.0,
-    "flights_per_charge": 147.0,
+    "flights_per_charge": 40.0,
     "pass": true
   },
   "_verdict": {
