@@ -1,9 +1,9 @@
 // WYVERN-E -- SPI microSD flight logger, drained from the inter-core FIFO on core 1.
 // ==========================================================================================
-// Core 0 pushes one LogFrame per 500 Hz control tick into the RP2350 inter-core FIFO
-// (pico/multicore.h, 32-bit words -- a LogFrame is split across N words and reassembled here).
-// Core 1 drains the FIFO into a small RAM ring buffer, then flushes that ring to the SD card in
-// bursts. This means an SD write that takes a few ms (common with SPI microSD) never blocks core 0
+// Core 0 pushes one LogFrame per 500 Hz control tick into a lock-free shared-RAM SPSC ring
+// (see the transport section below -- this was the hardware inter-core FIFO, which was 8 words
+// deep against a 37-word frame and therefore dropped 100% of samples; fixed 2026-08).
+// Core 1 drains the ring and flushes to the SD card in bursts. This means an SD write that takes a few ms (common with SPI microSD) never blocks core 0
 // -- it just makes the FIFO momentarily fuller, which core 1 catches up on, by design
 // (01_FlightComputer_Spec.md section 1: "SD writes and Wi-Fi can stall here for milliseconds
 // without ever jittering the control loop on core 0").
@@ -22,8 +22,7 @@
 #include <SD.h>
 #include "pico/multicore.h"
 
-// One flight log record. Kept POD/flat so it can be pushed through multicore_fifo word-by-word.
-// NOTE: multicore_fifo_push_blocking sends one 32-bit word at a time; we pack/unpack via a union.
+// One flight log record. Kept POD/flat so it can be copied into the shared ring by value.
 // Size MUST stay a whole number of 32-bit words (static_assert below enforces this at compile time).
 struct LogFrame {
   uint32_t t_ms;              // millis() at this tick
@@ -61,29 +60,72 @@ static_assert(sizeof(LogFrame) % 4 == 0, "LogFrame must be a whole number of 32-
 
 constexpr size_t LOGFRAME_WORDS = sizeof(LogFrame) / 4;
 
-// ---- core 0 side: push one frame into the FIFO. Non-blocking-ish: if the FIFO is full (core 1
-// fell badly behind, e.g. mid SD-card stall), this DROPS the frame rather than blocking core 0 --
-// a dropped log sample is acceptable, a jittered control loop is not. ----
+// =================================================================================================
+// INTER-CORE LOG TRANSPORT — shared-RAM SPSC ring buffer
+// =================================================================================================
+// FIXED 2026-08. THIS WAS THE SINGLE MOST SERIOUS DEFECT IN THE FIRMWARE: as written, the flight
+// computer logged NOTHING.
+//
+// The previous implementation pushed each LogFrame through the RP2350's *hardware* inter-core FIFO
+// (`rp2040.fifo`). Two independent, individually fatal problems:
+//
+//   1. THE HARDWARE FIFO IS 8 WORDS DEEP. A LogFrame is 37 words (148 bytes). A whole frame can
+//      never fit, under any circumstances, no matter how fast core 1 drains.
+//
+//   2. `rp2040.fifo.available()` REPORTS WORDS WAITING TO BE *READ* on the calling core's inbound
+//      FIFO -- it is not free space on the outbound side. Core 0 never receives anything from
+//      core 1, so `available()` returned 0 forever, `0 < 37` was always true, and log_push()
+//      therefore returned false on EVERY tick. The flight CSV would have contained a header row
+//      and nothing else, while `dropped_frames_cum` climbed at 500 Hz.
+//
+//   (And had the guard ever passed, `rp2040.fifo.push()` BLOCKS until space frees -- which would
+//   have stalled the 500 Hz control loop on core 1's SD latency, destroying the exact determinism
+//   the dual-core split exists to protect. There was no correct outcome available.)
+//
+// Both cores on the RP2350 share SRAM, so the right transport is a lock-free single-producer /
+// single-consumer ring in ordinary memory. Core 0 is the ONLY writer of `s_head`; core 1 is the
+// ONLY writer of `s_tail`. Each side reads the other's index but never writes it, so no mutex is
+// required and neither core can ever block on the other. Memory barriers order the payload write
+// against the index publish, which matters on a dual-issue M33.
+//
+// Capacity: 256 frames = ~38 kB of the RP2350's 520 kB SRAM, and 0.51 s of continuous 500 Hz
+// logging. Core 1 only needs to keep up on average; this absorbs any realistic SD write stall
+// (typ. 2-8 ms, worst-case block-erase ~100 ms) without dropping a single sample.
+static constexpr size_t LOG_RING_FRAMES = 256;
+static LogFrame  s_log_ring[LOG_RING_FRAMES];
+static volatile uint32_t s_head = 0;   // writer: core 0 only
+static volatile uint32_t s_tail = 0;   // writer: core 1 only
+
+// ---- core 0 side: push one frame. Never blocks. Drops (returns false) only if core 1 has fallen
+// more than a full ring behind -- a dropped log sample is acceptable, a jittered control loop is not.
 inline bool log_push(const LogFrame& f) {
-  // pico/multicore.h: rp2040.fifo has 8 words of hardware buffering; check space before writing
-  // the whole frame so we never block, and never leave a half-written frame in the FIFO.
-  if (rp2040.fifo.available() < (int)LOGFRAME_WORDS) {
-    return false;  // dropped -- caller may increment a dropped-frame counter for telemetry
-  }
-  const uint32_t* words = reinterpret_cast<const uint32_t*>(&f);
-  for (size_t i = 0; i < LOGFRAME_WORDS; i++) rp2040.fifo.push(words[i]);
+  uint32_t head = s_head;
+  uint32_t next = (head + 1) % LOG_RING_FRAMES;
+  if (next == s_tail) return false;          // ring full: core 1 is >256 frames behind
+  s_log_ring[head] = f;                       // write payload...
+  __dmb();                                    // ...and make it visible BEFORE publishing the index
+  s_head = next;
   return true;
 }
 
-// ---- core 1 side: drain whatever whole frames are available right now. ----
+// ---- core 1 side: drain whatever whole frames are available right now.
 inline size_t log_drain(LogFrame* out, size_t max_frames) {
   size_t n = 0;
-  while (n < max_frames && rp2040.fifo.available() >= (int)LOGFRAME_WORDS) {
-    uint32_t* words = reinterpret_cast<uint32_t*>(&out[n]);
-    for (size_t i = 0; i < LOGFRAME_WORDS; i++) rp2040.fifo.pop(&words[i]);
-    n++;
+  uint32_t tail = s_tail;
+  while (n < max_frames && tail != s_head) {
+    out[n++] = s_log_ring[tail];
+    tail = (tail + 1) % LOG_RING_FRAMES;
   }
+  __dmb();                                    // consume payload before releasing the slots
+  s_tail = tail;
   return n;
+}
+
+// Ring occupancy, for the self-test and the heartbeat. Core 1 falling persistently behind is a
+// finding (slow card / too-small FLUSH_EVERY), not a benign condition.
+inline uint32_t log_pending() {
+  uint32_t h = s_head, t = s_tail;
+  return (h >= t) ? (h - t) : (LOG_RING_FRAMES - t + h);
 }
 
 class SdLogger {
@@ -146,7 +188,16 @@ public:
       rows_since_flush_++;
     }
     if (rows_since_flush_ >= FLUSH_EVERY) { file_.flush(); rows_since_flush_ = 0; }
+    if (n > peak_drain_) peak_drain_ = n;
+    uint32_t pend = log_pending();
+    if (pend > peak_pending_) peak_pending_ = pend;
   }
+
+  // Diagnostics for the bench self-test and the post-flight report: how full the ring ever got and
+  // the largest burst core 1 had to absorb. peak_pending_ approaching LOG_RING_FRAMES means the
+  // card is too slow for the configured FLUSH_EVERY and samples are about to be lost.
+  uint32_t peak_pending() const { return peak_pending_; }
+  size_t peak_drain() const { return peak_drain_; }
 
   // Force a flush + close, e.g. on LANDED state entry so the card is safe to remove.
   void finalize() { if (ok_) { file_.flush(); file_.close(); ok_ = false; } }
@@ -157,4 +208,6 @@ private:
   File file_;
   bool ok_ = false;
   int rows_since_flush_ = 0;
+  uint32_t peak_pending_ = 0;
+  size_t peak_drain_ = 0;
 };

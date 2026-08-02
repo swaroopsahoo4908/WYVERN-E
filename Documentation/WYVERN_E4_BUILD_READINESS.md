@@ -31,6 +31,7 @@ in §7 is achievable.
 | Flight computer | **Raspberry Pi Pico 2 W (RP2350)**, dual-core, 500 Hz TVC PID **Kp0.10/Ki0.40/Kd0.18**, ±8° gimbal |
 | Sensors | 3× BNO085 (GRV), BME688 + **BMP388** (Adafruit 3966) baro, microSD, i3 4K Thumb Action Camera cam, Wi-Fi bench telemetry |
 | Structural margins | flight min SF ~340×; bulkhead-B ejection SF ~8×; bypass tube ~107×; engine-bay thermal < HDT |
+| Servo torque margin | **2.3× at the full ±8° gimbal** (0.086 N·m hinge vs 0.20 N·m stall) — below the 3.0× gate, see §11 |
 
 ## 3. Per-target readiness
 
@@ -79,11 +80,17 @@ allocation matches the material zoning in §2.
 
 | Budget line | Value |
 |---|---|
-| Gross to-buy | $1,290.18 |
+| Gross to-buy | $1,380.85 |
 | Less reimbursed (launch controller) | −$43.99 |
-| **Net out-of-pocket (still to buy)** | **$1,246.19** |
+| **Net out-of-pocket (still to buy)** | **$1,336.86** |
 | Already acquired (owned) | $479.27 |
-| **Total program spend** | **$1,725.46** (was $1,882 with the tunnel) |
+| **Total program spend** | **$1,816.13** |
+
+> Rose from $1,725.46 on 2026-08-01 when the cart gap analysis found **five items the BOM never
+> costed at all** — the microSD SPI breakout the firmware requires, the 1010 launch rail, the Nomex
+> chute protector, an anemometer for the RQ3 wind measurement, and a steel blast deflector. The
+> parachute line was also corrected from 24 in to the 18 in canopy every simulation actually uses.
+> See `WYVERN_E4_Cart_Gap_Analysis.md`.
 
 ## 5. Files reconciled in this pass
 
@@ -117,6 +124,10 @@ These are hardware-verification steps from `FLIGHT_READINESS.md` §4 — none ar
 Run `selftest.py` before every flight; it gates on all of the above that are observable in software.
 
 ## 7. Suggested 1-week build / 2-week launch schedule
+
+> **Superseded 2026-08 by `WYVERN_E4_Timeline_14Day.md`.** That schedule is built around the fact
+> that $1,337 of the BOM is still unordered, which this section assumed away. Kept below as the
+> original build-effort estimate; use the 14-day timeline for actual planning.
 
 **Week 1 — fabricate & bench:**
 - Days 1–2: print airframe (ASA-Aero body/nose/fins; PC-FR bulkheads/tube/engine bay/gimbal/mount)
@@ -225,10 +236,118 @@ two figures are not directly comparable — the script now prints that caveat al
 | CG / CP / margin | 49.1 cm / 56.8 cm / **+1.10 cal** |
 | Deploy | t = 7.45 s, +0.63 s past apogee, 6.1 m/s |
 | PID margins | PM **40.0°**, GM **11.3 dB**, worst gust pitch **2.30°**, gimbal 2.60° |
-| Gates | validation **10/13**, deepsim **8/8** |
+| Gates | validation **10/13**, deepsim **7/8** (servo torque flagged — §11) |
 | Cross-file check | **14/14** numeric agreements between the summary JSONs |
 
 The three flagged validation gates are unchanged in character and share one root cause: the F15 is
 underpowered for a 705 g vehicle. Rail exit is 6.1 m/s against a 15 m/s rule of thumb, peak T/W is
 3.66 against a 5.0 rule of thumb, and weathercock reaches 63° at 10 m/s. This is a launch-window
 constraint, not a design defect — but it is real and should not be presented as passing.
+
+---
+
+## 10. Firmware flight-readiness pass (2026-08)
+
+The firmware was audited line by line against the frozen parameter table in `CONFLICTS.md` §5.
+**Six defects were found, two of which would each independently have cost the entire flight.**
+
+### 10.1 Defects fixed
+
+| # | Defect | Consequence | Fix |
+|---|---|---|---|
+| **F1** | **Inter-core log transport used the 8-word hardware FIFO for a 33-word frame**, and guarded it with `rp2040.fifo.available()`, which reports words waiting to be *read* on the inbound side — not outbound free space. `0 < 33` was true forever. | **The flight computer logged nothing.** Every frame was dropped at 500 Hz; the SD card would have contained a header row and no data. Every research question depends on that log. Had the guard ever passed, `push()` blocks — which would have stalled the 500 Hz loop on SD latency instead. | Replaced with a lock-free shared-RAM SPSC ring (256 frames, ~38 kB, 0.51 s of buffer). Verified off-target: 5000 frames across a simulated 100 ms SD stall, **0 dropped, in order, payload intact**, peak occupancy 55/256. |
+| **F2** | `core0_apply_servo_commands()` re-clamped the servo command to **±5°** after the PID had already limited to ±8°. | **37.5% of control authority silently discarded.** The ±8° limit exists specifically for crosswind weathercock rejection — it was raised 5→8 for that reason, and the extra 3° existed in the controller, the sims, the `.ork` and every document, but not in the signal path that moves the nozzle. | Clamp now reads `wyvern_pid_defaults::OUT_LIM_DEG` directly, so the two cannot diverge again. Also moved to `writeMicroseconds()` — `write(int)` quantized to whole degrees, ~6% of full authority. |
+| F3 | Boot servo sweep exercised only ±5° while printing "operator visually confirms ±8° travel". | A linkage binding between 6° and 8° would have passed the bench and been found in flight. | Sweep now goes to the full `OUT_LIM_DEG`, both axes, and says what it swept. |
+| F4 | `LaunchDetect` re-stamped `launch_ms_` every tick after latching. | `launch_time_ms()` always returned "now", so any `t_flight` derived from it would read ~0 for the whole flight. Masked only because the sketch latches its own copy at the transition. | Stamped once, on the latching tick. |
+| F5 | `RECOVER_BACKSTOP_S = 7.5` | 50 ms off the canonical 7.45 s ejection time used everywhere else. | Set to 7.45. |
+| F6 | `pid_reference.py` — the "reference implementation that matches the firmware exactly" — used a **±5°** clamp and lacked the firmware's first-tick derivative priming. | Tick 0 of every study importing it saw a phantom ~27 rad/s derivative that saturated the command: **7.7° disagreement with the firmware on the first sample**, then a 3° clamp mismatch thereafter. | Both corrected. Firmware and twin now agree to **1.2 × 10⁻⁹ rad** (float32 rounding) over a 2000-tick pseudo-random sequence. |
+
+### 10.2 Verification performed
+
+- **Flight PID compiled off-target and unit-tested**: constants match the frozen table; saturates at
+  exactly 8.000°; anti-windup recovers in 1 tick; `dt ≤ 0` and NaN return the previous output.
+- **Ring buffer stress-tested** across a 100 ms SD stall (see F1).
+- **Firmware ↔ Python twin numerical equivalence** verified to float32 rounding.
+- Structural balance check across all 21 firmware, test and ground-rig sources: **all balanced**.
+- Four dead deprecation stubs deleted (`co2_deploy.h`, `rrc3_telemetry.h`, `tof_ring.h`,
+  `kalman_filter.h`) — nothing included them.
+
+### 10.3 Self-test and tooling changes
+
+- `SELFTEST:FIFO` → **`SELFTEST:LOG_RING`**, and it is now *two-sided*: it verifies core 1 is
+  actually draining, not merely that a drop counter reads zero. The old check reported a contented
+  PASS in exactly the failure mode where 100% of frames were being lost.
+- Heartbeat gained `pend=` and `peak=` (ring occupancy). `host_monitor.py` parses both, tolerates
+  older builds, and warns when peak occupancy exceeds 200/256.
+- `t3_servo_sweep.ino` rewritten to drive the **same** microsecond signal path as flight, with a
+  hold-and-measure procedure for calibrating `SERVO_LINKAGE_RATIO`. The old version drove a
+  different path than flight, which is why it "passed" while flight was clamped to ±5°.
+
+### 10.4 Flight-day data reduction
+
+`Simulations/we4_flight_reduce.py` takes the onboard CSV to the RQ3/RQ4 results in one pass.
+
+- **RQ3a coast Cd** by 2-parameter (Cd, v₀) forward-model RK4 least-squares fit over the coast.
+  The obvious method — differentiating baro altitude twice — returned **Cd = 1.40 ± 0.76** against
+  a known 0.539 on the SIL selftest (wrong by 160%, useless error bar). The fit returns
+  **0.477 ± 0.020**, and the residual ~11% bias is understood: the reduction models a purely
+  vertical coast while the flight has a crosswind, so the 1-D fit slightly under-attributes drag.
+- **RQ3b static margin** from the passive window (rail exit → TVC engage), which is the only part of
+  the flight not confounded by the controller. Reported with its caveat: short, low-q, and weaker
+  than the Cd result.
+- **RQ4** peak/RMS pitch, gimbal utilisation and saturation, and commanded-vs-measured servo
+  tracking error — the last of which no bench test can fully predict.
+- `--selftest` validates the whole pipeline against a synthetic SIL flight before flight day.
+  Currently recovers apogee to **0.1 m**.
+
+### 10.5 Remaining hardware-verification items
+
+Unchanged from §6 and still open — these need a bench, not a code change:
+
+1. Ground ejection test (Gate 3 in the timeline).
+2. `SERVO_LINKAGE_RATIO` calibration (build guide §B4) — the flight code assumes the nozzle
+   actually reaches ±8°.
+3. LAUNCH_IRQ (GP7) wiring confirmed or the branch removed.
+4. RBF sense polarity confirmed.
+5. Battery divider verified against a multimeter, and VSYS scoped during a servo stall.
+6. `SH2_ACCELEROMETER` confirmed available on your BNO085 firmware revision.
+7. Stand commissioning against published curves, watching for the 42 Hz aliased mount ring.
+
+---
+
+## 11. New open item — servo torque margin at the full gimbal limit
+
+Correcting the ±5°/±8° mismatch in the firmware (§10, F2) exposed the same mismatch in four
+simulation scripts, and fixing those changed one result materially.
+
+**`we4_deepsim.py` check C now reports a servo torque margin of 2.3×, below its 3.0× gate.
+Deepsim goes 8/8 → 7/8.**
+
+| | Before | After |
+|---|---|---|
+| Deflection the hinge moment was evaluated at | 5° | **8° (the actual limit)** |
+| Peak hinge moment | 0.054 N·m | **0.086 N·m** |
+| Margin vs ES08MA II 0.20 N·m stall | 3.7× | **2.3×** |
+
+This is a real finding, not a regression. The old 3.7× was computed at a mid-range deflection while
+the vehicle is designed and cleared to command ±8°, so worst-case hinge load was understated by
+1.6×. Three other scripts had the same error and are also corrected: `we4_atmos_tvc.py` and
+`we4_pid_retune.py` were clamping the modelled gimbal at 5°, and `we4_validation.py` computed
+available TVC authority at 5° **while its own plot was labelled "±8° gimbal"** — the label had been
+updated when the limit was raised and the number had not. With that fixed, TVC authority ratio rises
+from 39.6× to **63.2×**.
+
+### What to do about it
+
+Do not change the servo on the strength of a model. 2.3× is still a working margin, and the
+**ground TVC balance campaign measures this quantity directly** — the balance resolves the thrust
+vector, and the rig logs commanded versus measured nozzle angle under real F15-0 thrust.
+
+**Action, Timeline Day 9 (RQ1 session):** record servo current and commanded-vs-achieved deflection
+at the ±8° extremes under thrust. If the servo reaches and holds ±8° without stalling or visible
+droop, the margin is adequate and the model is conservative. If it droops, the options in order of
+preference are: reduce the linkage ratio (trading servo travel for torque), raise the servo supply
+to 6 V (~2.0 kg·cm instead of ~1.8), or fit a higher-torque servo.
+
+This is a good outcome from the audit: a modelling error was flagged before flight, and the test
+that resolves it is already in the schedule three days before the flight window.

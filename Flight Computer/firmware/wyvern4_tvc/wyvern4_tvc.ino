@@ -85,7 +85,9 @@ static const float MANEUVER_START_S = 2.0f;         // "vertical (t<2s) then 4 d
 // Recovery is MOTOR-DRIVEN: the F15-4's own ejection charge fires ~4 s after burnout (t~7.5 s) and
 // vents through the bypass tube to pop the nose — the FC does NOT actuate anything. This backstop is
 // only the state machine's cutover to RECOVER (for logging/camera), set at the expected ejection time.
-static const float RECOVER_BACKSTOP_S = 7.5f;       // ~ F15-4 ejection time (burnout + 4 s)
+static const float RECOVER_BACKSTOP_S = 7.45f;      // F15-4 ejection = burnout 3.45 + 4.0 s delay
+                                                     // (was 7.5 -- the canonical value everywhere
+                                                     //  else in the repo is 7.45; see CONFLICTS.md 5)
 static const unsigned long LANDED_QUIET_MS = 3000;  // accel+baro quiescent this long -> LANDED
 
 // ---------- flight state machine (01_flight_state_machine.mermaid) ----------
@@ -142,18 +144,45 @@ bool g_armed_servo_neutral_done = false;
 int g_baro_decimate_count = 0;
 static const int BARO_DECIMATE = 5;   // baro updated every 5th control tick (~100 Hz), see header
 
-void core0_set_servos_neutral() {
-  g_servo_pitch.write((int)SERVO_NEUTRAL_DEG);
-  g_servo_yaw.write((int)SERVO_NEUTRAL_DEG);
+// Servo command mapping. `deg` is nozzle deflection about neutral (0 = centred), NOT an absolute
+// servo angle -- keeping the sign convention identical to the PID output and the logged
+// cmd_pitch_rad/cmd_yaw_rad avoids the class of error the +-5/+-8 mismatch above belonged to.
+// SERVO_US_PER_DEG is the linkage-corrected scale: bench-calibrate it in step B4 of the build
+// guide by commanding a known deflection and measuring actual nozzle angle.
+static const float SERVO_US_NEUTRAL  = 1500.0f;
+static const float SERVO_US_PER_DEG  = 10.0f;    // 1000-2000 us over +-50 deg servo travel
+static const float SERVO_LINKAGE_RATIO = 1.0f;   // servo deg per nozzle deg (1.0 = direct drive)
+
+static inline int servo_us_from_deg(float nozzle_deg) {
+  float us = SERVO_US_NEUTRAL + nozzle_deg * SERVO_LINKAGE_RATIO * SERVO_US_PER_DEG;
+  if (us < 1000.0f) us = 1000.0f;               // hard mechanical guard, never drive past the horn
+  if (us > 2000.0f) us = 2000.0f;
+  return (int)lroundf(us);
 }
 
+void core0_set_servos_neutral() {
+  g_servo_pitch.writeMicroseconds((int)SERVO_US_NEUTRAL);
+  g_servo_yaw.writeMicroseconds((int)SERVO_US_NEUTRAL);
+}
+
+// FIXED 2026-08 -- this function silently threw away 37.5% of the vehicle's control authority.
+// wyvern_pid.h clamps the PID output to OUT_LIM_DEG = 8.0 deg (raised from 5 specifically to give
+// the TVC authority against crosswind weathercocking, per CONFLICTS.md section 5 and the
+// weathercock analysis). This function then RE-clamped the same command to +-5 deg, so every
+// command between 5 and 8 deg was truncated on the way to the servo. The extra authority existed
+// in the controller, in the simulations, in the .ork and in every document -- and nowhere in the
+// signal path that actually moves the nozzle.
+//
+// The clamp is now driven by the SAME constant the PID uses, so the two can never diverge again.
+// Also switched from Servo::write(int) to writeMicroseconds(): write() quantizes to whole degrees,
+// which on a +-8 deg range is a ~6% quantization of full command authority and shows up as a
+// visible stair-step in the logged deflection. Microsecond resolution is ~0.09 deg here.
 void core0_apply_servo_commands(float cmd_pitch_rad, float cmd_yaw_rad) {
-  float pitch_deg = SERVO_NEUTRAL_DEG + degrees(cmd_pitch_rad);
-  float yaw_deg = SERVO_NEUTRAL_DEG + degrees(cmd_yaw_rad);
-  pitch_deg = constrain(pitch_deg, SERVO_NEUTRAL_DEG - 5.0f, SERVO_NEUTRAL_DEG + 5.0f);
-  yaw_deg = constrain(yaw_deg, SERVO_NEUTRAL_DEG - 5.0f, SERVO_NEUTRAL_DEG + 5.0f);
-  g_servo_pitch.write((int)lroundf(pitch_deg));
-  g_servo_yaw.write((int)lroundf(yaw_deg));
+  const float LIM = wyvern_pid_defaults::OUT_LIM_DEG;   // single source of truth with the PID
+  float pitch_deg = constrain(degrees(cmd_pitch_rad), -LIM, LIM);
+  float yaw_deg   = constrain(degrees(cmd_yaw_rad),   -LIM, LIM);
+  g_servo_pitch.writeMicroseconds(servo_us_from_deg(pitch_deg));
+  g_servo_yaw.writeMicroseconds(servo_us_from_deg(yaw_deg));
 }
 
 void setup() {
@@ -189,13 +218,16 @@ void setup() {
   g_servo_yaw.attach(PIN_SERVO_Y);
   core0_set_servos_neutral();
   delay(300);   // one-time settling at boot only, never in loop()
-  // Visual/mechanical confirmation sweep, mirrors t3_servo_sweep.ino's bench test.
-  for (int a = -5; a <= 5; a++) { g_servo_pitch.write((int)(SERVO_NEUTRAL_DEG + a)); delay(15); }
+  // Visual/mechanical confirmation sweep to the FULL command limit. This previously swept only
+  // +-5 deg, so the bench operator was asked to "visually confirm +-8 deg travel" while watching a
+  // +-5 deg sweep -- a mechanical binding at 6-8 deg would have passed the bench and been
+  // discovered in flight.
+  const int SW = (int)wyvern_pid_defaults::OUT_LIM_DEG;
+  for (int a = -SW; a <= SW; a++) { g_servo_pitch.writeMicroseconds(servo_us_from_deg((float)a)); delay(15); }
+  core0_set_servos_neutral(); delay(150);
+  for (int a = -SW; a <= SW; a++) { g_servo_yaw.writeMicroseconds(servo_us_from_deg((float)a)); delay(15); }
   core0_set_servos_neutral();
-  for (int a = -5; a <= 5; a++) { g_servo_yaw.write((int)(SERVO_NEUTRAL_DEG + a)); delay(15); }
-  core0_set_servos_neutral();
-  Serial.println("SELFTEST:SERVO:PASS");  // sweep completing without a hang is the pass criterion;
-                                            // bench operator visually confirms +-8 deg travel.
+  Serial.printf("SELFTEST:SERVO:PASS (swept +-%d deg both axes)\n", SW);
   Serial.println("SELFTEST:CORE0_READY:PASS");
 
   g_pid.reset();
@@ -431,14 +463,24 @@ void setup1() {
   g_rbf_pulled = rbf_pulled;
   Serial.printf("SELFTEST:RBF:%s\n", rbf_pulled ? "PASS(pulled)" : "WAIT(inserted)");
 
-  // FIFO sanity: core 0 should already be pushing frames by the time we get here; a nonzero drop
-  // counter this early would mean core 1 isn't keeping up even at idle, which is itself a finding.
+  // Log-transport sanity. Core 0 has been pushing frames at 500 Hz since its setup() finished, so
+  // by now the ring must contain samples AND core 1 must be draining them. This check is deliberately
+  // two-sided: the old version only looked at the drop counter, which read a contented 0 even in the
+  // failure mode where the transport was dropping 100% of frames (see the SPSC-ring note in
+  // sd_logger.h) -- because that path never incremented the counter either.
+  delay(100);
+  uint32_t pend_before = log_pending();
+  g_logger.service();
   delay(50);
-  Serial.printf("SELFTEST:FIFO:%s\n", (g_dropped_log_frames == 0) ? "PASS" : "WARN(dropped frames)");
+  bool ring_moving = (log_pending() < pend_before) || (g_logger.peak_drain() > 0);
+  Serial.printf("SELFTEST:LOG_RING:%s (pending=%lu peak_drain=%lu dropped=%lu)\n",
+                ring_moving ? "PASS" : "FAIL(core1 not draining)",
+                (unsigned long)log_pending(), (unsigned long)g_logger.peak_drain(),
+                (unsigned long)g_dropped_log_frames);
 
   // Aggregate everything into one PASS/FAIL the BOOT state machine on core 0 actually gates on.
   bool core0_ready = (g_imu_init_mask & 0x01) && (g_imu_init_mask & 0x06) && g_baro_init_ok;
-  bool overall = core0_ready && sd_ok && !g_battery.critical();
+  bool overall = core0_ready && sd_ok && !g_battery.critical() && ring_moving;
   g_selftest_pass = overall;
   Serial.printf("SELFTEST:DONE:%s\n", overall ? "PASS" : "FAIL");
   g_status.set(overall ? StatusIndicator::BOOT_SELFTEST : StatusIndicator::SELFTEST_FAIL);
@@ -491,8 +533,9 @@ void loop1() {
   static unsigned long last_hb_ms = 0;
   if (now_ms - last_hb_ms >= 1000) {
     last_hb_ms = now_ms;
-    Serial.printf("HB:t=%lu state=%s batt=%.2fV rbf=%d drop=%lu\n",
+    Serial.printf("HB:t=%lu state=%s batt=%.2fV rbf=%d drop=%lu pend=%lu peak=%lu\n",
       now_ms, state_name(st), g_battery.voltage(), rbf_pulled ? 1 : 0,
-      (unsigned long)g_dropped_log_frames);
+      (unsigned long)g_dropped_log_frames, (unsigned long)log_pending(),
+      (unsigned long)g_logger.peak_pending());
   }
 }

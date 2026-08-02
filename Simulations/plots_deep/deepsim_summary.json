@@ -16,11 +16,11 @@
     "pass": true
   },
   "C_servo": {
-    "hinge_moment_max_Nm": 0.054,
+    "hinge_moment_max_Nm": 0.086,
     "servo_stall_Nm": 0.2,
-    "torque_margin": 3.7,
+    "torque_margin": 2.3,
     "mAh_per_flight": 0.7,
-    "pass": true
+    "pass": false
   },
   "D_cg_tol": {
     "margin_nominal_cal": 1.1,
@@ -53,7 +53,7 @@
     "pass": true
   },
   "_verdict": {
-    "passed": "8/8",
+    "passed": "7/8",
     "note": "F15-4 single-stage servo-TVC deep checks"
   }
 }

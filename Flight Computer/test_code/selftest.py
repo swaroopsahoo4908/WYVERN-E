@@ -16,13 +16,15 @@ table these depend on):
   IMU_MINIMUM    gimbal AND (body OR recovery) all initialized -- flight-critical minimum
   BARO_BMP       BMP388 on mux ch3 (0x77) inits
   BARO_BME       BME688 on mux ch2 (0x76) inits
-  SERVO          pitch/yaw +-8 deg sweep completes without a hang (visually confirm travel on bench)
+  SERVO          pitch/yaw sweep to the full +-8 deg limit completes without a hang
+                 (visually confirm actual nozzle travel on the bench -- see test_code/t3)
   CORE0_READY    core 0's own init sequence finished
   BATTERY        2S LiPo voltage above CRITICAL_CUTOFF_V (see battery.h)
   SD             microSD (SPI0) mounts and the flight-log file opens for write
   WIFI           bench WiFi association, only if WIFI_ENABLED is set in the .ino (SKIP otherwise)
   RBF            Remove-Before-Flight switch sensed pulled (PASS) or still inserted (WAIT)
-  FIFO           core 0 -> core 1 inter-core log FIFO had zero drops during the boot window
+  LOG_RING       core 0 -> core 1 shared-RAM log ring is actually moving (core 1 draining), and
+                 zero frames dropped during the boot window
 
 Usage:
     python3 selftest.py [PORT] [--timeout SECONDS]

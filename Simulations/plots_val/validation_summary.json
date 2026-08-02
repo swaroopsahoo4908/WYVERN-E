@@ -41,7 +41,7 @@
       "pass": false
     },
     "tvc_authority_ratio": {
-      "value": 39.6,
+      "value": 63.2,
       "limit": ">= 2x required maneuver moment",
       "pass": true
     },

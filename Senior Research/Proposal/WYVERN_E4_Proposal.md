@@ -14,7 +14,7 @@ quantitatively on a purpose-built **3-axis thrust-vector balance** that resolves
 magnitude and vector direction; the flight vehicle carries the servo system. The program retains the
 static motor/materials test regimen; the aerofoil wind-tunnel campaign was removed in 2026-08 and its
 aerodynamic question is now answered analytically and validated in flight (RQ3). All flights are FAA
-Class-1 (no waiver, no certification). Predicted apogee ≈ 429 ft; project cost ≈ $1,725.
+Class-1 (no waiver, no certification). Predicted apogee ≈ 429 ft; project cost ≈ $1,816.
 
 ## 1. Background & Motivation
 ### 1.1 Thrust vector control
@@ -149,8 +149,8 @@ no Level-1 certification**. Remote ignition, ≥ 3 m standoff on the stands, gim
 motor-integral ejection (igniter installed at the pad; no electronic ejection circuit to arm or inhibit).
 
 ## 10. Budget
-≈ **$1,725** total program spend (vehicle + 3-axis balance + static/materials stand + one-time tools
-+ all motors): $1,246 still to buy + $479 already acquired. This is down from the $1,882 originally
+≈ **$1,816** total program spend (vehicle + 3-axis balance + static/materials stand + one-time tools
++ all motors): $1,337 still to buy + $479 already acquired. This is down from the $1,882 originally
 scoped; the Hofferth wind tunnel section was deleted from the BOM in the 2026-08 scope change. Live
 per-line pricing in
 `Documentation/WYVERN_E4_BOM.xlsx`. Per-flight consumable ≈ F15-4 $17 (integral delay/ejection; no

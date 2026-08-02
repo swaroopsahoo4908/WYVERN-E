@@ -33,12 +33,16 @@ except ImportError:
 CHECK_ORDER = [
     "MUX", "IMU_GIMBAL", "IMU_BODY", "IMU_RECOVERY", "IMU_MINIMUM",
     "BARO_BMP", "BARO_BME", "SERVO", "CORE0_READY",
-    "BATTERY", "SD", "WIFI", "RBF", "FIFO",
+    "BATTERY", "SD", "WIFI", "RBF", "LOG_RING",
 ]
 SELFTEST_RE = re.compile(r"^SELFTEST:([A-Z0-9_]+):(.*)$")
 STATE_RE = re.compile(r"^STATE:([A-Z]+)$")
+# Heartbeat gained pend=/peak= in 2026-08 when the inter-core log transport was rewritten as a
+# shared-RAM SPSC ring (sd_logger.h). Both new fields are optional so this monitor still parses
+# heartbeats from an older build rather than silently showing "NOT SEEN" for everything.
 HB_RE = re.compile(
-    r"^HB:t=(\d+)\s+state=(\S+)\s+batt=([\d.]+)V\s+rbf=([01])\s+drop=(\d+)$"
+    r"^HB:t=(\d+)\s+state=(\S+)\s+batt=([\d.]+)V\s+rbf=([01])\s+drop=(\d+)"
+    r"(?:\s+pend=(\d+))?(?:\s+peak=(\d+))?$"
 )
 
 
@@ -103,6 +107,8 @@ def run(port: str, timeout_s: float, baud: int = 115200):
                     "t_ms": int(m.group(1)), "state": m.group(2), "batt_v": float(m.group(3)),
                     "rbf": m.group(4) == "1",
                     "drop": int(m.group(5)),
+                    "pend": int(m.group(6)) if m.group(6) is not None else None,
+                    "peak": int(m.group(7)) if m.group(7) is not None else None,
                 }
                 # Once we've seen at least one heartbeat AND a DONE verdict, no need to keep
                 # listening for the full timeout window during a bench self-test run.
@@ -124,8 +130,13 @@ def run(port: str, timeout_s: float, baud: int = 115200):
         print(f"\nlast heartbeat: state={last_hb['state']} batt={last_hb['batt_v']:.2f}V "
               f"rbf_pulled={last_hb['rbf']} "
               f"dropped_frames={last_hb['drop']}")
+        if last_hb.get("pend") is not None:
+            print(f"log ring: pending={last_hb['pend']} peak={last_hb.get('peak')} of 256 frames")
         if last_hb["drop"] > 0:
-            print("  NOTE: dropped_frames > 0 -- core 1 fell behind core 0's log FIFO at some point.")
+            print("  NOTE: dropped_frames > 0 -- core 1 fell more than a full 256-frame ring "
+                  "behind core 0. Suspect a slow SD card; raise FLUSH_EVERY or use a faster card.")
+        if last_hb.get("peak") is not None and last_hb["peak"] > 200:
+            print("  NOTE: peak ring occupancy >200/256 -- close to dropping. Same remedy as above.")
     if states_seen:
         print(f"state transitions observed: {' -> '.join(states_seen)}")
 

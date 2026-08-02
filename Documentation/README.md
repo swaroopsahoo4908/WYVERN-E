@@ -5,7 +5,10 @@
 - `WYVERN_E4_Camera_Solution.md` — i3 4K Thumb Action Camera offload solution (OV2640 SPI can't do 720p30).
 - `WYVERN_E4_Recovery.md` — F15-4 motor-ejection recovery via a bypass tube (finned vehicle).
 - `WYVERN_E4_GSE_TestStands.md` — 3-axis TVC balance + static/jetvane stand + motor plan.
-- `WYVERN_E4_BOM.xlsx` — master BOM, 8 sections + Summary + Purchase Links (prices verified 2026-06-21; wind-tunnel section deleted 2026-08). Total program spend $1,725.46.
+- `WYVERN_E4_Timeline_14Day.md` — **day-by-day build-to-flight schedule** (order-first gate, parallel tracks, slip triggers).
+- `WYVERN_E4_Build_Guide.md` — **print / bench / assembly / ground-test / range procedures** with go-no-go cards.
+- `WYVERN_E4_BOM.xlsx` — master BOM, 8 sections + Summary + Purchase Links (wind-tunnel section deleted 2026-08; five never-costed items added, chute corrected 24→18 in). Total program spend $1,816.13.
+- `WYVERN_E4_Cart_Gap_Analysis.md` — **what the current cart is missing** vs the BOM and the design.
 - Flight computer: `../Flight Computer/01_FlightComputer_Spec.md`, `firmware/`, `wiring/`, `flowcharts/`.
 - Sims/plots: `../Simulations/we4_sim.py` + `we4_analysis.py` → `../Simulations/plots4/`.
 - Datasets: `../Simulations/wyvern_datagen/` (Monte-Carlo + SIL generator, sharded ≤80 MB/file).

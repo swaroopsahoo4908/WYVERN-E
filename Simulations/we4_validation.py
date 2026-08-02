@@ -154,7 +154,12 @@ fig.tight_layout(); fig.savefig(f"{OUT}/03_rail_departure.png",dpi=130); plt.clo
 # 4. TVC CONTROL AUTHORITY — available gimbal moment vs the moment required for the design maneuver.
 # Gust rejection is carried by the FINS (gate 2, 1.0+ cal). TVC adds commanded control on top and,
 # unlike fins, its authority does NOT depend on airspeed (it is thrust-reaction based).
-TVC_ON=0.5; dmax=np.radians(5.0)
+# GIMBAL LIMIT CORRECTED 2026-08: was radians(5.0). The mechanical/firmware limit is 8.0 deg
+# (wyvern_pid.h OUT_LIM_DEG, raised 5->8 specifically for crosswind weathercock authority).
+# Clamping the model at 5 deg understates available authority by 37.5%.
+# (The plot below already SAID '+-8 deg gimbal' while this computed at 5 -- the
+#  label was updated when the limit was raised, the number was not.)
+TVC_ON=0.5; dmax=np.radians(8.0)
 I_pitch=(1/12)*m_lift*Ltot**2                      # slender-body pitch inertia
 ang_target=np.radians(5.0)                          # design authority: 5 deg/s^2 commanded pitch accel
 M_req=I_pitch*ang_target                            # required control moment (N*m)

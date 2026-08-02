@@ -104,7 +104,9 @@ ax.legend(fontsize=8); ax.grid(alpha=.3); fig.tight_layout(); fig.savefig(f"{OUT
 
 # ============ C. SERVO TORQUE & ELECTRICAL DUTY ============
 # hinge moment on the gimbal = thrust * sin(defl) * moment-arm  (TVC nozzle), servo via linkage ratio
-defl=np.radians(5.0); link_ratio=2.0; servo_stall=0.20   # ES08MA II ~2.0 kg·cm = 0.20 N·m
+# Worst-case hinge moment must be evaluated at the FULL gimbal limit, not at a
+# mid-range 5 deg -- otherwise the reported servo torque margin is optimistic by 1.6x.
+defl=np.radians(8.0); link_ratio=2.0; servo_stall=0.20   # ES08MA II ~2.0 kg·cm = 0.20 N·m
 ts=np.linspace(0.5,tb,200); Mh=thrust_arr=np.array([thrust(t) for t in ts])*np.sin(defl)*0.02  # 20 mm arm
 servo_req=Mh*link_ratio; torque_margin=servo_stall/max(servo_req.max(),1e-6)
 # electrical: holding ~0.2 A, slewing ~0.7 A; assume 40% duty slewing over the burn window

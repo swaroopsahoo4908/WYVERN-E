@@ -57,12 +57,15 @@ WYVERN Project/
 │   ├── WYVERN_E4_GSE_TestStands.md
 │   ├── WYVERN_E4_PID_AUTOTUNE_REPORT.md
 │   ├── WYVERN_E4_BOM.xlsx           ← master BOM (8 sections) + purchase links
+│   ├── WYVERN_E4_Timeline_14Day.md  ← day-by-day build-to-flight schedule
+│   ├── WYVERN_E4_Build_Guide.md     ← print/bench/assembly/ground-test/range procedures
 │   ├── FLIGHT_READINESS.md
 │   ├── COMPATIBILITY.md
 │   └── CONFLICTS.md
 ├── Flight Computer/                 ← Pico 2 W spec, firmware, wiring, GSE test rigs
 │   └── README.md
 ├── Simulations/                     ← Python RK4 suite, OpenRocket, dataset generator
+│   ├── we4_flight_reduce.py         ← post-flight SD log → RQ3/RQ4 results (--selftest first)
 │   ├── README.md
 │   └── wyvern_datagen/              ← Monte Carlo atmospheric dataset generator + GUI
 │       └── README.md

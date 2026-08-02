@@ -36,7 +36,12 @@ public:
       over_thresh_since_ms_ = 0;
     }
     if (irq_active) latched_ = true;   // redundant hardware trigger bypasses the software sustain window
-    if (latched_) launch_ms_ = now_ms;
+    // FIXED 2026-08: this was `if (latched_) launch_ms_ = now_ms;` -- which re-stamped the launch
+    // time on EVERY tick after the latch, so launch_time_ms() always returned "now" and any
+    // t_flight computed from it would have been ~0 for the whole flight. The flight sketch happens
+    // to latch its own g_launch_ms at the transition, which is why this never surfaced; it is still
+    // wrong, and the accessor is public.
+    if (latched_ && launch_ms_ == 0) launch_ms_ = now_ms;
     return latched_;
   }
 

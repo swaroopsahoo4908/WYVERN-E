@@ -22,15 +22,20 @@ Eight independent simulations with hard PASS/FAIL gates → `plots_val/validatio
 `06_montecarlo` `07_landing_scatter` `08_recovery` `09_verdict`. Run `python3 we4_validation.py`.
 Result: **10/13 gates pass**. The 3 flags share one root cause — the F15 is underpowered for the
 705 g vehicle (rail-exit and weathercock margins per we4_stability.py). Mitigated by active
-TVC (39.6x the required maneuver moment, airspeed-independent, engages t=0.5 s) + low-wind launch.
+TVC (63.2x the required maneuver moment, airspeed-independent, engages t=0.5 s) + low-wind launch.
 
 ## Deep sim batch (`we4_deepsim.py` → `plots_deep/`)
 Second-tier engineering checks for the F15-4 single-stage servo-TVC config (`deepsim_summary.json`):
 A fin flutter/divergence (NACA TN-4197; PC-FR fin margin 21.1× over v_max, ASA-Aero 13.8×, at Mach 0.107) · B aero heating (peak skin
-≪ ASA/PC-FR Tg — low-speed flight) · C servo torque (3.7× margin vs 0.20 N·m stall) + electrical duty · D CG-tolerance
+≪ ASA/PC-FR Tg — low-speed flight) · C servo torque (**2.3× margin** vs 0.20 N·m stall at the full ±8° limit — FLAGGED) · D CG-tolerance
 (0.81 cal at 20 mm aft build error; 1.0 cal holds to 7 mm aft) · E rod-angle×wind dispersion grid · F TVC step response
 (rise 0.36 s, ~0% overshoot, settle 0.46 s) · G drag ±25% (stays <1000 ft) · H battery endurance.
-**Result: 8/8 pass.** Run `python3 we4_deepsim.py`.
+**Result: 7/8 pass.** The one flag is **C servo torque: 2.3x margin against stall, below the 3.0x
+gate.** That number moved because the hinge moment is now evaluated at the FULL +-8 deg gimbal
+limit rather than at a mid-range 5 deg, which had understated worst-case load by 1.6x. It is a
+real finding, not a regression, and it is directly measurable on the TVC balance during the RQ1
+ground campaign -- see `Documentation/WYVERN_E4_Timeline_14Day.md` Day 9.
+Run `python3 we4_deepsim.py`.
 
 ## Motor decision
 `we4_motor_tradestudy.py` is the record of the F15 motor-class choice: it is the only motor holding both the

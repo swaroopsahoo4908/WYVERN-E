@@ -97,7 +97,10 @@ def gust(t):
     return g
 
 # ---------------- pitch-plane closed loop under one atmosphere ----------------
-DMAX=np.radians(5.0); TAU_SERVO=0.04
+# GIMBAL LIMIT CORRECTED 2026-08: was radians(5.0). The mechanical/firmware limit is 8.0 deg
+# (wyvern_pid.h OUT_LIM_DEG, raised 5->8 specifically for crosswind weathercock authority).
+# Clamping the model at 5 deg understates available authority by 37.5%.
+DMAX=np.radians(8.0); TAU_SERVO=0.04
 def run_loop(atm, schedule=False, kp=0.10, ki=0.40, kd=0.18, dt=1e-3):
     Tt,Hh,Vv=trajectory(atm);
     pid=PID(kp,ki,kd,DMAX,tau_d=0.02)

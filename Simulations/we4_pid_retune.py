@@ -60,7 +60,10 @@ Fc = np.array([0, 12, 25.3, 22, 18.441, 15.441, 14.941, 14.641, 14.441, 14.241, 
 thrust = lambda t: float(np.interp(t,Fc_t,Fc,left=0,right=0)) if 0<=t<=tb else 0.0
 mass = lambda t: max(m_dry, m_lift-(PROP/tb)*min(max(t,0),tb))
 Cd0 = 0.539
-DMAX = np.radians(5.0); TAU_SERVO = 0.04; TAU_D = 0.02; DT_DELAY = 0.002
+# GIMBAL LIMIT CORRECTED 2026-08: was radians(5.0). The mechanical/firmware limit is 8.0 deg
+# (wyvern_pid.h OUT_LIM_DEG, raised 5->8 specifically for crosswind weathercock authority).
+# Clamping the model at 5 deg understates available authority by 37.5%.
+DMAX = np.radians(8.0); TAU_SERVO = 0.04; TAU_D = 0.02; DT_DELAY = 0.002
 
 def density(h, T_sl=288.15, P_sl=101325.0, elev=0.0, RH=0.0):
     L=0.0065; T=T_sl-L*(h+elev); P=P_sl*(T/T_sl)**(g/(Rspec*L))
