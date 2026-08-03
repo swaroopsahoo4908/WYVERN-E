@@ -9,30 +9,35 @@ g=9.80665; rho0=1.225; OD=0.070; A=np.pi*(OD/2)**2
 # ---------- 1. MASS / CG / INERTIA (station = m from nose tip; ASA-Aero nose/body/fins, PC-FR bulkheads/tube/engine) ----------
 # (name, mass_kg, station_m)
 ITEMS=[
- # ---- printed structure (ASA-Aero main; PC-FR only for bulkheads, bypass tube, engine assembly) ----
- ("Nose cone (ASA-Aero)",0.021,0.06),
- ("Recovery bay tube (ASA-Aero)",0.040,0.24),
- ("FC bay tube (ASA-Aero)",0.036,0.40),
- ("Engine/TVC bay tube (PC-FR)",0.069,0.60),
- ("4 fins (ASA-Aero, 72 mm)",0.030,0.70),
- ("Bulkhead A (PC-FR, sealed)",0.016,0.50),
- ("Bulkhead B (PC-FR, sealed)",0.016,0.30),
- ("Bypass gas tube (PC-FR)",0.014,0.40),
- ("Motor mount/retention (PC-FR)",0.045,0.64),
- ("TVC gimbal assy (PC-FR)",0.105,0.60),
+ # ---- printed structure ----------------------------------------------------------------------
+ # MATERIAL CHANGE 2026-08: ASA-Aero / PC-FR -> PLA / PETG-CF.
+ #   PLA (1.24 g/cm3)      nose, recovery + FC bay tubes, fins, rail buttons -- no heat, no gas.
+ #   PETG-CF (1.30 g/cm3)  the ejection-gas path (both bulkheads + bypass tube) and the TVC
+ #                          assemblies (engine bay, motor mount, gimbal).
+ # PLA parts also drop to a 1.2 mm wall (from 1.6) -- the FEA has the airframe at ~340x minimum
+ # safety factor, i.e. print/handling-limited rather than load-limited, so the wall was carrying
+ # margin it never needed. That recovers 45.6 g.
+ # Masses below come from 3D parts/_generator/mass_report.json; motor mount and gimbal keep an
+ # as-built allowance below raw solid volume (sparse infill), scaled by the 1.30/1.25 density ratio.
+ ("Nose cone (PLA)",0.030,0.06),
+ ("Recovery bay tube (PLA)",0.058,0.24),
+ ("FC bay tube (PLA)",0.051,0.40),
+ ("Engine/TVC bay tube (PETG-CF)",0.071,0.60),
+ ("4 fins (PLA, 72 mm)",0.056,0.70),
+ ("Bulkhead A (PETG-CF, sealed)",0.017,0.50),
+ ("Bulkhead B (PETG-CF, sealed)",0.017,0.30),
+ ("Bypass gas tube (PETG-CF)",0.015,0.40),
+ ("Motor mount/retention (PETG-CF)",0.047,0.64),
+ ("TVC gimbal assy (PETG-CF)",0.109,0.60),
  ("Ejection plenum + nose retention",0.008,0.31),
  # ---- recovery (motor ejection; no RRC3/9V/e-match) ----
- ("Chute + cord + swivel",0.050,0.24),("Nomex chute protector",0.006,0.24),
+ # Chute is now 24 in (was 18 in) -- larger canopy, +8 g, and a slower descent (see section 5).
+ ("Chute (24 in) + cord + swivel",0.058,0.24),("Nomex chute protector",0.006,0.24),
  # ---- avionics ----
  ("RPi Pico 2 W (FC)",0.006,0.38),("BNO085 (FC body)",0.003,0.38),("BNO085 (recovery vote)",0.003,0.22),
  ("BNO085 (gimbal)",0.003,0.58),("baro (BMP/BME)",0.003,0.39),("microSD",0.001,0.38),
  ("i3 4K thumb cam",0.036,0.42),("2S LiPo + 5V UBEC",0.040,0.355),
  ("2x TVC servo",0.030,0.56),
- # Wiring/connectors trimmed 25 -> 22 g (2026-08 mass reconciliation). The itemized stack summed
- # to 606 g dry / 708 g liftoff while every other file in the repo -- we4_flightsim, core.py, the
- # proposal, the FAA Class-1 argument -- carries 603 g / 705 g. The harness estimate is the only
- # line in this table that is an estimate rather than a weighed or vendor-quoted part, so it is
- # where the reconciliation is taken. Dry total is now exactly 603 g.
  ("Wiring/connectors",0.022,0.45)]
 MOTOR=("Estes F15-4 (loaded)",0.102,0.68); PROP=0.060; Ln=0.74; PIVOT=0.62  # gimbal pivot station
 dry=ITEMS; m_dry=sum(m for _,m,_ in dry); m_lift=m_dry+MOTOR[1]
@@ -110,7 +115,8 @@ armb=PIVOT-(cg_lift+(cg_burn-cg_lift)*np.clip(tb/3.45,0,1))
 M_ctrl=Fb*np.sin(np.radians(5))*armb; M_dist=Fb*np.sin(np.radians(2))*armb
 res["ctrl_margin_min_mNm"]=round(float((M_ctrl-M_dist).min()*1000),2)
 # ---------- 5. RECOVERY (deploy @4s, chute descent) ----------
-Cd_c=1.5; d_chute=0.46; Ac=np.pi*(d_chute/2)**2
+# Chute 18 in -> 24 in (2026-08). 0.6096 m canopy: slower descent, more drift.
+Cd_c=1.5; d_chute=0.6096; Ac=np.pi*(d_chute/2)**2
 vt=np.sqrt(2*(m_dry)*g/(rho0*Cd_c*Ac)); res["chute_in"]=round(d_chute/0.0254,0); res["descent_v"]=round(vt,1)
 # ---------- PLOTS ----------
 def save(fig,n): fig.tight_layout(); fig.savefig(f"{OUT}/{n}.png",dpi=130); plt.close(fig)

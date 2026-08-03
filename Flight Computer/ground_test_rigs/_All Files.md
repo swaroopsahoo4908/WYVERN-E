@@ -1,5 +1,5 @@
 ---
-updated_at: 2026-08-01
+updated_at: 2026-08-02
 ---
 # ground_test_rigs — All Files
 

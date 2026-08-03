@@ -41,13 +41,13 @@ O-ring sealed** pass-throughs. A **Nomex blanket** protects the chute from the h
   ejection pulse — negligible. (Even a 6 mm tube stays under the 10 kPa ceiling.)
 - **Bay pressurization:** the F15 charge delivers **~140 kPa** into the sealed recovery bay against a
   **14–41 kPa** friction-fit release window → **3.4× margin**. Deploys reliably.
-- **Deploy dynamics:** ~4.7 m/s at ejection (0.47 s past apogee), ~6 N opening on the 18" chute —
+- **Deploy dynamics:** ~4.7 m/s at ejection (0.47 s past apogee), ~6 N opening on the 24" chute —
   trivial for the 1/8" Kevlar cord (>1000× SF).
 
 ## 4. Sealing & thermal
 - **FC-bay integrity:** the whole point of the twin bulkheads + tube is that ejection gas *never*
   contacts the Pico, servos, gimbal, or sensors. Verify both bulkhead pass-throughs are gas-tight.
-- **Tube thermal:** ejection gas is hot but the pulse is brief (~0.1 s). **PC-FR** (HDT ~110 °C, and
+- **Tube thermal:** ejection gas is hot but the pulse is brief (~0.1 s). **PETG-CF** (HDT ~110 °C, and
   the ablative/char behavior of the flame-retardant blend) handles a single brief exposure; a thin
   Nomex or Kapton liner on the tube ID adds margin for repeated flights. See FEA doc §3.
 

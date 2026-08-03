@@ -29,7 +29,8 @@ except ImportError:
 STATES = ["BOOT", "ARMED", "BOOST", "COAST", "RECOVER", "DESCENT", "LANDED"]
 
 # firmware-matched thresholds (wyvern4_tvc.ino / launch_status.h)
-LAUNCH_G = 3.0            # launch latch: |a| > 3 g ...
+LAUNCH_G = 2.0            # launch latch: |a| > 2 g ... (was 3.0; see launch_status.h note --
+                          #   at 792 g the vehicle clears 3 g for only 61 ms vs a 50 ms sustain)
 LAUNCH_HOLD_S = 0.05      #   ... sustained 50 ms
 LAND_SPEED = 1.0         # |v| < 1 m/s after apogee -> LANDED
 BATT_FULL = 7.9          # 2S nominal at arm

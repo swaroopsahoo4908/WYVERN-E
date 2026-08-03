@@ -5,8 +5,10 @@ WYVERN-E — ground-test bench simulators (backend-agnostic, no Tk).
 Pure functions + matplotlib-Figure builders for three bench tools surfaced in the datagen GUI:
   1. Static motor tester   -> select a motor, get its thrust curve + the axial load-cell trace a
                               static stand would log (with sensor noise).
-  2. Jetvane suitability    -> side force / axial-thrust loss / thermal-survival screen for a
-                              graphite (or printed) jetvane in an Estes BP exhaust vs the servo TVC.
+  2. Jetvane suitability    -> RETIRED 2026-08 (jetvane testing dropped from the program). The
+                              analysis is kept because it is what justified dropping it -- any
+                              printed vane ablates in a 1150 K BP exhaust -- but it is no longer
+                              part of the test plan and the GUI tab is informational only.
   3. Ground TVC test + PID  -> the 3-axis thrust-vector balance reading (Fz axial, Fx/Fy lateral)
                               while the firmware PID gimbals the nozzle through a bench maneuver,
                               incl. servo lag, and the resolved thrust vector (T, theta, phi).
@@ -35,8 +37,7 @@ as a first-order lag. That is optimistic in the two ways that actually bite on a
     left over from dead-weight calibration.
 
 Also added: cross-axis coupling between the axial and lateral cells (real flexures are not
-perfectly decoupled), jetvane erosion integrated over the burn rather than a static verdict, and
-a full uncertainty budget returned alongside every measurement so the stand's resolution can be
+perfectly decoupled) and a full uncertainty budget returned alongside every measurement so the stand's resolution can be
 compared against the effect size each research question needs to detect.
 --------------------------------------------------------------------------------------------
 """
@@ -60,7 +61,7 @@ CELL_SENS_MV_V  = 1.0       # bridge sensitivity [mV/V] at full scale (typical f
 BRIDGE_EXC_V    = 5.0       # HX711 on-board excitation
 ADC_FS_V        = 0.5 * BRIDGE_EXC_V / HX711_GAIN   # +-20 mV differential input span at gain 128
 
-# Stand mechanical model (printed PC-FR base + flexure stack carrying motor + gimbal)
+# Stand mechanical model (printed PETG-CF base + flexure stack carrying motor + gimbal)
 MOUNT_F_HZ      = 42.0      # first mount/flexure resonance [Hz] (measured-class for this build)
 MOUNT_ZETA      = 0.035     # structural damping ratio (printed polymer + bolted joints: very light)
 CROSS_AXIS_PCT  = 1.8       # lateral force appearing on the axial channel and vice versa [%]
@@ -77,7 +78,7 @@ MOTORS = {
     "Estes C6":  dict(It=8.8,  tb=1.86, peak=14.1, cls="C"),
     "Estes D12": dict(It=16.8, tb=1.65, peak=29.7, cls="D"),
     "Estes E12": dict(It=28.5, tb=2.62, peak=28.0, cls="E"),
-    "Estes E16": dict(It=30.0, tb=1.90, peak=35.0, cls="E"),   # commissioning motor
+    "Estes E16": dict(It=30.0, tb=1.90, peak=35.0, cls="E"),   # commissioning motor (Gate 5)
     "Estes F15": dict(It=49.6, tb=3.45, peak=25.3, cls="F", real="F15"),
 }
 MOTOR_NAMES = list(MOTORS)
@@ -258,8 +259,8 @@ EXHAUST = {
     "APCP composite":  dict(Tflame_K=2100.0, kind="ammonium-perchlorate composite"),
 }
 VANE_MAT = {
-    "PC-FR (printed)":    dict(Tmax_K=383.0,  survives=False),  # HDT ~110 C -> ablates instantly
-    "ASA-Aero (printed)": dict(Tmax_K=383.0,  survives=False),  # coupon: foamed ASA ablates
+    "PETG-CF (printed)":  dict(Tmax_K=353.0,  survives=False),  # HDT ~80 C -> ablates instantly
+    "PLA (printed)":      dict(Tmax_K=328.0,  survives=False),  # HDT ~55 C -> ablates instantly
     "ABS (printed)":      dict(Tmax_K=371.0,  survives=False),  # coupon: HDT ~98 C -> ablates
     "Graphite":           dict(Tmax_K=3900.0, survives=True),   # sublimes ~3900 K; mild erosion in BP
     "Tungsten":           dict(Tmax_K=3695.0, survives=True),
@@ -426,8 +427,8 @@ if __name__ == "__main__":
     for nm in MOTOR_NAMES:
         s = motor_stats(nm)
         print(f"{nm:10} It={s['It']:5.1f} N·s  avg={s['avg']:5.1f} N  peak={s['peak']:5.1f} N  burn={s['tb']:.2f}s  {s['cls']}")
-    j = jetvane_analysis("Estes F15", "PC-FR (printed)")
-    print("jetvane PC-FR survives:", j["survives"], "| graphite:",
+    j = jetvane_analysis("Estes F15", "PETG-CF (printed)")
+    print("jetvane PETG-CF survives:", j["survives"], "| graphite:",
           jetvane_analysis("Estes F15", "Graphite")["survives"])
     r = ground_tvc_test("Estes F15", scenario="PID reject 3° mount tilt")
     print("ground TVC PID:", {k: round(v, 3) for k, v in r["metrics"].items() if isinstance(v, float)})

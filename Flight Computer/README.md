@@ -21,7 +21,7 @@ Three bays, two sealed bulkheads:
 |---|---|
 | Engine/TVC bay | F15-4 · 2-axis 2-servo gimbal · gimbal BNO085 (dedicated I²C) |
 | Flight-computer bay | Pico 2 W · body BNO085 · BME688 + BMP388 · microSD · i3 4K Thumb Action Camera · Wi-Fi |
-| Recovery bay | Motor ejection (F15-4 bypass tube) · 18″ chute · Nomex · 3rd BNO085 (redundant) |
+| Recovery bay | Motor ejection (F15-4 bypass tube) · 24″ chute · Nomex · 3rd BNO085 (redundant) |
 
 PID gains (auto-tuned): *Kp* 0.10 / *Ki* 0.40 / *Kd* 0.18 · ±8° gimbal authority.
 

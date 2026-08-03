@@ -4,7 +4,7 @@ A single-stage, 70 mm, **finned active-TVC sustainer** demonstrating closed-loop
 control on a **Raspberry Pi Pico 2 W (RP2350)** flight computer, powered by the **Estes F15-4**. The two TVC actuation
 methods (magnetic-solenoid vs servo) are compared **on the ground** on a 3-axis thrust-vector
 balance; the vehicle flies the servo system. Ground support is the 3-axis TVC balance plus the
-static thrust + materials (jetvane) stand.
+static thrust stand (motor thrust-curve verification).
 
 > **Scope change (2026-08):** the wind tunnel and the airfoil-CFD work that fed it are **removed
 > from the program.** Aerodynamic characterization now rests on the Barrowman/drag-buildup model
@@ -20,24 +20,24 @@ no custom PCBs — a single Raspberry Pi Pico 2 W (RP2350) runs everything bare-
   PWM, deterministic control, far lighter and lower power.
 - **A/B TVC comparison moved to the ground** (3-axis balance, repeatable, measures the thrust vector
   directly) — a better experiment than flying both. The vehicle flies servo-only.
-- **Materials:** PC-FR only where there's motor heat (nose, engine/TVC bay, Bulkhead A); **ASA-Aero**
+- **Materials:** PETG-CF only where there's motor heat (nose, engine/TVC bay, Bulkhead A); **PLA**
   everywhere else (body tube, FC & recovery sections, Bulkhead B) — saves ~100 g.
 
 ## Key recalculated numbers (see `Simulations/we4_sim.py` → `plots4/`)
 | | value |
 |---|---|
-| Liftoff mass | **705 g** (finned 72 mm, no ballast) | ASA-Aero main airframe; PC-FR only at bulkheads/tube/engine (was 812 g all-PC-FR) |
-| T/W | **2.08 avg / 3.66 peak** |
-| CG / gimbal pivot / control arm | 49.1 cm / 62 cm / **12.9 cm** from nose |
-| Pitch inertia Iyy | 0.0209 kg·m² |
-| Burnout | 3.45 s · 72.8 m · 35.7 m/s |
-| Apogee | **~429 ft / 130.8 m** (RK4+Barrowman, stable +1.10 cal) @ 6.82 s |
-| Recovery | F15-4 motor ejection via bypass tube; ejects t≈7.45 s (+0.63 s past apogee) @ ~6.1 m/s; 18″ chute → 6.2 m/s descent |
+| Liftoff mass | **792 g** (finned 72 mm, no ballast) | PLA main airframe; PETG-CF only at bulkheads/tube/engine (was 812 g all-PETG-CF) |
+| T/W | **1.85 avg / 3.26 peak** |
+| CG / gimbal pivot / control arm | 48.4 cm / 62 cm / **13.6 cm** from nose |
+| Pitch inertia Iyy | 0.0257 kg·m² |
+| Burnout | 3.45 s · 59.1 m · 28.9 m/s |
+| Apogee | **~324 ft / 98.9 m** (RK4+Barrowman, stable +1.20 cal) @ 6.27 s |
+| Recovery | F15-4 motor ejection via bypass tube; ejects t≈7.45 s (+1.18 s past apogee) @ ~11.5 m/s; 24″ chute → 5.0 m/s descent |
 | TVC | gimbal stays within ±8°; control authority positive throughout the burn |
 
-> **Apogee/deploy note:** the ASA-Aero airframe (PC-FR only at bulkheads/tube/engine) drops liftoff to
-> 705 g and lifts apogee to ~429 ft. Recovery is the F15-4 motor ejection charge (fixed 4 s delay),
-> firing +0.63 s past apogee at a gentle ~6.1 m/s — no timer to retune. The lighter ASA nose moved the
+> **Apogee/deploy note:** the PLA airframe (PETG-CF only at bulkheads/tube/engine) drops liftoff to
+> 792 g and lifts apogee to ~324 ft. Recovery is the F15-4 motor ejection charge (fixed 4 s delay),
+> firing +1.18 s past apogee at a gentle ~11.5 m/s — no timer to retune. The lighter ASA nose moved the
 > CG aft, so fins were grown 58→72 mm to hold the 1.0-cal margin without ballast.
 
 ## Repository structure
@@ -70,7 +70,7 @@ WYVERN Project/
 │   └── wyvern_datagen/              ← Monte Carlo atmospheric dataset generator + GUI
 │       └── README.md
 ├── 3D parts/                        ← 70 mm 3-bay airframe + gimbal STL/STEP
-├── Motor Test Stand/                ← static thrust + jetvane stand + 3-axis TVC balance
+├── Motor Test Stand/                ← static thrust stand + 3-axis TVC balance
 ├── Senior Research/                 ← proposal documents (DOCX / MD / PDF)
 ├── Data/                            ← flight and motor data (populated during testing)
 └── Paper/                           ← final research paper
@@ -78,8 +78,8 @@ WYVERN Project/
 
 
 ## Fin finding (2026-06-21)
-35 mm fins are **unstable** (−0.99 cal) on this aft-CG vehicle; 1.0 cal needs ≥68.8 mm and 1.5 cal would need ~91.8 mm fins (or nose ballast, which costs apogee). **Finned TVC at 72 mm / +1.10 cal is the flown config** — see `Documentation/WYVERN_E4_Stability_FinSizing.md`. Motor prices corrected: F15-4 $17/ea, E16-4 $15/ea.
+35 mm fins are **unstable** (−0.99 cal) on this aft-CG vehicle; 1.0 cal needs ≥68.8 mm and 1.5 cal would need ~91.8 mm fins (or nose ballast, which costs apogee). **Finned TVC at 72 mm / +1.20 cal is the flown config** — see `Documentation/WYVERN_E4_Stability_FinSizing.md`. Motor prices corrected: F15-4 $17/ea, E16-4 $15/ea.
 
 
 ## Latest spec deltas (2026-07)
-Light 2S LiPo → one 5 V UBEC (Zeee 2S 450 mAh + Hobbywing UBEC; ~76 g power+cam group, keeps the 705 g budget) · EMAX ES08MA II servos @ 5 V · i3 4K Thumb Action Camera cam (~36 g) · Picos from Amazon · No ArduCam · phenolic motor liner + Nomex bore sleeve · motor-ejection recovery (no pyro of our own) · printed 1010 rail buttons · BOM reconciled to actual Amazon/Adafruit/Estes/Bambu carts · trajectory via unified RK4+Barrowman (`we4_flightsim.py`).
+Light 2S LiPo → one 5 V UBEC (Zeee 2S 450 mAh + Hobbywing UBEC; ~76 g power+cam group, keeps the 792 g budget) · EMAX ES08MA II servos @ 5 V · i3 4K Thumb Action Camera cam (~36 g) · Picos from Amazon · No ArduCam · phenolic motor liner + Nomex bore sleeve · motor-ejection recovery (no pyro of our own) · printed 1010 rail buttons · BOM reconciled to actual Amazon/Adafruit/Estes/Bambu carts · trajectory via unified RK4+Barrowman (`we4_flightsim.py`).

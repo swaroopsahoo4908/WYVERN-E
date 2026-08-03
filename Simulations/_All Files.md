@@ -1,5 +1,5 @@
 ---
-updated_at: 2026-08-01
+updated_at: 2026-08-02
 ---
 # Simulations — All Files
 
@@ -23,8 +23,10 @@ updated_at: 2026-08-01
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/README.md]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/WYVERN_E4_F15-4.ork]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/build_ork4.py]]
+- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/deep.log]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/pid_reference.py]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/pid_retune_summary.json]]
+- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/val.log]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/we4_analysis.py]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/we4_atmos_tvc.py]]
 - [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/we4_deepsim.py]]

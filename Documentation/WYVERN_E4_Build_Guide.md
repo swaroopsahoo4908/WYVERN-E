@@ -18,18 +18,18 @@ disagree, **the table wins** — and the disagreement is a defect worth fixing b
 
 | Part | Material | Why |
 |---|---|---|
-| Nose cone, 3 bay tubes, 4 fins | **ASA-Aero** (foamed, ~0.65 g/cm³) | No motor heat. This is where the ~130 g mass saving comes from. |
-| Bulkhead A, Bulkhead B | **PC-FR** | Bulkhead A takes plume heat; B takes the ~140 kPa ejection pulse. |
-| Bypass tube | **PC-FR** | Carries hot ejection gas the length of the FC bay. |
-| Engine/TVC bay, motor mount, gimbal | **PC-FR** | Sustained plume heating. |
+| Nose cone, 3 bay tubes, 4 fins | **PLA** (foamed, ~0.65 g/cm³) | No motor heat. This is where the ~130 g mass saving comes from. |
+| Bulkhead A, Bulkhead B | **PETG-CF** | Bulkhead A takes plume heat; B takes the ~140 kPa ejection pulse. |
+| Bypass tube | **PETG-CF** | Carries hot ejection gas the length of the FC bay. |
+| Engine/TVC bay, motor mount, gimbal | **PETG-CF** | Sustained plume heating. |
 
 ### A2 Print settings
 
 - Nozzle 0.4 mm, layer 0.2 mm, 4 walls, 25% gyroid infill.
 - **Fins: print flat, 100% infill, and orient so layer lines run spanwise** — a fin that delaminates
   along a chordwise layer line at 36 m/s is a lost vehicle.
-- PC-FR needs an enclosure and a 100–110 °C bed. Dry it first; PC absorbs water and prints badly wet.
-- ASA-Aero foams on extrusion — run the vendor's recommended flow, not your usual ASA profile.
+- PETG-CF needs an enclosure and a 100–110 °C bed. Dry it first; PC absorbs water and prints badly wet.
+- PLA foams on extrusion — run the vendor's recommended flow, not your usual ASA profile.
 
 ### A3 Print checks before you assemble
 
@@ -211,13 +211,18 @@ deflection.** Log commanded vs measured throughout — that difference is the re
 > reduce the linkage ratio, or move the servo rail to 6 V, or fit a higher-torque servo — in that
 > order. See `WYVERN_E4_BUILD_READINESS.md` §11.
 
-### E4 RQ2 — materials (Timeline Days 7 and 9)
+### E4 RQ2 — PLA vs PETG-CF (Timeline Days 7 and 9)
 
-- **Three-point bend** (Day 7, no motor): PC-FR and ASA-Aero coupons, identical print parameters.
-  Flexural stiffness and mass-specific performance.
-- **Jetvane exposure** (Day 9, 2 × F15-0): ASA-Aero and ABS coupons in the plume. Both are expected
-  to ablate — that is the finding, and it is what motivates a graphite vane. Record mass loss and
-  char depth.
+**Jetvane testing is dropped** (2026-08). RQ2 is now the material justification for the zoning
+actually flown.
+
+- **Three-point bend** (Day 7, no motor needed): PLA and PETG-CF coupons, identical print
+  parameters — same nozzle, layer height, wall count, infill. Report flexural modulus and
+  stiffness. This is the whole reason the TVC assemblies are not PLA.
+- **Engine-bay wall temperature** (Day 9, during the static fires): tape a thermocouple to the
+  inside of the engine-bay wall and log peak temperature across the 3.45 s burn. Compare against
+  PLA's ~55 °C HDT and PETG-CF's ~80 °C. The model predicts a ~40 °C wall — if the measurement is
+  much higher, that is a finding worth reporting and it validates the zoning decision directly.
 
 ---
 
@@ -280,7 +285,7 @@ Produces the RQ3 and RQ4 numbers, the health check, and the figures, into `plots
 
 | Flight | Kp | Ki | Kd | Rationale |
 |---|---|---|---|---|
-| A | **0.10** | **0.40** | **0.18** | Flight gains. PM 40.0°, GM 11.3 dB at all 24 operating points. |
+| A | **0.10** | **0.40** | **0.18** | Flight gains. PM 44.7°, GM 12.6 dB at all 24 operating points. |
 | B | 0.10 | 0.05 | 0.05 | The margin-search alternative: much higher margin (PM 49.7°) but ~2.3× the gust deviation. Tests whether extra stability margin costs real tracking performance. |
 
 Change gains **only** in `wyvern_pid_defaults` in `wyvern_pid.h`. Reflash, re-run `selftest.py`,
@@ -305,17 +310,17 @@ and **record which gain set is on the vehicle** — mixing this up loses RQ4 ent
 
 | Parameter | Value |
 |---|---|
-| Liftoff / dry mass | 705 g / 603 g |
-| CG / CP / margin | 49.1 cm / 56.8 cm / +1.10 cal |
-| Apogee | 130.8 m (429 ft) @ 6.82 s |
-| Burnout | 3.45 s, 72.8 m, 35.7 m/s |
-| v_max / Mach | 36.5 m/s / M0.107 |
-| Deploy | t = 7.45 s, +0.63 s past apogee, 6.1 m/s |
-| Descent | 6.2 m/s under 18″ chute |
+| Liftoff / dry mass | 792 g / 690 g |
+| CG / CP / margin | 48.4 cm / 56.8 cm / +1.20 cal |
+| Apogee | 98.9 m (324 ft) @ 6.27 s |
+| Burnout | 3.45 s, 59.1 m, 28.9 m/s |
+| v_max / Mach | 29.7 m/s / M0.087 |
+| Deploy | t = 7.45 s, +1.18 s past apogee, 11.5 m/s |
+| Descent | 5.0 m/s under 24″ chute |
 | PID | Kp 0.10 / Ki 0.40 / Kd 0.18, τ_d 0.02 s, i_lim 0.4 |
 | Gimbal limit | **±8.0°** |
 | Control rate | 500 Hz, core 0 |
-| Launch detect | \|a\| > 3 g sustained ≥ 50 ms |
+| Launch detect | \|a\| > 2 g sustained ≥ 50 ms |
 | Battery | 2S 450 mAh, warn 6.4 V, inhibit 6.0 V |
 
 Full pin map: `CONFLICTS.md` §5.

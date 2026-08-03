@@ -29,11 +29,11 @@ BLU, RED, GRN, ORG, PUR = "#2a6f97", "#bc4749", "#386641", "#e09f3e", "#6d597a"
 g, rho0 = 9.80665, 1.225
 D = 0.070; Rb = D/2; A = np.pi*Rb**2          # 70 mm airframe
 Lnose, Ltot = 0.12, 0.74
-m_lift, m_dry, PROP, tb = 0.705, 0.603, 0.060, 3.45
+m_lift, m_dry, PROP, tb = 0.792, 0.690, 0.060, 3.45
 # Canonical liftoff CG (we4_sim mass stack / we4_flightsim / core.py). This file carried 0.467,
 # the pre-ASA-Aero, pre-i3-camera value, so every margin gate below was scored against a
 # vehicle that no longer exists -- and reported 1.44 cal where the real margin is 1.10.
-CG_wet = 0.491                                  # liftoff CG (m from nose); dry CG moves fwd as prop burns
+CG_wet = 0.484                                  # liftoff CG (m from nose); dry CG moves fwd as prop burns
 x_prop = 0.70                                   # propellant centroid (aft, in motor)
 CG_dry = (m_lift*CG_wet - PROP*x_prop)/m_dry    # ~0.447 m -> margin grows through the burn
 a_sound = 343.0
@@ -184,7 +184,7 @@ fig.tight_layout(); fig.savefig(f"{OUT}/04_tvc_authority.png",dpi=130); plt.clos
 winds=np.linspace(0,12,13)
 # equilibrium weathercock tilt ~ atan(wind / rail-exit v), capped; drift ~ wind * descent_time
 tilt=np.degrees(np.arctan2(winds, max(v_rail,1e-3)))
-chute_Cd, chute_d = 1.5, 0.457                    # 18 in chute
+chute_Cd, chute_d = 1.5, 0.6096                   # 24 in chute (was 18 in; changed 2026-08)
 A_c=np.pi*(chute_d/2)**2
 v_desc=np.sqrt(2*m_dry*g/(rho0*chute_Cd*A_c))
 t_desc=apogee/max(v_desc,1e-3)

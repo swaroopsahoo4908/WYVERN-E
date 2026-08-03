@@ -6,8 +6,8 @@
 #include "imu_grv.h"
 
 // ---------------------------------------------------------------------------------------------
-// Launch detect: |a| > 3g sustained for >= 50 ms on the body IMU's accelerometer, per
-// flowcharts/01_flight_state_machine.mermaid ("ARMED --> BOOST: |a|>3g"). BNO085 in Game Rotation
+// Launch detect: |a| > 2g sustained for >= 50 ms on the body IMU's accelerometer, per
+// flowcharts/01_flight_state_machine.mermaid ("ARMED --> BOOST: |a|>2g"). BNO085 in Game Rotation
 // Vector mode doesn't directly expose raw accel in the GRV report, so this also enables the
 // accelerometer report (SH2_ACCELEROMETER) on the body IMU for this one purpose. A hardware
 // inertial switch on GP7 (LAUNCH_IRQ) is OR'd in as a redundant trigger -- see CONFLICTS.md
@@ -15,7 +15,14 @@
 // ---------------------------------------------------------------------------------------------
 class LaunchDetect {
 public:
-  static constexpr float THRESHOLD_G = 3.0f;
+  // THRESHOLD LOWERED 3.0 -> 2.0 g (2026-08b). The PLA/PETG-CF material change took liftoff
+  // mass 705 -> 792 g, which dropped peak specific force from 3.67 g to 3.27 g. Against the
+  // old 3.0 g threshold the vehicle spent only 61 ms above it -- versus a 50 ms sustain
+  // requirement, an 11 ms margin. Any accelerometer noise, a slightly weak motor, or a few
+  // more grams of build mass and launch detect NEVER FIRES: no BOOST, no TVC, no deploy
+  // logging, no flight data. At 2.0 g the vehicle is above threshold for 549 ms, and 2 g is
+  // still unambiguous against pad handling and wind (both ~1 g +/- 0.2).
+  static constexpr float THRESHOLD_G = 2.0f;
   static constexpr unsigned long SUSTAIN_MS = 50;
   static constexpr uint8_t PIN_LAUNCH_IRQ = 7;
 

@@ -21,7 +21,7 @@ the air, and the go/no-go sequence.
   over the onboard CYW43439 (`wifi_telemetry.h`, disabled by default — `WIFI_ENABLED 0` in
   `wyvern4_tvc.ino`).
 - **The Pico never drives recovery.** Recovery is the **F15-4 motor's own ejection charge**, fired
-  4 s after burnout (t ≈ 7.45 s, 0.63 s past apogee) and routed through a solid-walled bypass tube
+  4 s after burnout (t ≈ 7.45 s, 1.18 s past apogee) and routed through a solid-walled bypass tube
   past the sealed FC bay into the recovery bay to release the nose. There is no pyro, e-match, CO2,
   or recovery computer of any kind in the vehicle — the FC only logs baro/IMU and streams WiFi
   telemetry. See `WYVERN_E4_Recovery.md` and the feasibility study (`Simulations/we4_ejection_feasibility.py`).
@@ -33,7 +33,7 @@ the air, and the go/no-go sequence.
    closed-loop atmosphere sweep, but that gain set was later found to be **unstable** under a
    rigorous phase/gain-margin analysis across 24 operating points (worst case PM=−0.1°, GM=−0.0 dB
    against a 30° target). **Firmware now uses the margin-verified retune: Kp=0.10/Ki=0.40/Kd=0.18**
-   (PM=40.0°, GM=11.3 dB worst case across all 24 points) — see `PID_TUNING_REPORT.md` for the full
+   (PM=44.7°, GM=12.6 dB worst case across all 24 points) — see `PID_TUNING_REPORT.md` for the full
    sweep and `CONFLICTS.md` §1 for the supersession record.
 2. **Recovery architecture** — recovery is now the F15-4 motor ejection charge via a bypass tube
    (no RRC3+, no pyro, no CO2). **Moot for the FC** since it never drives recovery — the flight

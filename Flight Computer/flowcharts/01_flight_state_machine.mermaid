@@ -7,10 +7,10 @@ stateDiagram-v2
     BOOST: BOOST — F15-4; 500 Hz TVC PID stabilize→maneuver; gimbal limit ±8°
     COAST: COAST(brief) — burnout t=3.45s; NO thrust ⇒ NO TVC authority
     RECOVER: RECOVER — F15-4 motor ejection t=7.45 s via bypass tube (FC logs only)
-    DESCENT: DESCENT — 18 in chute ~6.2 m/s; log to apogee+landing
+    DESCENT: DESCENT — 24 in chute ~5.0 m/s; log to apogee+landing
     LANDED: LANDED — flush log, safe outputs
     BOOT --> ARMED: self-test pass
-    ARMED --> BOOST: |a|>3g
+    ARMED --> BOOST: |a|>2g sustained 50 ms
     BOOST --> COAST: burnout (t>3.45s)
     COAST --> RECOVER: F15-4 ejection t=7.45 s
     RECOVER --> DESCENT --> LANDED --> [*]

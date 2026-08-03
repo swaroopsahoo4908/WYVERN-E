@@ -3,7 +3,7 @@ _TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None))  # NumPy 2.x renamed tra
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 OUT=os.path.join(os.path.dirname(os.path.abspath(__file__)),"plots_eject"+os.environ.get("WYVERN_RUN_TAG","")); os.makedirs(OUT,exist_ok=True)
 BLU,RED,GRN,ORG,PUR="#2a6f97","#bc4749","#386641","#e09f3e","#6d597a"
-g,rho0=9.80665,1.225; D=0.070; A=np.pi*(D/2)**2; m_lift,m_dry,PROP,tb=0.705,0.603,0.060,3.45; Cd0=0.539
+g,rho0=9.80665,1.225; D=0.070; A=np.pi*(D/2)**2; m_lift,m_dry,PROP,tb=0.792,0.690,0.060,3.45; Cd0=0.539
 Fc_t=np.array([0,0.05,0.12,0.2,0.3,0.5,1,1.5,2,2.5,3,3.3,3.45])
 # F15 thrust curve CORRECTED 2026-08. The digitized shape integrated to 41.97 N.s, so the
 # 49.6 N.s renormalization below scaled the whole curve by 1.1817 and pushed peak thrust to

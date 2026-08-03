@@ -1,52 +1,52 @@
 {
   "vehicle": "WYVERN-E (70 mm, F15-4, ellipsoid nose + 72 mm fins, no ballast)",
-  "liftoff_mass_kg": 0.705,
-  "apogee_m": 130.8,
-  "apogee_ft": 429.0,
-  "v_max_ms": 36.5,
-  "mach_max": 0.106,
-  "a_max_g": 2.67,
-  "maxQ_Pa": 810.0,
-  "descent_ms": 6.3,
-  "CEP_m": 137.0,
+  "liftoff_mass_kg": 0.792,
+  "apogee_m": 98.9,
+  "apogee_ft": 324.0,
+  "v_max_ms": 29.7,
+  "mach_max": 0.087,
+  "a_max_g": 2.27,
+  "maxQ_Pa": 536.0,
+  "descent_ms": 5.0,
+  "CEP_m": 116.0,
   "gates": {
     "mach_subsonic": {
-      "value": 0.106,
+      "value": 0.087,
       "limit": "< 0.85 (Barrowman valid)",
       "pass": true
     },
     "apogee_ceiling_m": {
-      "value": 130.8,
+      "value": 98.9,
       "limit": "< 305 m (1000 ft NAR ceiling)",
       "pass": true
     },
     "margin_liftoff_cal": {
-      "value": 1.1,
+      "value": 1.2,
       "limit": ">= 1.0 cal",
       "pass": true
     },
     "margin_max_cal": {
-      "value": 1.1,
+      "value": 1.2,
       "limit": "<= 2.5 cal (not over-stable)",
       "pass": true
     },
     "rail_exit_v_ms": {
-      "value": 6.1,
+      "value": 5.4,
       "limit": ">= 15 m/s (fins effective)",
       "pass": false
     },
     "thrust_to_weight_peak": {
-      "value": 3.66,
+      "value": 3.26,
       "limit": ">= 5 (rule of thumb)",
       "pass": false
     },
     "tvc_authority_ratio": {
-      "value": 63.2,
+      "value": 60.9,
       "limit": ">= 2x required maneuver moment",
       "pass": true
     },
     "weathercock_max_deg": {
-      "value": 63.1,
+      "value": 65.7,
       "limit": "<= 30 deg @ 10 m/s",
       "pass": false
     },
@@ -61,17 +61,17 @@
       "pass": true
     },
     "descent_rate_ms": {
-      "value": 6.3,
+      "value": 5.0,
       "limit": "3-7 m/s safe landing",
       "pass": true
     },
     "shock_cord_SF": {
-      "value": 151.96,
+      "value": 132.82,
       "limit": ">= 2.0",
       "pass": true
     },
     "structure_SF": {
-      "value": 814.3,
+      "value": 845.7,
       "limit": ">= 3",
       "pass": true
     }

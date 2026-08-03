@@ -9,7 +9,7 @@ rocket, and links the project's existing single-run simulation engines under the
 
 This replaces the old Java/OpenRocket `arc-sim` tool (which was wired to the CSW project — its
 `CSWARCMOD*.ork` files have been removed). The physics here matches the project's canonical engine
-`../we4_flightsim.py` (nominal apogee **130.8 m / 429 ft @ ~6.82 s**), so datasets are consistent
+`../we4_flightsim.py` (nominal apogee **98.9 m / 324 ft @ ~6.27 s**), so datasets are consistent
 with the rest of the WYVERN sim suite.
 
 ## Quick start
@@ -87,9 +87,10 @@ Opens maximized (fill screen); **F11** toggles true fullscreen, **Esc** exits it
 - **Static Motor Tester** — pick a motor (Estes C6/D12/E12/E16/F15) and see its thrust curve plus the
   **axial load-cell trace** the static stand would log (DAQ rate + sensor noise), with total impulse,
   avg/peak thrust, burn time, and a load-cell headroom/under-range check.
-- **Jetvane Suitability** — screen a jetvane TVC against the servo gimbal: **side force** and **axial
-  thrust loss** vs vane deflection, plus a **thermal-survival verdict** (printed PC-FR ablates in the
-  ~1150 K black-powder exhaust; graphite/tungsten survive) and a suitability call.
+- **Jetvane Suitability** — **RETIRED 2026-08.** Jetvane TVC was dropped from the program; the
+  tab still opens for reference but its output is not used by any research question and no jetvane
+  hardware is built or fired. Kept only so the earlier trade study stays reproducible.
+
 - **Ground TVC + PID** — the **3-axis thrust-vector balance** reading (Fz axial, Fx/Fy lateral) while
   the firmware PID gimbals the nozzle through a bench maneuver (step / sweep / PID disturbance-reject),
   including servo lag; shows commanded-vs-measured δ, the resolved vector, saturation, and cell headroom.
@@ -116,16 +117,16 @@ exposes every envelope bound; the defaults cover a realistic small-field F-class
 `core.py` integrates **N flights in lock-step as NumPy arrays** — that vectorization is what makes
 million-flight datasets tractable in pure Python. It reuses the canonical WYVERN model:
 
-- F15-4 thrust curve (49.6 N·s / 3.45 s), linear propellant burn, `m_lift 705 g → m_dry 603 g`.
+- F15-4 thrust curve (49.6 N·s / 3.45 s), linear propellant burn, `m_lift 792 g → m_dry 690 g`.
 - Barrowman drag build-up (Cd ≈ 0.54), ISA atmosphere with sampled temperature/pressure perturbation.
-- 2-D point mass with wind drift; analytic 18″-parachute descent (terminal ≈ 6 m/s) after the
+- 2-D point mass with wind drift; analytic 24″-parachute descent (terminal ≈ 6 m/s) after the
   F15-4 ejection at t = 7.45 s.
 - **TVC**: reduced-order closed-loop pitch plant (aerodynamic angle-of-attack spring + damping +
   the firmware PID `Kp0.10/Ki0.40/Kd0.18`, ±8° gimbal, 500 Hz, anti-windup), held straight on the
   1 m rail then released. Peak pitch error scales with wind (≈0° calm → ≈19° at 10 m/s), consistent
   with the documented low-speed weathercocking of this low-T/W vehicle.
 
-Nominal check: `python3 core.py` → `130.8 m / 429 ft @ 6.82 s` (matches `we4_flightsim.py`).
+Nominal check: `python3 core.py` → `98.9 m / 324 ft @ 6.27 s` (matches `we4_flightsim.py`).
 
 ## Throughput & scale
 

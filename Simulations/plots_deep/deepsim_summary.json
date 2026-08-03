@@ -2,17 +2,18 @@
   "A_flutter": {
     "AR": 1.37,
     "t_over_c": 0.057,
-    "v_max_ms": 36.5,
-    "Vflutter_ASA_ms": 518.0,
-    "Vflutter_PCFR_ms": 770.0,
-    "flutter_margin_PCFR": 21.1,
+    "v_max_ms": 29.7,
+    "Vflutter_PLA_ms": 606.0,
+    "Vflutter_PETGCF_ms": 651.0,
+    "flutter_margin_PLA": 20.4,
     "pass": true
   },
   "B_heating": {
-    "Tstag_max_C": 15.4,
+    "Tstag_max_C": 15.2,
     "Tskin_max_C": 14.9,
-    "ASA_Tg_C": 95,
-    "PCFR_Tg_C": 141,
+    "PLA_HDT_C": 55,
+    "PETGCF_HDT_C": 80,
+    "margin_to_PLA_C": 40.1,
     "pass": true
   },
   "C_servo": {
@@ -23,26 +24,26 @@
     "pass": false
   },
   "D_cg_tol": {
-    "margin_nominal_cal": 1.1,
-    "margin_at_20mm_aft": 0.81,
-    "cg_aft_limit_mm_for_1cal": 7.0,
+    "margin_nominal_cal": 1.2,
+    "margin_at_20mm_aft": 0.91,
+    "cg_aft_limit_mm_for_1cal": 14.0,
     "pass": true
   },
   "E_dispersion": {
-    "apogee_vertical_m": 130.8,
-    "apogee_15deg_m": 126.3,
-    "max_drift_m": 265.0,
+    "apogee_vertical_m": 98.9,
+    "apogee_15deg_m": 95.5,
+    "max_drift_m": 201.0,
     "pass": true
   },
   "F_step": {
-    "rise_time_s": 0.361,
+    "rise_time_s": 0.355,
     "overshoot_pct": -0.0,
-    "settle_2pct_s": 0.454,
+    "settle_2pct_s": 0.447,
     "pass": true
   },
   "G_drag": {
-    "apogee_lowdrag_m": 135.8,
-    "apogee_highdrag_m": 126.3,
+    "apogee_lowdrag_m": 101.4,
+    "apogee_highdrag_m": 96.5,
     "stays_under_305m": true,
     "pass": true
   },

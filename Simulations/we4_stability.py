@@ -9,14 +9,14 @@ every one of which propagated into the documentation:
      -- i.e. it labelled a 55 mm fin as 35 mm. README's "35 mm fins are unstable (-0.52 cal)"
      and this file's own "+0.91 cal" were therefore both quoting the same mislabelled run.
   2. It hardcoded `CG0=0.45`, a pre-ASA-Aero, pre-i3-camera value, against the canonical
-     CG = 0.491 m used by we4_flightsim.py, wyvern_datagen/core.py and the proposal.
+     CG=0.484 m used by we4_flightsim.py, wyvern_datagen/core.py and the proposal.
   3. It never evaluated the 72 mm fin that the vehicle actually flies.
   4. It carried two fin-mass functions, one of which (`fin_mass`) had a unit error its own
      inline comment flagged but never fixed.
 
 This version evaluates the real trade: static margin vs. fin semispan for the canonical mass
 stack, with the historical 35 mm candidate and the flown 72 mm configuration both marked, and
-it reproduces the canonical CG/CP/margin (49.1 cm / 56.8 cm / +1.10 cal) exactly at 72 mm.
+it reproduces the canonical CG/CP/margin (48.4 cm / 56.8 cm / +1.20 cal) exactly at 72 mm.
 """
 import os, json, numpy as np
 _TRAPZ = getattr(np, "trapezoid", getattr(np, "trapz", None))   # NumPy 2.x renamed trapz
@@ -28,13 +28,13 @@ g = 9.80665; rho0 = 1.225; D = 0.070; Rb = D / 2; A = np.pi * Rb**2
 Lnose = 0.12; Ltot = 0.74
 
 # ---- canonical mass stack (we4_sim.py) -----------------------------------------------------
-M_LIFT_FLOWN = 0.705      # kg, incl. 4x 72 mm ASA-Aero fins and the loaded F15-4
-M_DRY_FLOWN  = 0.603
-CG_FLOWN     = 0.491      # m from nose, flown config
+M_LIFT_FLOWN = 0.792      # kg, incl. 4x 72 mm PLA fins and the loaded F15-4
+M_DRY_FLOWN  = 0.690
+CG_FLOWN     = 0.484      # m from nose, flown config
 SPAN_FLOWN   = 0.072      # m semispan
 PROP         = 0.060; TB = 3.45
 CD_NOMINAL   = 0.539      # componentwise Barrowman buildup, shared with we4_flightsim/core.py
-FIN_RHO      = 650.0      # kg/m^3, foamed ASA-Aero
+FIN_RHO      = 1240.0     # kg/m^3, PLA (was 650 for foamed ASA-Aero -- material change 2026-08)
 FIN_T        = 0.003      # m fin thickness
 cr, ct, swLE = 0.070, 0.035, 0.025   # root chord, tip chord, LE sweep
 
@@ -86,7 +86,7 @@ m72, cg72, cp72, marg72, cn72 = config(SPAN_FLOWN)      # flown
 
 res = dict(
     fin_count=4, fin_root_mm=cr * 1000, fin_tip_mm=ct * 1000, fin_sweepLE_mm=swLE * 1000,
-    fin_thickness_mm=FIN_T * 1000, fin_material="ASA-Aero (650 kg/m^3)",
+    fin_thickness_mm=FIN_T * 1000, fin_material="PLA (1240 kg/m^3)",
     cg_excl_fins_cm=round(CG_EX_FINS * 100, 2),
     # flown configuration (must reproduce the canonical 49.1 / 56.8 / 1.10)
     flown_span_mm=SPAN_FLOWN * 1000, flown_fin_mass_g=round(M_FIN_FLOWN * 1000, 1),
@@ -160,7 +160,7 @@ res["weathercock_deg_at_5ms"] = round(float(np.degrees(np.arctan(5.0 / max(v_rai
 # ---- fin flutter (NACA TN-4197 form) --------------------------------------------------------
 # Vf = a * sqrt( G / ( (1.337 M^2 (lambda+1) / (2 (AR+2)) ) * (t/c)^-3 * P ) ), evaluated at the
 # flight ambient pressure. G is the fin material's shear modulus.
-G_SHEAR = 0.9e9                      # Pa, foamed ASA-Aero (conservative)
+G_SHEAR = 1.3e9                      # Pa, PLA (fins are PLA as of the 2026-08 material change)
 lam = ct / cr                        # taper ratio
 S_fin = 0.5 * (cr + ct) * SPAN_FLOWN
 AR = SPAN_FLOWN**2 / S_fin

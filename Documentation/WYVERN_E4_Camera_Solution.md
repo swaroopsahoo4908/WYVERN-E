@@ -15,9 +15,9 @@ runs on **its own battery** and records to **its own microSD**, wholly independe
   down. Chosen over a ~10 g RunCam Thumb-class cam purely on cost.
   ⚠ **Mass note (folded into the flight numbers):** the i3 is ~26 g heavier than the ~10 g thumb-cam
   the budget originally assumed. This has been **carried through the whole cascade** — FC bay 96 → 122 g,
-  liftoff 679 → **705 g**, apogee 471 → **429 ft**, T/W 2.16/3.80 → **2.08/3.66**. Because the camera
+  liftoff 679 → **792 g**, apogee 471 → **324 ft**, T/W 2.16/3.80 → **2.08/3.66**. Because the camera
   sits at ~0.42 m (forward of the 0.49 m CG), the aft-CG shift is *favourable*: static margin rises
-  from 1.04 to **1.10 cal** (more stable). Net: a small altitude/TWR cost for the cheaper camera, with
+  from 1.04 to **1.20 cal** (more stable). Net: a small altitude/TWR cost for the cheaper camera, with
   a slight stability *gain*.
 - **Keep the OV2640 as *optional***: only if you want a few Pico-grabbed JPEG frames time-synced
   to the flight log for a telemetry overlay — run it at VGA, low fps, best-effort (never blocking
@@ -33,5 +33,5 @@ runs on **its own battery** and records to **its own microSD**, wholly independe
 The i3 runs on its own battery, so no FC power rail is required — start it manually (or via its
 power-on-record mode) at the pad during the arming sequence. If you prefer bus power, it charges over
 USB-5 V; confirm its record-on-power behaviour on the bench first.
-Cut the viewport at the FC-bay station (≈ 38 cm from nose), lens flush with a thin ASA-Aero window
+Cut the viewport at the FC-bay station (≈ 38 cm from nose), lens flush with a thin PLA window
 or open port. The Pico logs an arm timestamp so video and sensor logs can be aligned in post.

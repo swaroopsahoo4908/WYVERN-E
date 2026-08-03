@@ -16,18 +16,18 @@ in §7 is achievable.
 | Parameter | Value |
 |---|---|
 | Airframe | 70 mm OD, ~0.74 m, single stage, 3 bays + 2 sealed bulkheads |
-| Liftoff / dry mass | **705 g / 603 g** |
+| Liftoff / dry mass | **792 g / 690 g** |
 | Motor (flight) | **Estes F15-4** ×4 (4 s delay + ejection charge = recovery) |
-| Motor (ground) | **Estes F15-0** ×13 (plugged; static + TVC balance + jetvane) |
+| Motor (ground) | **Estes F15-0** ×10 (plugged; static thrust curves + MTVC + servo TVC on the balance) |
 | Commissioning | Estes/AeroTech **E16-4** ×6 |
-| Apogee | **~429 ft / 130.8 m @ 6.82 s** (RK4(2e-4)+Barrowman) |
-| v_max / Mach | **36.5 m/s / Mach 0.107** |
-| Max acceleration | **2.67 g** net (3.66 g specific force = peak T/W) |
-| T/W | **2.08 avg / 3.66 peak** |
-| Fins | 4 × **72 mm** ASA-Aero, root 70 / tip 35 / LE-sweep 25° |
-| Stability | CG 49.1 cm / CP 56.8 cm → **+1.10 cal** (→1.3 cal burnout), no ballast |
-| Materials | **ASA-Aero**: nose, body, fins, FC + recovery bays · **PC-FR**: both bulkheads, bypass tube, engine/TVC bay, motor mount, gimbal |
-| Recovery | **F15-4 motor ejection** via solid-walled bypass tube; deploy t≈7.45 s (+0.63 s past apogee, ~6.1 m/s); 18″ chute → ~6 m/s; **3.4× bay-pressurization margin**; no RRC3/9 V/CO2/e-match |
+| Apogee | **~324 ft / 98.9 m @ 6.27 s** (RK4(2e-4)+Barrowman) |
+| v_max / Mach | **29.7 m/s / Mach 0.087** |
+| Max acceleration | **2.27 g** net (3.27 g specific force = peak T/W) |
+| T/W | **1.85 avg / 3.26 peak** |
+| Fins | 4 × **72 mm** PLA, root 70 / tip 35 / LE-sweep 25° |
+| Stability | CG 48.4 cm / CP 56.8 cm → **+1.20 cal** (→1.3 cal burnout), no ballast |
+| Materials | **PLA**: nose, body, fins, FC + recovery bays · **PETG-CF**: both bulkheads, bypass tube, engine/TVC bay, motor mount, gimbal |
+| Recovery | **F15-4 motor ejection** via solid-walled bypass tube; deploy t≈7.45 s (+1.18 s past apogee, ~11.5 m/s); 24″ chute → ~6 m/s; **3.4× bay-pressurization margin**; no RRC3/9 V/CO2/e-match |
 | Flight computer | **Raspberry Pi Pico 2 W (RP2350)**, dual-core, 500 Hz TVC PID **Kp0.10/Ki0.40/Kd0.18**, ±8° gimbal |
 | Sensors | 3× BNO085 (GRV), BME688 + **BMP388** (Adafruit 3966) baro, microSD, i3 4K Thumb Action Camera cam, Wi-Fi bench telemetry |
 | Structural margins | flight min SF ~340×; bulkhead-B ejection SF ~8×; bypass tube ~107×; engine-bay thermal < HDT |
@@ -44,7 +44,7 @@ in §7 is achievable.
   `t4_sensors_sdlog` (now BMP388), plus `selftest.py`/`host_monitor.py` go/no-go harness.
 - Telemetry: `telemetry_wifi_flight` + `telemetry_wifi_receiver` sketches.
 - **PID: flight-ready, no change.** Gains **0.10/0.40/0.18** confirmed by both the frequency-domain
-  margin analysis (`PID_TUNING_REPORT.md`, PM≈40.0°/GM≈11.3 dB) and a time-domain robust auto-tune
+  margin analysis (`PID_TUNING_REPORT.md`, PM≈44.7°/GM≈12.6 dB) and a time-domain robust auto-tune
   (`PID_AUTOTUNE_REPORT.md`, within ~4% of grid-optimal; integral retained for steady-bias rejection).
 - **Digital twin available:** `Simulations/wyvern_datagen/fc_sil.py` (+ GUI *Flight Computer SIL* tab)
   runs the full FC in software-in-the-loop with sensor noise and simulated Wi-Fi telemetry — use it to
@@ -52,7 +52,7 @@ in §7 is achievable.
 
 ### 3.2 Rocket airframe — READY to print
 - All printable parts present in `3D parts/`: nose (ASA), 3 bay tubes, both sealed bulkheads
-  (PC-FR, with 12 mm bypass pass-through), bypass tube (PC-FR), motor mount, 2-axis gimbal,
+  (PETG-CF, with 12 mm bypass pass-through), bypass tube (PETG-CF), motor mount, 2-axis gimbal,
   72 mm fin, 1010 rail buttons, full assembly. Superseded parts moved to `_superseded/`.
 - FEA (`WYVERN_E4_FEA_Structural.md`) covers flight loads, ejection pressure, and thermal.
 
@@ -64,15 +64,15 @@ in §7 is achievable.
   `CONFLICTS.md` §7 for the scope-change record.
 
 ### 3.4 Motor test stands — READY to print/build
-- **TVC thrust-vector balance**: base, thrust block, flexure template (PC-FR).
-- **Static/jetvane stand**: base plate, load-cell bracket, motor tower, steel blast deflector.
+- **TVC thrust-vector balance**: base, thrust block, flexure template (PETG-CF).
+- **Static thrust stand**: base plate, load-cell bracket, motor tower, steel blast deflector. (Jetvane erosion testing dropped 2026-08 — the stand is now motor thrust-curve verification only.)
 - DAQ: Raspberry Pi Pico + load cells/HX711 (BOM §10); ground-rig sketches target Pico.
 
 ## 4. Bill of materials
 
 `Documentation/WYVERN_E4_BOM.xlsx` — **8 live sections** spanning **all three build targets**: FC &
 sensors, power, TVC (flight servo + ground magnetic A/B), recovery (motor ejection), propulsion
-(F15-4 flight / F15-0 ground / E16-4 commissioning), airframe filament (ASA-Aero + PC-FR),
+(F15-4 flight / F15-0 ground / E16-4 commissioning), airframe filament (PLA + PETG-CF),
 harness/connectors/prototyping, and the TVC balance + static stand. **Former §9 (Hofferth wind
 tunnel) has been deleted** per the 2026-08 scope change, and the gross/net formulas rewired to the
 eight surviving subtotals. Every live line has a purchase link and verified price. Filament
@@ -80,11 +80,11 @@ allocation matches the material zoning in §2.
 
 | Budget line | Value |
 |---|---|
-| Gross to-buy | $1,380.85 |
+| Gross to-buy | $1,285.07 |
 | Less reimbursed (launch controller) | −$43.99 |
-| **Net out-of-pocket (still to buy)** | **$1,336.86** |
+| **Net out-of-pocket (still to buy)** | **$1,241.08** |
 | Already acquired (owned) | $479.27 |
-| **Total program spend** | **$1,816.13** |
+| **Total program spend** | **$1,720.35** |
 
 > Rose from $1,725.46 on 2026-08-01 when the cart gap analysis found **five items the BOM never
 > costed at all** — the microSD SPI breakout the firmware requires, the 1010 launch rail, the Nomex
@@ -102,7 +102,7 @@ allocation matches the material zoning in §2.
 - **BMP280 → BMP388** aligned across wiring generators (now 3.3 V, not 5 V), the regenerated
   schematic + preview, `t4_sensors_sdlog.ino`, test READMEs/selftest, and the audit docs.
 - Ground-rig DAQ conflict marked **resolved** (Pico everywhere) in `COMPATIBILITY.md`.
-- `baro.h` apogee comment corrected to 429 ft / 130.8 m.
+- `baro.h` apogee comment corrected to 324 ft / 98.9 m.
 - Full-project sweep confirms **zero** surviving 708/662/648 g, 432 ft, 2.07/3.62 T/W, 58 mm fin,
   CG 46.7 / CP 52.5, or F15-0-as-flight references outside intentional "superseded/removed" notes.
 
@@ -130,7 +130,7 @@ Run `selftest.py` before every flight; it gates on all of the above that are obs
 > original build-effort estimate; use the 14-day timeline for actual planning.
 
 **Week 1 — fabricate & bench:**
-- Days 1–2: print airframe (ASA-Aero body/nose/fins; PC-FR bulkheads/tube/engine bay/gimbal/mount)
+- Days 1–2: print airframe (PLA body/nose/fins; PETG-CF bulkheads/tube/engine bay/gimbal/mount)
   and both stands. Order-long-lead items already in BOM.
 - Days 3–4: assemble FC (Pico 2 W + sensors on perfboard), wire per the schematic, flash firmware,
   run `t1`–`t4` bench tests + `selftest.py`.
@@ -138,11 +138,11 @@ Run `selftest.py` before every flight; it gates on all of the above that are obs
   E16-4; run **ground ejection test** (punch-list #1).
 
 **Week 2 — ground data & fly:**
-- Days 8–10: F15-0 static thrust-curve verification + jetvane materials screen; F15-0 TVC balance
+- Days 8–10: F15-0 static thrust-curve verification (+ engine-bay wall temperature for RQ2); F15-0 TVC balance
   A/B (servo vs. magnetic) on the 3-axis stand; lock the flown actuator (servo).
 - Days 11–12: full preflight `selftest.py` GO; range procedures (remote ignition, ≥3 m standoff,
   igniter installed last).
-- Days 13–14: **launch on F15-4** (FAA Class-1, no waiver; 705 g < 1500 g). Recover, pull SD +
+- Days 13–14: **launch on F15-4** (FAA Class-1, no waiver; 792 g < 1500 g). Recover, pull SD +
   Wi-Fi logs, feed flight data back into `Simulations/` for post-flight validation.
 
 ## 8. Notes / residual risk
@@ -178,17 +178,17 @@ telemetry. Every surviving question still has two independent methods (Proposal 
 | 1 | F15 thrust curve renormalized to 49.6 N·s from a shape integrating to 41.97 N·s | peak thrust inflated to **29.9 N** vs Estes' published 25.3 N; peak T/W read 4.32 against the 3.66 quoted repo-wide | sustain block lifted +2.4408 N so the curve matches impulse, peak **and** average simultaneously |
 | 2 | `fc_sil.py` fed the launch detector kinematic acceleration, not specific force | peaked at 2.65 g against the firmware's 3 g latch — the SIL state machine **never left ARMED** in any flight: no BOOST, no TVC, no deploy, ~70 m/s ballistic "touchdown" in every logged run | accelerometer now reports specific force (peaks at 3.66 g = peak T/W) |
 | 3 | `we4_sim.py` hard-coded **Kp=8.0/Ki=1.5/Kd=1.2** | the TVC plot disagreed with the firmware, `pid_reference.py`, and `CONFLICTS.md` §1, which record those gains as superseded and unstable | gains set to the frozen 0.10/0.40/0.18 |
-| 4 | `we4_deepsim.py` used **CG 0.467 / CP 0.537**; `we4_validation.py` used **CG 0.467** | every margin, flutter, CG-tolerance and stability gate was scored against a pre-ASA-Aero, pre-camera vehicle; validation reported 1.44 cal where the real margin is 1.10 | both set to the canonical 0.491 / 0.568 |
+| 4 | `we4_deepsim.py` used **CG 0.467 / CP 0.537**; `we4_validation.py` used **CG 0.467** | every margin, flutter, CG-tolerance and stability gate was scored against a pre-PLA, pre-camera vehicle; validation reported 1.44 cal where the real margin is 1.10 | both set to the canonical 0.491 / 0.568 |
 | 5 | `we4_stability.py` reported `fin_span_mm: 35.0` while evaluating `s35=0.055` | the "35 mm fins are unstable (−0.52 cal)" finding was quoting a **55 mm** fin; the flown 72 mm fin was never evaluated | file rewritten; 35 mm is **−0.99 cal (unstable)**, flown 72 mm reproduces 49.1/56.8/+1.10 exactly |
 | 6 | Deploy sampled at **t = 4.0 s** in three files | reported a 29 m/s deploy against the Recovery doc's ~6.5 m/s — the retired finless-era electronic timer, not motor ejection | deploy is now t = burnout + 4 s = **7.45 s**; integration runs through apogee to reach it |
 | 7 | Three different Cd for one vehicle (0.50 / 0.58 / 0.539) | apogee disagreed between scripts | unified to the **0.539** componentwise buildup |
-| 8 | Mass stack summed to **606 g / 708 g** | contradicted the 603/705 used everywhere, including the FAA Class-1 argument | harness estimate trimmed 25→22 g; dry total is now exactly 603 g |
+| 8 | Mass stack summed to **606 g / 708 g** | contradicted the 603/705 used everywhere, including the FAA Class-1 argument | harness estimate trimmed 25→22 g; dry total is now exactly 690 g |
 | 9 | `we4_deepsim.py` battery pack **850 mAh** | no such pack exists in the BOM or power tree | set to the Zeee 2S **450 mAh** → 40 flights/charge |
 | 10 | Generic motor shapes normalized to impulse only | published peaks wrong by up to 2× (D12 read 14.2 N vs 29.7 N) — the number that sizes the load cell | decay rate solved per motor; all five motors now match published impulse and peak |
-| 11 | `build_ork4.py` gave ASA-Aero nose/fins **PC-FR density**, and announced a 150 g-ballast config | the `.ork` cross-check modelled the wrong vehicle | densities corrected to 650 kg/m³; no ballast |
+| 11 | `build_ork4.py` gave PLA nose/fins **PETG-CF density**, and announced a 150 g-ballast config | the `.ork` cross-check modelled the wrong vehicle | densities corrected to 650 kg/m³; no ballast |
 | 12 | Control-authority margin swept from t=0 to burnout | both endpoints are thrust-zero, so the reported minimum was always exactly 0.0 mN·m | swept over the TVC-active window → **71.7 mN·m** |
 | 13 | `gen_rocket4.py` called `fin(0.070, 0.035, 0.072, 0.025, 0.003)` — **metres**, in a file whose every other dimension is millimetres | the fin was built at 1/1000 scale: `08b_fin_single_ASA.stl` exported at **0.0 cm³ / 0.0 g**. Slicing that file yields a speck, and the script's printed-mass roll-up silently omitted all four fins | called in mm; fin is now 11.3 cm³ / **7.4 g** each → 29.6 g for four, matching the 30 g in the mass stack |
-| 14 | Printed-mass roll-up filtered part prefixes `01`–`07` | excluded the fins (`08b`) and the PC-FR bypass tube (`09`), so the reported printed mass could never be reconciled against the dry stack | roll-up now covers the full flight airframe with per-part quantities |
+| 14 | Printed-mass roll-up filtered part prefixes `01`–`07` | excluded the fins (`08b`) and the PETG-CF bypass tube (`09`), so the reported printed mass could never be reconciled against the dry stack | roll-up now covers the full flight airframe with per-part quantities |
 | 15 | Battery-sense divider (GP26/ADC0) documented in `CONFLICTS.md` §4, verified in `COMPATIBILITY.md` §4, read by `battery.h` — but **routed in no schematic** | the wiring generators disagreed with the firmware on a net the flight computer samples every loop | both generators now emit a `VBAT DIVIDER` block tapped upstream of the UBEC into GP26 |
 | 16 | `02_tvc_control_loop.mermaid` clamped the gimbal at **±5°** | the retired limit; `wyvern_pid.h` uses `OUT_LIM_DEG = 8.0` | flowchart regenerated at ±8° |
 | 17 | `PID_TUNING_REPORT.png` and `phase0_math_validation.png` were hand-made orphans with no generating script | both showed superseded numbers and could not be kept in step | each is now a reproducible output of the script that derives it (`we4_pid_retune.py`, `derive_math.py`) |
@@ -218,29 +218,29 @@ agree to better than 0.5 g each. Two parts differ by design and should not be "f
 
 | Part | Solid volume × density | `we4_sim.py` allowance | Why |
 |---|---|---|---|
-| Motor mount (PC-FR) | 59.1 g | 45 g | as-built sparse infill, not a 100 %-dense solid |
-| TVC gimbal (PC-FR) | 112.5 g | 105 g | same, plus the CAD solid includes trunnion stock removed in post |
+| Motor mount (PETG-CF) | 59.1 g | 45 g | as-built sparse infill, not a 100 %-dense solid |
+| TVC gimbal (PETG-CF) | 112.5 g | 105 g | same, plus the CAD solid includes trunnion stock removed in post |
 
 The generator's number is raw solid volume; the flight budget's number is the as-built allowance.
-The 603 g dry mass additionally carries avionics, battery, camera, servos, chute and harness, so the
+The 690 g dry mass additionally carries avionics, battery, camera, servos, chute and harness, so the
 two figures are not directly comparable — the script now prints that caveat alongside the roll-up.
 
 ### 9.4 Post-rerun canonical numbers
 
 | Quantity | Value |
 |---|---|
-| Apogee | **130.8 m / 429 ft @ 6.82 s** (was 435 ft) |
-| Burnout | 3.45 s, 72.8 m, 35.7 m/s |
-| v_max / Mach | 36.5 m/s / **Mach 0.107** (docs previously said "Mach ~0.4") |
-| Max acceleration | 2.67 g net (3.66 g specific force) |
-| CG / CP / margin | 49.1 cm / 56.8 cm / **+1.10 cal** |
-| Deploy | t = 7.45 s, +0.63 s past apogee, 6.1 m/s |
-| PID margins | PM **40.0°**, GM **11.3 dB**, worst gust pitch **2.30°**, gimbal 2.60° |
+| Apogee | **98.9 m / 324 ft @ 6.27 s** (was 435 ft) |
+| Burnout | 3.45 s, 59.1 m, 28.9 m/s |
+| v_max / Mach | 29.7 m/s / **Mach 0.087** (docs previously said "Mach ~0.4") |
+| Max acceleration | 2.27 g net (3.27 g specific force) |
+| CG / CP / margin | 48.4 cm / 56.8 cm / **+1.20 cal** |
+| Deploy | t = 7.45 s, +1.18 s past apogee, 11.5 m/s |
+| PID margins | PM **44.7°**, GM **12.6 dB**, worst gust pitch **1.96°**, gimbal 2.35° |
 | Gates | validation **10/13**, deepsim **7/8** (servo torque flagged — §11) |
 | Cross-file check | **14/14** numeric agreements between the summary JSONs |
 
 The three flagged validation gates are unchanged in character and share one root cause: the F15 is
-underpowered for a 705 g vehicle. Rail exit is 6.1 m/s against a 15 m/s rule of thumb, peak T/W is
+underpowered for a 792 g vehicle. Rail exit is 11.5 m/s against a 15 m/s rule of thumb, peak T/W is
 3.66 against a 5.0 rule of thumb, and weathercock reaches 63° at 10 m/s. This is a launch-window
 constraint, not a design defect — but it is real and should not be presented as passing.
 

@@ -11,7 +11,7 @@ updated_at: 2026-08-01
 
 ## 1. The one thing that decides this schedule
 
-**$1,337 of the BOM is not ordered yet.** Nothing else on this page matters until that changes.
+**$1,241 of the BOM is not ordered yet.** Nothing else on this page matters until that changes.
 Every buildable task is downstream of parts arriving, and consumer shipping is 3–7 days. That is
 half the window.
 
@@ -42,7 +42,7 @@ all depend on the same things, so they do not all carry the same risk.
 | RQ | Needs | Gated by | Weather? | Risk if the schedule slips |
 |---|---|---|---|---|
 | **RQ1** actuator A/B | TVC balance + load cells + DAQ + F15-0 × 6 | parts, stand print | No | **Low** — ground only, can run any day |
-| **RQ2** zoned materials | Coupons + bend rig + jetvane + F15-0 × 2 | filament, motors | No | **Lowest** — coupons print first, test early |
+| **RQ2** PLA vs PETG-CF | 3-point bend coupons + engine-bay temp from the static fires | filament | No | **Lowest** — coupons print first, no motor needed for the bend tests |
 | **RQ3** predicted vs in-situ stability | **One good flight** + measured wind | full vehicle, range, weather | **Yes** | **Highest** — needs the flight |
 | **RQ4** gain sensitivity | **≥2 flights**, different gain sets | full vehicle, range, weather | **Yes** | **High** — needs repeat flights |
 
@@ -61,7 +61,7 @@ This is the reduced plan that still answers every RQ:
 |---|---|---|---|
 | E16-4 | 4 | Stand commissioning, 2 per stand (curve vs published) | — |
 | F15-0 | 6 | TVC balance A/B — 3 per actuator class | RQ1 |
-| F15-0 | 2 | Static stand: curve verification + jetvane coupon exposure | RQ2 |
+| F15-0 | 2 | Static stand: motor thrust-curve verification (+ engine-bay wall temperature for RQ2) | RQ2 |
 | **F15-4** | **3** | **Flight** — 2 gain sets + 1 spare/repeat | RQ3, RQ4 |
 | — | 2 | F15-0 reserve for a failed or aborted run | — |
 
@@ -78,9 +78,9 @@ on Day 10.
 
 | Day | Task | Output | Gate |
 |---|---|---|---|
-| **0** | **PLACE THE ENTIRE ORDER — including the 14 items in `WYVERN_E4_Cart_Gap_Analysis.md` that the current cart is missing.** Five of them are flight-blocking (BMP388, microSD SPI breakout, ASA-Aero filament, the GP26 divider resistors, the decoupling kit). Separately, **re-source the M2 linkage rod ends and the servos** — both currently deliver after the bench gate. | Priority shipping on: Pico 2 W, 3 × BNO085, BMP388, servos, HX711 × 4 + load cells, ASA-Aero + PC-FR filament, all motors. Order **spares** of the Pico, one BNO085 and one servo — they are cheap and each is a single point of failure. | Order confirmations, ETA per line | **Gate 0** |
+| **0** | **PLACE THE ENTIRE ORDER — including the 14 items in `WYVERN_E4_Cart_Gap_Analysis.md` that the current cart is missing.** Five of them are flight-blocking (BMP388, microSD SPI breakout, PLA filament, the GP26 divider resistors, the decoupling kit). Separately, **re-source the M2 linkage rod ends and the servos** — both currently deliver after the bench gate. | Priority shipping on: Pico 2 W, 3 × BNO085, BMP388, servos, HX711 × 4 + load cells, PLA + PETG-CF filament, all motors. Order **spares** of the Pico, one BNO085 and one servo — they are cheap and each is a single point of failure. | Order confirmations, ETA per line | **Gate 0** |
 | 0 | Flash the fixed firmware to any Pico you already have, or run the SIL. Read §5 of `CONFLICTS.md` — the frozen parameter table is the contract the firmware is written against. | — | |
-| 1 | Slice every print. Airframe, gimbal, both stands. Confirm plate layout, material assignment (ASA-Aero vs PC-FR — see the zoning table), and total print hours. **This is the schedule's hidden long pole.** | Print queue with hour estimates | |
+| 1 | Slice every print. Airframe, gimbal, both stands. Confirm plate layout, material assignment (PLA vs PETG-CF — see the zoning table), and total print hours. **This is the schedule's hidden long pole.** | Print queue with hour estimates | |
 | 1 | `python3 we4_flight_reduce.py --selftest` — confirm the reduction pipeline passes on your machine. | `SELFTEST: PASS` | |
 | 2 | Run the full sim suite end to end so every number in the paper is regenerable on demand. Read the go/no-go gates in `plots_val/validation_summary.json`. | 10/13 gates, 7/8 deep checks (the flag is servo torque — see §11 of the build-readiness report) | |
 | 2 | **Start the paper.** Methods, apparatus, vehicle description, simulation methodology — none of this needs results. Target: §1–§5 drafted. | Draft §1–5 | |
@@ -109,17 +109,17 @@ on Day 10.
 | 5–6 | Print both stands: TVC balance base, thrust block, flexure; static stand base plate, load-cell bracket, motor tower. Fit the steel blast deflector. | |
 | 6 | Wire both DAQs (Pico + HX711 × 3 on the balance, × 1 on the static stand). Flash the GSE rig sketches. | |
 | 7 | **Dead-weight calibrate every load-cell channel** before any motor is anywhere near the stand. Known masses across the full range, record the transfer function per channel. | **Gate 4: cal residual < 1%** |
-| 7 | **Print RQ2 coupons** (3-point bend, both materials) and the jetvane coupons. Run the bend tests — no motor needed, do this while waiting. | RQ2 bend data |
+| 7 | **Print RQ2 coupons** — 3-point bend, PLA and PETG-CF, identical print parameters. Run the bend tests; no motor needed, do this while waiting on parts. | RQ2 bend data |
 | 8 | **Commission both stands: 2 × E16-4 each.** Compare measured curve against published. Check for mount ringing — the bench model predicts a 42 Hz resonance that **aliases** against the 80 SPS HX711 sample rate. If you see it, stiffen the mount or drop to 10 SPS. | **Gate 5: measured curve within 10% of published** |
 | 9 | **RQ1 data day: TVC balance A/B.** 3 × F15-0 per actuator class, step and ramp commands, log everything. | **RQ1 DATA COMPLETE** |
 | 9 | **Also measure servo torque margin.** `we4_deepsim` check C now reports only **2.3×** against stall at the full ±8° (it was computed at 5° before). Record servo current and commanded-vs-achieved deflection at the ±8° extremes under thrust. See `WYVERN_E4_BUILD_READINESS.md` §11. | **Servo margin resolved** |
-| 9 | **RQ2 data: static stand.** 2 × F15-0 — curve verification + jetvane coupon exposure. | **RQ2 DATA COMPLETE** |
+| 9 | **Static stand: 2 × F15-0** — motor thrust-curve verification, plus a thermocouple on the engine-bay wall for the RQ2 heat-deflection margin. | **RQ2 DATA COMPLETE** |
 
 ### Days 10–14 · Flight and reduction
 
 | Day | Task | Gate |
 |---|---|---|
-| 10 | Integration: install FC, battery, camera in the airframe. Full mass check against the 705 g budget — **weigh it, don't assume**. Balance check: confirm CG at 49.1 ± 1 cm from the nose. | **Gate 6: 705 ± 15 g, CG 49.1 ± 1 cm** |
+| 10 | Integration: install FC, battery, camera in the airframe. Full mass check against the 792 g budget — **weigh it, don't assume**. Balance check: confirm CG at 49.1 ± 1 cm from the nose. | **Gate 6: 705 ± 15 g, CG 49.1 ± 1 cm** |
 | 10 | Full `selftest.py` in flight configuration. Rehearse the pad procedure on the bench, start to finish. | |
 | **11** | **FLIGHT DAY 1.** Two flights: gain set A (flight gains, Kp 0.10 / Ki 0.40 / Kd 0.18) and gain set B (the comparison set for RQ4). **Measure and record the surface wind at each launch** — RQ3's margin reconstruction needs it. | **RQ3 + RQ4 DATA** |
 | 11 | Same evening: pull the SD cards and run `we4_flight_reduce.py FLIGHT_A.csv FLIGHT_B.csv --wind <measured> --label gainA gainB`. Results in minutes. | Reduction JSON + figures |
@@ -151,9 +151,9 @@ the vehicle actually does:
 
 | Parameter | Limit | Why |
 |---|---|---|
-| Surface wind | **< 5 m/s** (hard stop 7 m/s) | Rail exit is only 6.1 m/s; weathercock reaches 35° at 5 m/s and 63° at 10 m/s |
+| Surface wind | **< 5 m/s** (hard stop 7 m/s) | Rail exit is only 11.5 m/s; weathercock reaches 35° at 5 m/s and 63° at 10 m/s |
 | Gusts | < 2 m/s above mean | Gust response is the RQ4 signal; large gusts swamp the gain comparison |
-| Ceiling | > 300 m | Apogee is 130.8 m; you must be able to see it |
+| Ceiling | > 300 m | Apogee is 98.9 m; you must be able to see it |
 | Precipitation | None | Foamed ASA is not sealed, and the electronics are on open perfboard |
 
 ---
@@ -167,7 +167,7 @@ the vehicle actually does:
 - **Data reduction is built and self-tested** — `we4_flight_reduce.py --selftest` passes against a
   synthetic SIL flight, recovering apogee to 0.1 m.
 - **Every simulation is regenerable** and 16/16 cross-file numeric checks agree.
-- **Wind tunnel is gone**, BOM is 8 sections, program spend is $1,816.13 (see `WYVERN_E4_Cart_Gap_Analysis.md` — the current cart is missing 14 items, 5 of them flight-blocking).
+- **Wind tunnel is gone**, BOM is 8 sections, program spend is $1,720.35 (see `WYVERN_E4_Cart_Gap_Analysis.md` — the current cart is missing 14 items, 5 of them flight-blocking).
 
 ---
 

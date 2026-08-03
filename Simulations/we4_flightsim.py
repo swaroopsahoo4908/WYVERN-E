@@ -6,7 +6,7 @@ _TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None))  # NumPy 2.x renamed tra
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 OUT=os.path.join(os.path.dirname(os.path.abspath(__file__)),"plots4"+os.environ.get("WYVERN_RUN_TAG","")); os.makedirs(OUT,exist_ok=True)
 g=9.80665; rho0=1.225; D=0.070; Rb=D/2; A=np.pi*Rb**2; Lnose=0.12; Ltot=0.74
-m_lift=0.705; m_dry=0.603; PROP=0.060; tb=3.45; CG=0.491  # finned 72mm ASA, NO ballast (i3 cam fwd of CG -> 1.09 cal)
+m_lift=0.792; m_dry=0.690; PROP=0.060; tb=3.45; CG=0.484  # finned 72mm ASA, NO ballast (i3 cam fwd of CG -> 1.09 cal)
 # --- Barrowman aero (nose + 4x 72 mm fins; the "finless" label here was stale) ---
 def barrowman_cp():
     CNn=2.0; Xn=0.333*Lnose; cr,ct,sw,sp=0.070,0.035,0.025,0.072; Rb_=0.035  # ellipsoid nose, 72mm fins

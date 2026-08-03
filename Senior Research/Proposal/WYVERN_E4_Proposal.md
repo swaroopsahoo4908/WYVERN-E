@@ -14,7 +14,7 @@ quantitatively on a purpose-built **3-axis thrust-vector balance** that resolves
 magnitude and vector direction; the flight vehicle carries the servo system. The program retains the
 static motor/materials test regimen; the aerofoil wind-tunnel campaign was removed in 2026-08 and its
 aerodynamic question is now answered analytically and validated in flight (RQ3). All flights are FAA
-Class-1 (no waiver, no certification). Predicted apogee ≈ 429 ft; project cost ≈ $1,816.
+Class-1 (no waiver, no certification). Predicted apogee ≈ 324 ft; project cost ≈ $1,720.
 
 ## 1. Background & Motivation
 ### 1.1 Thrust vector control
@@ -42,7 +42,7 @@ by RQ3 below, which is answered analytically and validated in flight.
 | # | Question | Method A | Method B | Primary metric |
 |---|---|---|---|---|
 | RQ1 | Magnetic vs servo TVC actuation | 3-axis thrust-vector balance, F15-0 | bench signal model + SIL | bandwidth, slew, overshoot, SSE, max vector angle |
-| RQ2 | Zoned print-material structure + jetvane erosion | 3-point bend coupons; F15-0 plume on static stand + deflector | lumped-capacitance thermal + first-order FEA | flexural stiffness, mass-loss, char depth, HDT margin |
+| RQ2 | PLA vs PETG-CF for TVC structures | 3-point bend coupons, both materials | lumped-capacitance thermal + measured engine-bay wall temp from static fires | flexural modulus, HDT margin |
 | RQ3 | Predicted vs in-situ passive stability | Barrowman CP/CN + RK4 dispersion | flight-telemetry reconstruction of margin and coast Cd | Δ static margin (cal), Δ Cd |
 | RQ4 | Closed-loop gain sensitivity in flight | 24-point phase/gain-margin sweep + Monte Carlo | onboard log, up to 4 flights | pitch error, gimbal track, PM/GM, recovery |
 
@@ -52,24 +52,22 @@ by RQ3 below, which is answered analytically and validated in flight.
 
 | Section | Key mass | Subtotal |
 |---|---|---|
-| Nose (ASA-Aero) | ellipsoid nose 21 g | 21 g |
-| Recovery bay (ASA-Aero) | bay tube, chute+Kevlar cord, Nomex, BNO085 (vote), **PC-FR** bypass tube, **PC-FR** sealed Bulkhead B, ejection plenum | 137 g |
-| FC bay (ASA-Aero) | bay tube, Pico 2 W, BNO085, baro, µSD, i3 4K Thumb Action Camera, 2S LiPo + 5 V UBEC | 122 g |
-| Engine/TVC bay (PC-FR) | bay tube, Bulkhead A, gimbal, 2 servos, BNO085, mount | 268 g |
-| Structure | **4 ASA-Aero fins (72 mm)** + wiring | 50 g |
-| **Dry** | | **603 g** |
+| Nose (PLA) | ellipsoid nose 21 g | 21 g |
+| Recovery bay (PLA) | bay tube, chute+Kevlar cord, Nomex, BNO085 (vote), **PETG-CF** bypass tube, **PETG-CF** sealed Bulkhead B, ejection plenum | 137 g |
+| FC bay (PLA) | bay tube, Pico 2 W, BNO085, baro, µSD, i3 4K Thumb Action Camera, 2S LiPo + 5 V UBEC | 122 g |
+| Engine/TVC bay (PETG-CF) | bay tube, Bulkhead A, gimbal, 2 servos, BNO085, mount | 268 g |
+| Structure | **4 PLA fins (72 mm)** + wiring | 50 g |
+| **Dry** | | **690 g** |
 | Motor | F15-4 (60 g prop) | 102 g |
-| **Liftoff** | | **705 g** |
+| **Liftoff** | | **792 g** |
 
 ### 3.2 Materials
-- **PC-FR** (ρ 1.25 g/cm³, HDT ~110 °C, UL94-V0): both bulkheads, ejection bypass tube, and the engine assembly (engine/TVC bay + motor mount + gimbal) — heat/ejection-pressure zones only.
-- **ABS** (ρ ~1.04 g/cm³, HDT ~98 °C, not flame-rated): **jetvane material coupon only** (exhaust erosion screen alongside ASA-Aero); not a structural airframe material.
-- **ASA-Aero** (foamed, ρ ~0.65 g/cm³): nose, body tube, fins, FC/recovery bays — primary structure,
-  saves ~130 g where there is no motor heat. Thermal check: engine-bay wall peaks **~38 °C** over the 3.45 s burn (no liner
-  needed; first-order lumped model, `we4_analysis.py`).
+- **PETG-CF** (ρ ≈ 1.30 g/cm³, HDT ≈ 80 °C): both bulkheads, the ejection bypass tube, and the engine assembly (engine/TVC bay + motor mount + gimbal) — i.e. the whole ejection-gas path plus the TVC structures.
+- **PLA** (ρ ≈ 1.24 g/cm³, HDT ≈ 55 °C): nose, both body tubes, fins — everything with no motor heat and no gas contact. Walls run 1.2 mm (3 perimeters) rather than 1.6 mm; the airframe is print/handling-limited at ~340× safety factor, so the thicker wall was carrying margin it never needed, and dropping it recovers 45.6 g.
+- **Zoning rationale is thermal, not mass.** PLA at 55 °C HDT cannot be trusted in contact with ejection gas; PETG-CF at 80 °C is the minimum defensible material for that path.
 
 ### 3.3 Stability — fins + ballast + the 0.5 s rule
-An apogee sweep shows ballast lowers altitude, so we use **no ballast** and size fins to the minimum stable 1.0 cal: 4 × 72 mm fins → CP 56.8 cm, CG 49.1 cm = **+1.10 cal**
+An apogee sweep shows ballast lowers altitude, so we use **no ballast** and size fins to the minimum stable 1.0 cal: 4 × 72 mm fins → CP 56.8 cm, CG 48.4 cm = **+1.20 cal**
 static margin (stable). This passive margin holds the vehicle through launch and the F15 ignition
 spike; the TVC controller is **inhibited until t = 0.5 s**, then engages on the smooth curve. A
 historical finless variant (margin −5.6 cal) was rejected because it is statically unstable and cannot survive
@@ -78,19 +76,19 @@ the pre-TVC transient.
 ### 3.4 Structural & thermal margins
 First-order analysis (`we4_analysis.py`): minimum safety factor **> 300×** (the 25 N motor leaves the
 1.6 mm airframe print/handling-limited, not load-limited); fin flutter velocity well above the 25 m/s
-flight regime; engine-bay thermal margin to PC-FR HDT > 70 °C.
+flight regime; engine-bay thermal margin to PETG-CF HDT ≈ 40 °C (wall peaks ~40 °C against an 80 °C HDT).
 
 ## 4. Propulsion & Trajectory
 ### 4.1 Motors (verified)
 | Motor | Spec | Role | Qty |
 |---|---|---|---|
 | Estes F15-4 | 49.6 N·s, 14.4 N avg / 25.3 N pk, 3.45 s, 4 s delay + ejection | flight only (ejection = recovery) | 4 |
-| Estes F15-0 | 49.6 N·s, 14.4 N avg / 25.3 N pk, 3.45 s, 0-delay (plugged) | ground stands + jetvane | 13 |
+| Estes F15-0 | 49.6 N·s, 14.4 N avg / 25.3 N pk, 3.45 s, 0-delay (plugged) | static stand + TVC balance (MTVC and servo) | 10 |
 | Estes E16-4 | ~16 N avg | stand commissioning | 6 |
 
 ### 4.2 Predicted performance (unified RK4 + Barrowman, `we4_flightsim.py`)
-T/W 2.08 avg / 3.66 peak; Cd 0.54; burnout 3.45 s, ~75 m, ~36 m/s; **apogee ~429 ft @ 6.82 s**; deploy
-forced t = 4.0 s @ ~29 m/s; 18″ chute → ~6 m/s descent. Dispersion (±5 % mass, ±15 % Cd): see
+T/W 1.85 avg / 3.26 peak; Cd 0.539; burnout 3.45 s, 59.1 m, 28.9 m/s; **apogee ~324 ft @ 6.27 s**; motor
+ejection at t = 7.45 s (+1.18 s past apogee) @ 11.5 m/s; 24″ chute → 5.0 m/s descent. Dispersion (±5 % mass, ±15 % Cd): see
 `plots4/06_dispersion.png`.
 
 ## 5. Flight Computer & Control
@@ -118,12 +116,12 @@ Pack voltage is monitored on GP26/ADC0 (100k/62k divider; warn 6.4 V, arm-inhibi
 
 ## 6. Recovery
 Recovery uses the **F15-4 motor's own ejection charge** (4 s delay → fires t ≈ 7.45 s, ~0.66 s past
-apogee), routed through a solid-walled 12 mm PC-FR bypass tube past the *sealed* FC bay into the
+apogee), routed through a solid-walled 12 mm PETG-CF bypass tube past the *sealed* FC bay into the
 recovery bay to release a friction-fit nose — **no RRC3+, no 9 V, no e-match/BP, no CO2, no FC
 involvement**. Feasibility (`we4_ejection_feasibility.py`): tube loss ≈ 0.06 kPa; bay pressurizes to
 ~140 kPa vs a 14–41 kPa nose-release threshold = **3.4× margin**. F15-4 is the closest Estes delay
 to the ~3.5 s coast optimum (F15-6/-8 eject 2.5 s/4.5 s late, too fast/low). Single passive event,
-no electronic backup. Opening at ~6.1 m/s; 1/8″ Kevlar cord (> 800× margin) + Nomex protector; 18″
+no electronic backup. Opening at ~11.5 m/s; 1/8″ Kevlar cord (> 800× margin) + Nomex protector; 24″
 chute → ~6 m/s.
 
 ## 7. Ground Test Program
@@ -132,7 +130,7 @@ Motor + gimbal on a thrust block restrained by one axial (5 kg) + two lateral (1
 load cells → $T,\ \theta,\ \phi$. Actuator-agnostic — both magnetic and servo systems tested
 identically. RQ3 metrics logged vs commanded.
 ### 7.2 Static thrust + materials stand
-Axial cell + steel deflector: validates the F15-0 curve and screens jetvane materials in the plume (plugged 0-delay on the ground — no ejection into the fixture).
+Axial cell + steel deflector: validates the F15-0 thrust curve and carries the engine-bay wall thermocouple for RQ2 (plugged 0-delay on the ground — no ejection into the fixture). Jetvane screening is out of scope as of 2026-08.
 ### 7.3 Motor & calibration plan
 Load cells dead-weight calibrated, then commissioned with **6 × E16-4** (3 per stand). Counts: F15-4 ×4 (flight), F15-0 ×13 (ground), E16-4 ×6.
 
@@ -144,13 +142,13 @@ burn-time × atmosphere grid; and a software-in-the-loop flight computer writing
 recorder's schema. See `Simulations/README.md`.
 
 ## 9. Safety & Regulatory
-Single F15-4: 49.6 N·s, 60 g propellant, ≤ F class, liftoff 705 g < 1500 g → **FAA Class-1, no waiver,
+Single F15-4: 49.6 N·s, 60 g propellant, ≤ F class, liftoff 792 g < 1500 g → **FAA Class-1, no waiver,
 no Level-1 certification**. Remote ignition, ≥ 3 m standoff on the stands, gimbal-neutral fail-safe,
 motor-integral ejection (igniter installed at the pad; no electronic ejection circuit to arm or inhibit).
 
 ## 10. Budget
-≈ **$1,816** total program spend (vehicle + 3-axis balance + static/materials stand + one-time tools
-+ all motors): $1,337 still to buy + $479 already acquired. This is down from the $1,882 originally
+≈ **$1,720** total program spend (vehicle + 3-axis balance + static/materials stand + one-time tools
++ all motors): $1,241 still to buy + $479 already acquired. This is down from the $1,882 originally
 scoped; the Hofferth wind tunnel section was deleted from the BOM in the 2026-08 scope change. Live
 per-line pricing in
 `Documentation/WYVERN_E4_BOM.xlsx`. Per-flight consumable ≈ F15-4 $17 (integral delay/ejection; no
@@ -162,7 +160,7 @@ separate initiator or BP charge).
 | Print + assemble | 1–3 | airframe, gimbal, both stands |
 | Bench bring-up | 4 | self-test all-PASS, control loop dry-run |
 | TVC balance A/B (RQ1) | 5–6 | magnetic vs servo dataset |
-| Static fires + jetvane (RQ2) | 7 | thrust-curve + material ranking |
+| Static fires (RQ2) | 7 | thrust-curve verification + engine-bay wall temperature |
 | Sim + margin analysis (RQ3/RQ4) | 8–9 | dispersion, PM/GM sweep, SIL |
 | Flight tests (RQ3/RQ4) | 10–11 | up to 4 flights, onboard logs |
 | Analysis + paper | 12–14 | results, paper |
@@ -170,16 +168,16 @@ separate initiator or BP charge).
 ## 12. Risk Register
 | Risk | Likelihood | Mitigation |
 |---|---|---|
-| Pre-TVC instability | Med | 4× 72 mm fins, no ballast (+1.10 cal at liftoff); TVC inhibit 0.5 s |
+| Pre-TVC instability | Med | 4× 72 mm fins, no ballast (+1.20 cal at liftoff); TVC inhibit 0.5 s |
 | Servo slew too slow | Med | bench-verify on balance before flight; fast digital micro |
-| Hard deploy at ~6.1 m/s (motor ejection, +0.63 s past apogee) | Low | Kevlar harness >800× margin, Nomex protector, ground-tested charge |
+| Hard deploy at ~11.5 m/s (motor ejection, +1.18 s past apogee) | Low | Kevlar harness >800× margin, Nomex protector, ground-tested charge |
 | Launch-detect miss at low T/W | Low | tune arming alt; verify on 2.2 g spike |
 | Camera/SD throughput | Low | self-contained i3 4K Thumb Action Camera (decoupled from FC) |
 
 ## 13. Expected Outcomes & Deliverables
 A flight-validated small TVC vehicle; a quantitative magnetic-vs-servo TVC dataset; a quantified
-accuracy bound on Barrowman-class stability prediction versus flight telemetry; jetvane material
-rankings; full open documentation (CAD, firmware, wiring, sims) and a research paper.
+accuracy bound on Barrowman-class stability prediction versus flight telemetry; a PLA-vs-PETG-CF
+structural comparison justifying the flown material zoning; full open documentation (CAD, firmware, wiring, sims) and a research paper.
 
 ## References
 Barrowman, J. *The Practical Calculation of the Aerodynamic Characteristics of Slender Finned

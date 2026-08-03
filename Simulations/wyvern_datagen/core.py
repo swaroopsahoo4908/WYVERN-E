@@ -7,8 +7,8 @@ integrate in lock-step; this is what makes million-flight datasets tractable in 
 Python/NumPy. The nominal physics match `we4_flightsim.py` (the project's canonical
 RK4+Barrowman engine) so datasets are consistent with the single-flight results.
 
-Canonical vehicle (F15-4, ASA-Aero airframe, PC-FR bulkheads/tube/engine, 72 mm fins, i3 cam):
-  m_lift = 0.705 kg, m_dry = 0.603 kg, D = 70 mm, burn 3.45 s, apogee ~130.8 m / 429 ft @ 6.82 s.
+Canonical vehicle (F15-4, PLA airframe, PETG-CF gas path + TVC assemblies, 72 mm fins, i3 cam):
+  m_lift=0.792 kg, m_dry=0.690 kg, D = 70 mm, burn 3.45 s, apogee ~98.9 m / 324 ft @ 6.27 s.
 
 --------------------------------------------------------------------------------------------
 FIDELITY REVISION 2026-08 — what changed relative to the previous core, and why
@@ -61,13 +61,13 @@ RB      = D / 2.0
 A       = np.pi * RB**2              # reference area [m^2]
 LTOT    = 0.74                       # overall length [m]
 LNOSE   = 0.12
-M_LIFT  = 0.705                      # liftoff mass [kg]  (canonical, we4_flightsim; incl. i3 36 g cam)
-M_DRY   = 0.603                      # burnout/dry mass [kg]
+M_LIFT  = 0.792                      # liftoff mass [kg]  (canonical, we4_flightsim; incl. i3 36 g cam)
+M_DRY   = 0.690                      # burnout/dry mass [kg]
 PROP    = 0.060                      # propellant mass [kg]
 TB      = 3.45                       # burn time [s]
-CG      = 0.491                      # CG from nose [m] (i3 cam is fwd of CG -> margin up)
+CG=0.484                      # CG from nose [m] (i3 cam is fwd of CG -> margin up)
 XCP     = 0.568                      # CP from nose [m] (Barrowman, 72 mm fins)
-IYY     = 0.0210                     # pitch inertia [kg m^2]
+IYY     = 0.0257                     # pitch inertia [kg m^2]
 PIVOT   = 0.62                       # gimbal pivot station from nose [m]
 CN_ALPHA= 12.0                       # total normal-force slope [1/rad] (nose+fins, order-of-mag)
 
@@ -75,7 +75,7 @@ CN_ALPHA= 12.0                       # total normal-force slope [1/rad] (nose+fi
 DEPLOY_T = TB + 4.0                  # = 7.45 s
 
 # recovery
-CHUTE_D  = 0.4572                    # 18 in [m]
+CHUTE_D  = 0.6096                    # 18 in [m]
 CHUTE_A  = np.pi * (CHUTE_D/2)**2    # [m^2]
 CHUTE_CD = 1.5
 

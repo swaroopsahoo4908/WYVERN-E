@@ -1,13 +1,13 @@
 # WYVERN-E — Documentation
 - `WYVERN_E4_Mathematics.md` — mass/CG/inertia, T/W, trajectory, TVC, recovery, no-waiver.
-- `WYVERN_E4_Stability_FinSizing.md` — Barrowman fin sizing: 35 mm UNSTABLE (−0.99 cal); flown 72 mm gives +1.10 cal, no ballast.
+- `WYVERN_E4_Stability_FinSizing.md` — Barrowman fin sizing: 35 mm UNSTABLE (−0.99 cal); flown 72 mm gives +1.20 cal, no ballast.
 - `WYVERN_E4_FEA_Structural.md` — first-order structural + thermal margins.
 - `WYVERN_E4_Camera_Solution.md` — i3 4K Thumb Action Camera offload solution (OV2640 SPI can't do 720p30).
 - `WYVERN_E4_Recovery.md` — F15-4 motor-ejection recovery via a bypass tube (finned vehicle).
-- `WYVERN_E4_GSE_TestStands.md` — 3-axis TVC balance + static/jetvane stand + motor plan.
+- `WYVERN_E4_GSE_TestStands.md` — 3-axis TVC balance + static thrust stand + motor plan (jetvane dropped 2026-08).
 - `WYVERN_E4_Timeline_14Day.md` — **day-by-day build-to-flight schedule** (order-first gate, parallel tracks, slip triggers).
 - `WYVERN_E4_Build_Guide.md` — **print / bench / assembly / ground-test / range procedures** with go-no-go cards.
-- `WYVERN_E4_BOM.xlsx` — master BOM, 8 sections + Summary + Purchase Links (wind-tunnel section deleted 2026-08; five never-costed items added, chute corrected 24→18 in). Total program spend $1,816.13.
+- `WYVERN_E4_BOM.xlsx` — master BOM, 8 sections + Summary + Purchase Links (wind-tunnel section deleted 2026-08; five never-costed items added, chute corrected 24→18 in). Total program spend $1,720.35.
 - `WYVERN_E4_Cart_Gap_Analysis.md` — **what the current cart is missing** vs the BOM and the design.
 - Flight computer: `../Flight Computer/01_FlightComputer_Spec.md`, `firmware/`, `wiring/`, `flowcharts/`.
 - Sims/plots: `../Simulations/we4_sim.py` + `we4_analysis.py` → `../Simulations/plots4/`.

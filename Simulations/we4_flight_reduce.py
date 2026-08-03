@@ -18,7 +18,7 @@ WHAT IT COMPUTES
     (b) Static margin from the weathercock response. The steady pitch offset the vehicle holds
         into the measured crosswind gives the aerodynamic restoring stiffness, hence CP:
               k_alpha = q A CN_alpha (Xcp - Xcg)   =>   Xcp = Xcg + k_alpha / (q A CN_alpha)
-        Compared against the Barrowman CP of 56.8 cm (+1.10 cal).
+        Compared against the Barrowman CP of 56.8 cm (+1.20 cal).
 
   RQ4 -- closed-loop gain sensitivity
     Peak and RMS pitch deviation, gimbal utilisation and saturation, settling behaviour, and
@@ -48,16 +48,16 @@ sys.path.insert(0, os.path.join(HERE, "wyvern_datagen"))
 PRED = dict(
     cd_nominal      = 0.539,     # we4_flightsim componentwise Barrowman buildup
     xcp_m           = 0.568,     # Barrowman CP from nose
-    xcg_m           = 0.491,     # liftoff CG from nose
+    xcg_m           = 0.484,     # liftoff CG from nose
     diameter_m      = 0.070,
-    margin_cal      = 1.10,
-    m_lift_kg       = 0.705,
-    m_dry_kg        = 0.603,
+    margin_cal      = 1.20,
+    m_lift_kg       = 0.792,
+    m_dry_kg        = 0.690,
     burn_s          = 3.45,
     deploy_s        = 7.45,
-    apogee_m        = 130.8,
-    apogee_ft       = 429.0,
-    apogee_t_s      = 6.82,
+    apogee_m        = 98.9,
+    apogee_ft       = 324.0,
+    apogee_t_s      = 6.27,
     cn_alpha        = 12.0,      # 1/rad, nose+fins
     gimbal_lim_deg  = 8.0,
     ctrl_hz         = 500.0,
@@ -250,7 +250,7 @@ def reconstruct_margin(d, wind_ms=None):
     t_g = float(np.nanmedian(d["baro_temp_c"])) if "baro_temp_c" in d else 15.0
     rho = float(np.median(isa_density(alt[win], t_g)))
     q = 0.5 * rho * v_w ** 2
-    IYY = 0.0209
+    IYY = 0.0257
     k_alpha = IYY * theta_ddot / drive                      # N.m/rad
     arm = k_alpha / (q * A_REF * PRED["cn_alpha"])          # (Xcp - Xcg), m
     margin_cal = arm / PRED["diameter_m"]

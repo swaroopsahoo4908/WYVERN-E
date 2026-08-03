@@ -24,11 +24,11 @@ BLU,RED,GRN,ORG,PUR,TEAL="#2a6f97","#bc4749","#386641","#e09f3e","#6d597a","#43a
 # ---------------- vehicle constants (mirror we4_flightsim.py) ----------------
 g,rho0,a0=9.80665,1.225,343.0
 D=0.070; Rb=D/2; A=np.pi*Rb**2; Ltot=0.74; Lnose=0.12
-m_lift,m_dry,PROP,tb=0.705,0.603,0.060,3.45
+m_lift,m_dry,PROP,tb=0.792,0.690,0.060,3.45
 # CANONICAL values (we4_flightsim.py / wyvern_datagen/core.py). This file previously carried
 # CG=0.467 / Xcp=0.537 -- the pre-ASA-Aero, pre-i3-camera numbers -- so every margin, flutter
 # and CG-tolerance result below was computed against a vehicle that no longer exists.
-CG=0.491; Xcp=0.568; CN=2.0+ (lambda:0)()  # CN recomputed below
+CG=0.484; Xcp=0.568; CN=2.0+ (lambda:0)()  # CN recomputed below
 # fin geometry (4x): root cr, tip ct, semispan sp, thick th, sweep sw
 cr,ct,sp,th_fin,sw=0.070,0.035,0.072,0.0030,0.025   # 72 mm span, 3 mm thick (matches 3D parts + .ork)
 Fc_t=np.array([0,0.05,0.12,0.2,0.3,0.5,1,1.5,2,2.5,3,3.3,3.45])
@@ -60,7 +60,9 @@ res={}
 # ============ A. FIN FLUTTER & DIVERGENCE (NACA TN-4197) ============
 # Vf = a * sqrt( G / ( (1.337 rho a^2 (1+lambda)/2) * (AR^3 / (t/c)^3) / (AR+2) ) )  [classic form]
 S_fin=0.5*(cr+ct)*sp; AR=sp**2/S_fin; lam=ct/cr; tc=th_fin/((cr+ct)/2)
-G_ASA=0.95e9; G_PCFR=2.1e9                       # shear modulus (Pa): ASA ~0.95, PC-FR ~2.1
+# MATERIAL CHANGE 2026-08: fins are now PLA, TVC structures PETG-CF.
+# Shear modulus (Pa): PLA ~1.3 (stiffer than ASA but brittle), PETG-CF ~1.5.
+G_PLA=1.3e9; G_PETGCF=1.5e9
 def Vflutter(G,h):
     p=rho(h)/rho0*101325.0                         # local static pressure proxy
     a=a0*np.sqrt(rho(h)/rho0)**0  # speed of sound ~const (low alt)
@@ -68,17 +70,17 @@ def Vflutter(G,h):
     den=(1.337*AR**3*p*(lam+1))/(2*(AR+2)*tc**3)
     return a0*np.sqrt(num/den)
 alts=np.linspace(0,200,160)
-Vf_asa=np.array([Vflutter(G_ASA,h) for h in alts]); Vf_pcfr=np.array([Vflutter(G_PCFR,h) for h in alts])
-flutter_margin=float(Vf_pcfr.min()/vmax)
+Vf_pla=np.array([Vflutter(G_PLA,h) for h in alts]); Vf_petg=np.array([Vflutter(G_PETGCF,h) for h in alts])
+flutter_margin=float(Vf_pla.min()/vmax)   # fins are PLA -- score the FIN material
 res["A_flutter"]=dict(AR=round(AR,2), t_over_c=round(tc,3), v_max_ms=round(vmax,1),
-    Vflutter_ASA_ms=round(float(Vf_asa.min()),0), Vflutter_PCFR_ms=round(float(Vf_pcfr.min()),0),
-    flutter_margin_PCFR=round(flutter_margin,1), **{"pass":bool(flutter_margin>=2.0)})
+    Vflutter_PLA_ms=round(float(Vf_pla.min()),0), Vflutter_PETGCF_ms=round(float(Vf_petg.min()),0),
+    flutter_margin_PLA=round(flutter_margin,1), **{"pass":bool(flutter_margin>=2.0)})
 fig,ax=plt.subplots(figsize=(9,4.6))
-ax.plot(alts,Vf_asa,c=ORG,lw=2,label=f"flutter V — ASA (min {Vf_asa.min():.0f} m/s)")
-ax.plot(alts,Vf_pcfr,c=GRN,lw=2,label=f"flutter V — PC-FR (min {Vf_pcfr.min():.0f} m/s)")
+ax.plot(alts,Vf_pla,c=ORG,lw=2,label=f"flutter V — PLA fin (min {Vf_pla.min():.0f} m/s)")
+ax.plot(alts,Vf_petg,c=GRN,lw=2,label=f"flutter V — PETG-CF (min {Vf_petg.min():.0f} m/s)")
 ax.axhline(vmax,ls='--',c=RED,label=f"v_max {vmax:.0f} m/s")
 ax.set_xlabel("altitude (m)"); ax.set_ylabel("flutter velocity (m/s)")
-ax.set_title(f"A · Fin flutter (NACA TN-4197) — PC-FR margin {flutter_margin:.1f}× over v_max")
+ax.set_title(f"A · Fin flutter (NACA TN-4197) — PLA fin margin {flutter_margin:.1f}× over v_max")
 ax.legend(fontsize=8); ax.grid(alpha=.3); fig.tight_layout(); fig.savefig(f"{OUT}/A_fin_flutter.png",dpi=130); plt.close()
 
 # ============ B. AERODYNAMIC HEATING (fin leading edge / nose) ============
@@ -92,12 +94,15 @@ for i in range(1,len(V)):
     dt=T[i]-T[i-1]; hc=ks*(0.5*rho(H[i])*abs(V[i])**3)**0.33+5
     Tskin[i]=Tskin[i-1]+ (hc*(Tstag[i]-Tskin[i-1])*1e-3/(ms_*cs))*dt
 Tskin_max=float(Tskin.max()-273.15); Tstag_max=float(Tstag.max()-273.15)
+# HDT dropped hard with the material change: PLA ~55 C, PETG-CF ~80 C (was ASA 95 / PC-FR 141).
+# Aero heating is still trivial at Mach 0.09, but the margin to PLA is now the binding number.
 res["B_heating"]=dict(Tstag_max_C=round(Tstag_max,1), Tskin_max_C=round(Tskin_max,1),
-    ASA_Tg_C=95, PCFR_Tg_C=141, **{"pass":bool(Tskin_max<95)})
+    PLA_HDT_C=55, PETGCF_HDT_C=80, margin_to_PLA_C=round(55-Tskin_max,1),
+    **{"pass":bool(Tskin_max<55)})
 fig,ax=plt.subplots(figsize=(9,4.6))
 ax.plot(T,Tstag-273.15,c=RED,lw=1.5,label="recovery (stagnation) T")
 ax.plot(T,Tskin-273.15,c=BLU,lw=2,label="fin LE skin T")
-ax.axhline(95,ls='--',c=ORG,label="ASA Tg ≈95 °C"); ax.axhline(141,ls='--',c=GRN,label="PC-FR Tg ≈141 °C")
+ax.axhline(55,ls='--',c=ORG,label="PLA HDT ≈55 °C"); ax.axhline(80,ls='--',c=GRN,label="PETG-CF HDT ≈80 °C")
 ax.set_xlabel("t (s)"); ax.set_ylabel("temperature (°C)")
 ax.set_title(f"B · Aero heating — peak skin {Tskin_max:.0f} °C (M{vmax/a0:.2f}, low-speed ⇒ negligible)")
 ax.legend(fontsize=8); ax.grid(alpha=.3); fig.tight_layout(); fig.savefig(f"{OUT}/B_aero_heating.png",dpi=130); plt.close()

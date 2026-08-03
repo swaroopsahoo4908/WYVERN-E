@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""WYVERN-E — MOTOR TRADE STUDY
+"""WYVERN-E — MOTOR TRADE STUDY  [HISTORICAL RECORD — superseded mass, conclusion still stands]
+================================================================================
+NOTE (2026-08): this study was run against the 705 g vehicle. The flown vehicle is now 792 g after
+the PLA/PETG-CF material change and the 24 in canopy. The masses below are therefore NOT current --
+see we4_flightsim.py / plots4/results_summary.json for the canonical numbers. It is kept unedited
+because it is the *record of the motor decision*, and the decision is unchanged: the heavier 792 g
+vehicle only widens the F15's margin against the <1000 ft ceiling (324 ft vs 429 ft at 705 g) while
+keeping the same 2.95 s TVC window, so no alternative motor becomes preferable. Re-running it at
+792 g would change the numbers in the table but not which row wins.
 ================================================================================
 Question: the F15-4 is underpowered for 705 g (T/W 4.3, rail-exit 6.7 m/s). Fix it by
 (A) swapping to a higher-thrust single-stage motor, or (B) going two-stage with a punchy booster.
@@ -87,7 +95,7 @@ for name,spec in MOTORS.items():
 
 # ---------------- two-stage estimate: G80T booster -> F15-4 sustainer ----------------
 # Stack = sustainer(705 g, F15 aboard) + booster section(150 g ASA + fins) + booster motor(G80T 108 g)
-m_sus=0.705; m_boost_struct=0.150; thG80,pkG80,initG80=curve(MOTORS["G80T"])
+m_sus=0.792; m_boost_struct=0.150; thG80,pkG80,initG80=curve(MOTORS["G80T"])
 m_stack=m_sus+m_boost_struct+MOTORS["G80T"]["m"]
 # phase 1: full stack on G80T (extra drag: booster adds length, use 1.25x Cd*A proxy)
 def fly2(boost="G80T"):
@@ -104,10 +112,10 @@ def fly2(boost="G80T"):
         s=s+dt/6*(k1+2*k2+2*k3+k4); t+=dt; T.append(t);H.append(s[0]);V.append(s[1])
     # separation + 0.5 s coast, then F15-4 sustainer ignites (electronic), sustainer mass 705 g
     thF,_,_=curve(MOTORS["F15-4"]); tbF=MOTORS["F15-4"]["tb"]; mpF=MOTORS["F15-4"]["mp"]
-    msF=lambda tt: max(0.705-mpF, 0.705-(mpF/tbF)*min(max(tt,0),tbF))
+    msF=lambda tt: max(0.792-mpF, 0.792-(mpF/tbF)*min(max(tt,0),tbF))
     for _ in range(int(0.5/dt)):   # coast
         h,v=s; Dr=0.5*rho0*np.exp(-h/8500)*Cd(abs(v)/a_snd)*A*v*abs(v)
-        s=s+dt*np.array([v,(-Dr-0.705*g)/0.705]); t+=dt; T.append(t);H.append(s[0]);V.append(s[1])
+        s=s+dt*np.array([v,(-Dr-0.792*g)/0.792]); t+=dt; T.append(t);H.append(s[0]);V.append(s[1])
     t2=0.
     while True:
         def dz(st,tt):

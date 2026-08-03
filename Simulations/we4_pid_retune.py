@@ -40,14 +40,14 @@ trapz = np.trapezoid if hasattr(np, "trapezoid") else _TRAPZ
 
 # ---------------- vehicle params (mirrors we4_atmos_tvc.py / we4_flightsim.py) ----------------
 g = 9.80665; D = 0.070; A = np.pi*(D/2)**2; Ltot = 0.74
-m_lift, m_dry, PROP, tb = 0.705, 0.603, 0.060, 3.45
+m_lift, m_dry, PROP, tb = 0.792, 0.690, 0.060, 3.45
 # CANONICAL stability constants (we4_flightsim.py / we4_stability.py / wyvern_datagen/core.py).
 # These were CG=0.467 / Xcp=0.537 / x_gimbal=0.72 -- the pre-ASA-Aero, pre-i3-camera vehicle --
 # so the aero restoring stiffness k = q*A*CN*(Xcp-CG) and the control moment arm (x_gimbal-CG)
 # were both computed for an airframe that no longer exists. Corrected 2026-08. I_pitch is now
 # the measured 0.0209 kg m^2 from the we4_sim mass stack rather than a uniform-rod estimate.
-CG = 0.491; Xcp = 0.568; CN = 2.0; x_gimbal = 0.62; Rspec = 287.05
-I_pitch = 0.0209
+CG=0.484; Xcp = 0.568; CN = 2.0; x_gimbal = 0.62; Rspec = 287.05
+I_pitch = 0.0257
 Fc_t = np.array([0,0.05,0.12,0.2,0.3,0.5,1,1.5,2,2.5,3,3.3,3.45])
 # F15 thrust curve CORRECTED 2026-08. The digitized shape integrated to 41.97 N.s, so the
 # 49.6 N.s renormalization below scaled the whole curve by 1.1817 and pushed peak thrust to

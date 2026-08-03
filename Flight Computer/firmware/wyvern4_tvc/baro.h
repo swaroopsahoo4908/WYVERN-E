@@ -65,7 +65,7 @@ public:
 
   // Barometric altitude above the BOOT-time pad datum, meters. Standard hypsometric approximation
   // (ISA, valid for the few-hundred-meter altitudes this vehicle flies -- see Stability_FinSizing.md
-  // apogee ~429 ft / 130.8 m).
+  // apogee ~324 ft / 98.9 m).
   float altitude_agl_m() const {
     float p = pressure_hpa();
     if (!isfinite(p) || !isfinite(datum_hpa_) || datum_hpa_ <= 0.0f) return NAN;

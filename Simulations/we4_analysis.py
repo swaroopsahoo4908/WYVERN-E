@@ -25,14 +25,14 @@ side=Fpk*np.sin(np.radians(5))               # TVC side force
 Mbend=side*0.16                               # bending moment at bulkhead A (~arm)
 I_tube=np.pi/64*(OD**4-(OD-2*wall)**4); sig_bend=Mbend*(OD/2)/I_tube/1e6
 sig_pivot=side/((np.pi*0.002**2))/1e6        # 2mm pivot pin shear-ish
-YIELD={"ASA body":30,"PC-FR engine":60,"PC-FR pivot":60}
-comp={"Tube axial (ASA)":(sig_axial,30),"Tube bending (ASA)":(sig_bend,30),"Gimbal pivot (PC-FR)":(sig_pivot,60),"Bulkhead A (PC-FR)":(side/ (np.pi*0.030**2)/1e6 *6,60)}
+YIELD={"PLA body":50,"PETG-CF engine":45,"PETG-CF pivot":45}
+comp={"Tube axial (PLA)":(sig_axial,50),"Tube bending (PLA)":(sig_bend,50),"Gimbal pivot (PC-FR)":(sig_pivot,60),"Bulkhead A (PC-FR)":(side/ (np.pi*0.030**2)/1e6 *6,60)}
 names=list(comp); SF=[comp[n][1]/max(comp[n][0],1e-3) for n in names]; add["min_SF"]=round(min(SF),1)
 fig,ax=plt.subplots(figsize=(8.5,5)); b=ax.barh(names,SF,color=["#386641" if s>2 else "#bc4749" for s in SF])
 ax.axvline(2.0,ls='--',c='r',label="SF=2 min"); ax.set_xscale('log'); ax.set_xlabel("safety factor (yield / stress)"); ax.legend()
 for i,s in enumerate(SF): ax.text(s,i,f" {s:.0f}×",va='center')
 ax.set_title(f"WYVERN-E · first-order structural margins (min SF {min(SF):.0f}×)",fontweight='bold'); sv(fig,"08_fea_loads")
-# 09 thermal soak (engine-bay PC-FR wall, transient, with 0.5mm liner)
+# 09 thermal soak (engine-bay PETG-CF wall, transient)
 t=np.linspace(0,8,200); Tinf=900; h=120; k=0.2; cp=1100; rhoP=1250; th=0.0016
 # lumped wall with phenolic liner barrier -> effective driving temp reduced
 Tdrive=180  # liner-reduced inner-surface driving temp

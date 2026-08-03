@@ -18,7 +18,9 @@ Tabs:
   6. Super Combined       : live-simulates the full closed-loop SIL over N random-condition flights
      (default 25,000), accumulating a live scatter and saving log + per-flight-summary datasets.
   7. Static Motor Tester  : pick a motor -> thrust curve + static-stand axial load-cell trace.
-  8. Jetvane Suitability  : jetvane side force / axial loss / thermal survival vs the servo gimbal.
+  8. Jetvane Suitability  : RETIRED 2026-08 (jetvane dropped from the program). Informational only
+                            -- it is the analysis that justified dropping it: any printed vane
+                            ablates in a 1150 K BP exhaust.
   9. Ground TVC + PID     : 3-axis TVC balance reading while the firmware PID gimbals the nozzle.
   10. Project Engines     : one-click launchers for the project's single-run sim engines (we4_*.py).
   11. About               : canonical vehicle specs + notes.
@@ -1097,8 +1099,8 @@ class Suite(tk.Tk):
             "==========================================\n\n"
             "Canonical vehicle (matches we4_flightsim.py):\n"
             f"  Liftoff {core.M_LIFT*1000:.0f} g / dry {core.M_DRY*1000:.0f} g · Estes F15-4 (flight)\n"
-            f"  Apogee ~130.8 m / 429 ft @ ~6.82 s · deploy t={core.DEPLOY_T:.2f} s\n"
-            f"  Fins 4x72 mm ASA-Aero · CG {core.CG*100:.1f} cm / CP {core.XCP*100:.1f} cm\n\n"
+            f"  Apogee ~98.9 m / 324 ft @ ~6.27 s · deploy t={core.DEPLOY_T:.2f} s\n"
+            f"  Fins 4x72 mm PLA · CG {core.CG*100:.1f} cm / CP {core.XCP*100:.1f} cm\n\n"
             "Datasets: outcomes (1 row/flight), timeseries (ML), tvc (control perf). Parquet or gzip-CSV,\n"
             "streamed in chunks (flat memory, no row cap).\n\n"
             "Headless CLI (run from wyvern_datagen/):\n"

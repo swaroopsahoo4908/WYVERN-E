@@ -14,24 +14,31 @@ cruciform flexure with a Wheatstone bridge per arm = a one-piece 3-axis F/T sens
 actuator-agnostic, so the magnetic-vs-servo A/B comparison runs here, repeatably, *before* flight —
 logging commanded vs measured (θ, φ) gives bandwidth, slew, overshoot, steady-state error per system.
 
-## 2. Static thrust + materials (jetvane) stand — carried over, + deflector
-Axial-only (1× load cell + HX711), with a **steel blast deflector**. Validates the F15-0 thrust
-curve *and* holds candidate **jetvane material coupons (ASA-Aero, ABS, PC-FR, PLA)** in the F15
-plume for flame-resistance/erosion ranking. The deflector + mounts are sized for the F15-0's 3.45 s
-burn thermal case. (A flight-usable jetvane must be graphite/tungsten — every printed polymer,
-ASA-Aero and ABS included, ablates in the exhaust; the coupons quantify how fast. See the datagen
-"Jetvane Suitability" tab.)
+## 2. Static thrust stand — axial only, + deflector
+Axial-only (1× load cell + HX711), with a **steel blast deflector**. Its single job is **RQ1's
+thrust-curve baseline**: total impulse, average and peak thrust, burn time and curve shape for the
+F15-0, measured on the same instrumentation chain as the TVC balance so the two datasets are
+directly comparable. The deflector + mounts are sized for the F15-0's 3.45 s burn thermal case.
+
+**Jetvane testing is dropped from the program** (scope decision, 2026-08). The material coupon
+rack, the ABS/PC coupon set and the "Jetvane Suitability" datagen tab are all removed. Thrust
+vectoring is demonstrated by the magnetic (MTVC) and servo-gimbal systems only, and only the
+servo system flies. The one thermal measurement retained is the **engine-bay wall temperature**
+on the PETG-CF liner (RQ2), taken with the BME688 already on the stand — not a plume-immersion
+test.
 
 ## 3. Motor plan & counts (verified specs)
 | Motor | Spec (verified) | Use |
 |---|---|---|
 | **Estes F15-4** | 49.6 N·s, 14.4 N avg / 25.3 N pk, 3.45 s, 4 s delay + ejection | **flight only** (ejection charge = recovery) |
-| **Estes F15-0** | 49.6 N·s, 14.4 N avg / 25.3 N pk, 3.45 s, 0-delay (plugged) | **ground stands + jetvane** (no ejection into fixtures) |
+| **Estes F15-0** | 49.6 N·s, 14.4 N avg / 25.3 N pk, 3.45 s, 0-delay (plugged) | **ground stands** (no ejection into fixtures) |
 | **Estes/AeroTech E16-4** | ~16 N avg, E-class | stand commissioning firings |
 
 **Counts:**
 - *F15-4* = **4 (flight only)** — the ejection charge is the recovery system.
-- *F15-0 (plugged)* = **13** for ground = 6 TVC-stand (3/system × 2) + 5 static (curve + jetvane) + 2 spare.
+- *F15-0 (plugged)* = **10** for ground = 6 TVC-stand (3/system × 2, i.e. 3 MTVC + 3 servo) +
+  2 static thrust-curve + 2 spare. This is down from 13 — dropping jetvane testing removed the
+  3 coupon-immersion firings.
   Ground fixtures use the 0-delay F15-0 so no ejection charge fires into the stand; the thrust curve is
   identical to the F15-4 (same F15 propellant), so ground data transfers directly to the flight motor.
 - *E16-4 (calibration)* = **6 recommended** (3 per stand for repeatability); **4 is the floor**

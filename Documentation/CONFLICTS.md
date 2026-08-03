@@ -25,7 +25,7 @@ read `Kp=2.0/Ki=0.4/Kd=0.5` anywhere in this repo as current — it is a documen
   no margin whatsoever.
 - A re-tune against the same 24-point sweep (see `Documentation/PID_TUNING_REPORT.md` for the full
   margin tables and `Simulations/we4_pid_retune.py` for the search) found
-  **Kp=0.10, Ki=0.40, Kd=0.18** achieves **PM=40.0°, GM=11.3 dB at every one of the 24 points** —
+  **Kp=0.10, Ki=0.40, Kd=0.18** achieves **PM=44.7°, GM=12.6 dB at every one of the 24 points** —
   clearing the 30° target with margin to spare across the full atmosphere/burn-time envelope.
 - **Resolution: firmware (`wyvern_pid.h`) now uses Kp=0.10, Ki=0.40, Kd=0.18.** The Kp=2.0/Ki=0.4/
   Kd=0.5 gains recorded earlier in this memo (and still in `we4_atmos_tvc.py`'s in-file defaults,
@@ -41,7 +41,7 @@ read `Kp=2.0/Ki=0.4/Kd=0.5` anywhere in this repo as current — it is a documen
   apogee), routed through a solid-walled bypass tube past the sealed FC bay into the recovery bay to
   release the friction-fit nose (see `WYVERN_E4_Recovery.md` and `Simulations/we4_ejection_feasibility.py`).
 - This **eliminates** the RRC3+, the isolated 9 V recovery battery, the e-match/black-powder charge,
-  and the earlier CO2 solenoid system entirely. The finned airframe (4×72 mm, +1.10 cal, 705 g
+  and the earlier CO2 solenoid system entirely. The finned airframe (4×72 mm, +1.20 cal, 792 g
   liftoff) is stable to apogee, so a single passive event just past apogee is appropriate.
 - **Resolution: a non-issue for the Pico firmware**, because *the flight computer never drives
   recovery* — the motor does. The Pico only **observes**: it logs baro/IMU for apogee/landing and
@@ -92,12 +92,12 @@ not the regulated rail) into `GP26 VBAT`, and the regenerated preview shows the 
 | Control loop rate | 500 Hz (dt = 2.0 ms) on core 0 | 01_FlightComputer_Spec.md, flowcharts/02 |
 | TVC engage delay | t ≥ 0.5 s after launch detect (past F15 ignition spike) | we4_atmos_tvc.py |
 | Burnout / TVC cutoff | t = 3.45 s | we4_flightsim.py, we4_atmos_tvc.py |
-| PID gains (pitch = yaw, decoupled) | Kp=0.10, Ki=0.40, Kd=0.18 | wyvern_pid.h; margin-verified 24-point sweep, PID_TUNING_REPORT.md (PM=40.0°, GM=11.3 dB worst case) |
+| PID gains (pitch = yaw, decoupled) | Kp=0.10, Ki=0.40, Kd=0.18 | wyvern_pid.h; margin-verified 24-point sweep, PID_TUNING_REPORT.md (PM=44.7°, GM=12.6 dB worst case) |
 | Derivative filter time constant | tau_d = 0.02 s | wyvern_pid.h, pid_reference.py |
 | Integral clamp | ±0.4 (anti-windup) | wyvern_pid.h, pid_reference.py |
 | Output (gimbal) limit | ±8.0° (0.1396 rad) | wyvern_pid.h `OUT_LIM_DEG=8.0` (raised 5→8 for wind/weathercock authority) |
 | Servo lag (model) | tau_servo ≈ 0.04 s | we4_atmos_tvc.py |
-| Launch detect | \|a\| > 3 g sustained ≥ 50 ms, body BNO085 accelerometer report | flowcharts/01_flight_state_machine.mermaid |
+| Launch detect | \|a\| > **2 g** sustained ≥ 50 ms, body BNO085 accelerometer report (lowered from 3 g when liftoff mass went 705→792 g: peak specific force is 3.27 g and the 3 g window was only 61 ms) | flowcharts/01_flight_state_machine.mermaid, launch_status.h |
 | I2C0 (mux trunk) | GP16 SDA / GP17 SCL | wyvern4_tvc.ino, gen_wiring4.py |
 | I2C1 (gimbal BNO085, dedicated) | GP18 SDA / GP19 SCL | wyvern4_tvc.ino, gen_wiring4.py |
 | PCA9548A mux address | 0x70; ch0 body BNO085, ch1 recovery BNO085, ch2 BME688 (0x76), ch3 BMP388 (0x77, Adafruit 3966), ch4 spare | wyvern4_tvc.ino, gen_wiring4.py |
@@ -112,7 +112,7 @@ not the regulated rail) into `GP26 VBAT`, and the regenerated preview shows the 
 | RBF (remove-before-flight) sense | GP22 | wyvern4_tvc.ino |
 | Battery ADC (NEW — gap filled, §4) | GP26 (ADC0), 100k/62k divider, V_BAT = V_ADC/0.3827 | this memo |
 | WiFi/BLE | Onboard CYW43439, bench-only UDP broadcast, never blocks core 0 | 01_FlightComputer_Spec.md |
-| Recovery sequencing | F15-4 motor ejection charge via bypass tube, t ≈ 7.45 s (0.63 s past apogee); no electronic deploy; FC only observes/logs | WYVERN_E4_Recovery.md |
+| Recovery sequencing | F15-4 motor ejection charge via bypass tube, t ≈ 7.45 s (1.18 s past apogee); no electronic deploy; FC only observes/logs | WYVERN_E4_Recovery.md |
 
 All seven firmware modules below are written to this table. If the bench reveals a different real
 pin/address (e.g., the LAUNCH_IRQ assumption above), update this table and the `#define`s in

@@ -84,7 +84,7 @@ for clean pull-up isolation.
 The Pico 2 W draws ~30–100 mA (Wi-Fi off/on); the avionics budget is dominated by the servos and
 camera. A 2S 450 mAh pack (~30 g) gives comfortable pad + flight endurance, and with the Hobbywing
 UBEC (~10 g) and the i3 4K Thumb Action Camera (~36 g) the power+camera group is ~76 g — consistent with the
-122 g FC-bay line and the 705 g / 429 ft / 1.10 cal flight budget.
+122 g FC-bay line and the 792 g / 324 ft / 1.20 cal flight budget.
 
 ## 5. Control loop (500 Hz, deterministic — core 0)
 

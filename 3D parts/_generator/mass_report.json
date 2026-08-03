@@ -1,98 +1,98 @@
 [
  [
-  "01_nose_cone_ellipsoid_ASA",
-  32.2,
-  20.9,
-  "ASA"
+  "01_nose_cone_ellipsoid_PLA",
+  24.3,
+  30.1,
+  "PLA"
  ],
  [
-  "02_recovery_bay_ASA",
-  61.9,
-  40.2,
-  "ASA"
+  "02_recovery_bay_PLA",
+  46.7,
+  57.9,
+  "PLA"
  ],
  [
-  "03_fc_bay_ASA",
+  "03_fc_bay_PLA",
+  41.5,
+  51.5,
+  "PLA"
+ ],
+ [
+  "04_engine_tvc_bay_PETGCF",
   55.0,
-  35.8,
-  "ASA"
+  71.5,
+  "PETGCF"
  ],
  [
-  "04_engine_tvc_bay_PCFR",
-  55.0,
-  68.8,
-  "PCFR"
- ],
- [
-  "05a_bulkhead_A_PCFR",
+  "05a_bulkhead_A_PETGCF",
   12.8,
-  16.0,
-  "PCFR"
+  16.6,
+  "PETGCF"
  ],
  [
-  "05b_bulkhead_B_PCFR",
+  "05b_bulkhead_B_PETGCF",
   12.8,
-  16.0,
-  "PCFR"
+  16.6,
+  "PETGCF"
  ],
  [
-  "09_bypass_tube_PCFR",
+  "09_bypass_tube_PETGCF",
   11.5,
-  14.3,
-  "PCFR"
+  14.9,
+  "PETGCF"
  ],
  [
-  "06_motor_mount_29mm_PCFR",
+  "06_motor_mount_29mm_PETGCF",
   47.2,
-  59.1,
-  "PCFR"
+  61.4,
+  "PETGCF"
  ],
  [
-  "07_tvc_gimbal_2axis_PCFR",
+  "07_tvc_gimbal_2axis_PETGCF",
   90.0,
-  112.5,
-  "PCFR"
+  117.0,
+  "PETGCF"
  ],
  [
-  "08b_fin_single_ASA",
+  "08b_fin_single_PLA",
   11.3,
-  7.4,
-  "ASA"
+  14.1,
+  "PLA"
  ],
  [
   "TVC_balance_base",
   467.2,
-  584.0,
-  "PCFR"
+  607.4,
+  "PETGCF"
  ],
  [
   "TVC_balance_thrust_block",
   178.5,
-  223.2,
-  "PCFR"
+  232.1,
+  "PETGCF"
  ],
  [
   "TVC_balance_flexure_template",
   0.2,
   0.3,
-  "PCFR"
+  "PETGCF"
  ],
  [
   "08_rail_button_1010_x2",
   1.0,
   1.3,
-  "PCFR"
+  "PLA"
  ],
  [
   "static_blast_deflector",
   281.6,
-  352.0,
-  "PCFR"
+  366.1,
+  "PETGCF"
  ],
  [
   "00_full_assembly",
   204.1,
-  132.6,
-  "ASA"
+  253.0,
+  "PLA"
  ]
 ]
