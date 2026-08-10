@@ -4,6 +4,13 @@
 
 **Sources examined:** `Flight Computer/firmware/*.{ino,h}`, `Flight Computer/wiring/gen_wiring4.py` + `gen_connected_sch.py` (+ resulting `.kicad_sch`), `Flight Computer/test_code/*`, `Flight Computer/flowcharts/*.mermaid`, `Flight Computer/01_FlightComputer_Spec.md`, `Flight Computer/02_RRC3_Telemetry_Logging.md`, and all ten files under `Documentation/`.
 
+**⚠ Open item (2026-08-09), not yet reconciled below:** the actual flight hardware is now a custom
+RP2350B PCB with one external STEMMA-QT port (one external BNO085 at the TVC-bay/electronics
+boundary, see `WYVERN_E4_Recovery.md` §1), not the Pico 2 W + PCA9548A mux + tri-IMU setup this audit
+was written against. The I2C mux/address-map sections below (§1) are stale against the real board —
+treat them as historical record of the prior architecture pending a pass against the actual PCB
+schematic.
+
 **What this audit can and cannot verify:** the audit is a *static* review of source, wiring generators, and documentation — it confirms what is wired, coded, and internally consistent, and flags what is not. It cannot confirm bench-measured current draw, actual signal levels on a physical harness, or I2C bus electrical margin (capacitance, pull-up value, rise time) — those require a meter and an oscilloscope on real hardware. Every current-draw figure below is a **datasheet/vendor-typical estimate**, explicitly labeled, not a measurement.
 
 ---
@@ -22,7 +29,7 @@
 | 3b | Ground-rig solenoid PWM via IRF520 | **CAUTION** | No PWM frequency/flyback-diode spec found in provided docs |
 | 4 | ADC0 battery divider (GP26) | **PASS** | 100k/62k keeps 2S LiPo full-charge (8.4 V) at ~3.21 V, just under the 3.3 V reference |
 | 4b | Load cells (ground rig) vs. Pico ADC | **PASS (non-issue)** | HX711 has its own 24-bit ADC; consumes 0 Pico ADC channels |
-| 5a | Recovery = F15-4 motor ejection via bypass tube | **PASS — no recovery electronics** | Motor's own charge; no RRC3+, no UART tap, no recovery battery, no pyro driven by the FC |
+| 5a | Recovery = F15-4 motor ejection separating the two BTs at the bulkhead joint | **PASS — no recovery electronics** | Motor's own charge; no RRC3+, no UART tap, no recovery battery, no pyro driven by the FC |
 | 5b | (retired) BSS138 level shifter | **N/A** | Was only for the RRC3+ UART tap, which is removed; drop from BOM if still listed |
 | 5c | 2S LiPo → one 5 V UBEC → shared 5 V rail (servos + VSYS) | **PASS w/ decoupling** | UBEC (set 5 V) drives VSYS + servos + camera; star-wire the two feeds and add 1000 µF @ servos + 100 µF + SS34 hold-up @ VSYS so servo transients don't brown-out the Pico |
 | 6a | Ground-rig DAQ board | **RESOLVED (2026-07)** | Both rig wiring blocks now specify a Raspberry Pi Pico / KB2040 DAQ (matches the spec); the Arduino Nano is an owned bench-test auxiliary only (Already Acquired), not the balance DAQ |
@@ -110,14 +117,14 @@ The four HX711 modules (5 kg, 2x1 kg, 20 kg) each carry their **own onboard 24-b
 
 ## 5. Power
 
-### 5a. Recovery = F15-4 motor ejection via bypass tube — PASS (no recovery electronics)
+### 5a. Recovery = F15-4 motor ejection separating the two BTs at the bulkhead joint — PASS (no recovery electronics)
 
 The earlier design tapped an RRC3+ recovery computer's UART and carried an isolated 9 V recovery
 battery. **That is all removed.** Recovery is now the F15-4 motor's own ejection charge, fired 4 s
-after burnout (t ≈ 7.45 s), routed through a solid-walled bypass tube past the sealed FC bay into
-the recovery bay to release the friction-fit nose (see `WYVERN_E4_Recovery.md`,
-`Simulations/we4_ejection_feasibility.py`, and the FEA §4 ejection-load check in
-`WYVERN_E4_FEA_Structural.md`).
+after burnout (t ≈ 7.45 s), pressurizing the Lower BT and separating the two body tubes at the
+bulkhead joint (see `WYVERN_E4_Recovery.md`, `Simulations/we4_ejection_feasibility.py`, and the FEA
+§4 ejection-load check in `WYVERN_E4_FEA_Structural.md`, which is being re-scoped for the joint's
+release-force target rather than a sealed-bulkhead survive-load target).
 
 Consequences for this audit: there is no recovery UART line, no shared serial reference, no
 recovery battery, and the flight computer drives **no** pyro or deploy hardware whatsoever — it only
@@ -199,7 +206,7 @@ Without the VL53L4CD ring, a Pico-based ground rig fits with wide GPIO margin (1
 1. **Ground-rig DAQ board — RESOLVED.** The ground-rig sketches, `WYVERN_E4_GSE_TestStands.md`, and the BOM all target the **Raspberry Pi Pico** (3.3 V logic, matching the HX711/BNO085 wiring). The earlier Nano/Teensy alternative is retired.
 2. **BSS138 level shifter is retired.** It existed only for the RRC3+ Comm-Port UART tap, which is removed (motor-ejection recovery). Drop it from the BOM if still listed.
 3. **VL53L4CD x6 (BOM) has no driver, no XSHUT/address-reassignment code, and only one spare mux channel on the flight side.** Currently BOM-only across both flight and ground rigs. Needs a driver, an address/XSHUT plan, and (for flight) a decision on whether all 6 units are flight-relevant or ground-rig-only.
-4. **Recovery is the F15-4 motor ejection charge (via bypass tube), not an electronic deploy.** The RRC3+ UART tap, its level-shift risk, and the isolated 9 V recovery rail are all removed; the primary pre-flight recovery check is now the ground-ejection/seal test in `WYVERN_E4_Recovery.md`.
+4. **Recovery is the F15-4 motor ejection charge separating the two body tubes at the bulkhead joint, not an electronic deploy.** The RRC3+ UART tap, its level-shift risk, and the isolated 9 V recovery rail are all removed; the primary pre-flight recovery check is now the ground-separation test in `WYVERN_E4_Recovery.md` §8.
 5. **IRF520 solenoid drive (ground rig) has no documented PWM frequency or confirmed flyback-diode adequacy** for the 50N/12V solenoid's inductive turn-off transient in the provided documentation.
 6. **All power-budget figures in Section 5 are datasheet/vendor estimates, not bench measurements.** A current-clamp/multimeter session per rail under worst-case simultaneous load is required before the power budget can be called verified rather than estimated.
 7. **Three I2C0 mux channels (ch5–ch7) are unassigned** — not a defect, but worth a decision on whether they're reserved for the VL53L4CD ring (Finding 3) or left open.

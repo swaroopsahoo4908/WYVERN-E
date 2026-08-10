@@ -1,5 +1,11 @@
 # WYVERN-E Flight Computer — Flight-Readiness Document
 
+**⚠ Open item (2026-08-09):** flight hardware is now a custom RP2350B PCB with one external
+STEMMA-QT port (one external BNO085 at the TVC-bay/electronics boundary — see
+`WYVERN_E4_Recovery.md` §1), not the Pico 2 W + tri-IMU setup described below. The state machine,
+recovery, and power sections remain accurate; the IMU-count/mux language is stale pending a
+reconciliation pass against the real board.
+
 This is the top-level readiness summary for the Pico 2 W flight-computer firmware. Read
 `CONFLICTS.md` first — it's the frozen parameter table and the record of the resolved design
 conflicts (including the PID gain retune, §1) that this firmware's behavior depends on. Also read
@@ -21,10 +27,11 @@ the air, and the go/no-go sequence.
   over the onboard CYW43439 (`wifi_telemetry.h`, disabled by default — `WIFI_ENABLED 0` in
   `wyvern4_tvc.ino`).
 - **The Pico never drives recovery.** Recovery is the **F15-4 motor's own ejection charge**, fired
-  4 s after burnout (t ≈ 7.45 s, 1.18 s past apogee) and routed through a solid-walled bypass tube
-  past the sealed FC bay into the recovery bay to release the nose. There is no pyro, e-match, CO2,
-  or recovery computer of any kind in the vehicle — the FC only logs baro/IMU and streams WiFi
-  telemetry. See `WYVERN_E4_Recovery.md` and the feasibility study (`Simulations/we4_ejection_feasibility.py`).
+  4 s after burnout (t ≈ 7.45 s, 1.18 s past apogee), pressurizing the Lower BT and **separating the
+  two body tubes at the bulkhead joint** (the airframe is now two body tubes — Lower BT/Upper BT —
+  joined at one bulkhead, not a single continuous tube). There is no pyro, e-match, CO2, or recovery
+  computer of any kind in the vehicle — the FC only logs baro/IMU and streams WiFi telemetry. See
+  `WYVERN_E4_Recovery.md` and the feasibility study (`Simulations/we4_ejection_feasibility.py`).
 
 ## 2. Design conflicts resolved (full detail in `CONFLICTS.md`)
 
@@ -35,9 +42,10 @@ the air, and the go/no-go sequence.
    against a 30° target). **Firmware now uses the margin-verified retune: Kp=0.10/Ki=0.40/Kd=0.18**
    (PM=44.7°, GM=12.6 dB worst case across all 24 points) — see `PID_TUNING_REPORT.md` for the full
    sweep and `CONFLICTS.md` §1 for the supersession record.
-2. **Recovery architecture** — recovery is now the F15-4 motor ejection charge via a bypass tube
-   (no RRC3+, no pyro, no CO2). **Moot for the FC** since it never drives recovery — the flight
-   computer only observes. Prior CO2/RRC3 deploy logic has been removed from the firmware.
+2. **Recovery architecture** — recovery is now the F15-4 motor ejection charge separating the two
+   body tubes at the bulkhead joint (no RRC3+, no pyro, no CO2). **Moot for the FC** since it never
+   drives recovery — the flight computer only observes. Prior CO2/RRC3 deploy logic has been removed
+   from the firmware.
 3. **Battery ADC** — the 2S LiPo pack (before the BEC) is sensed on GP26 (ADC0) through a 100 kΩ/62 kΩ
    divider (keeps 2S full-charge 8.4 V at ~3.21 V, under the 3.3 V ADC ref), one resistor-pair harness
    addition, and the reading is now also carried across the core boundary into every flight-log row
@@ -60,7 +68,7 @@ the air, and the go/no-go sequence.
 
 | # | Item | Why it matters | How to clear it |
 |---|---|---|---|
-| 1 | **Ground-test the ejection gas path** | Recovery now depends entirely on the F15-4 charge pressurizing the recovery bay through the bypass tube to release the nose — this is the single point of the recovery system | Do the bench ground-ejection test in `WYVERN_E4_Recovery.md`: fire a representative charge (or the motor's own charge in a restrained static test) and confirm the friction-fit nose releases cleanly and the chute deploys. Confirm the bypass-tube joints and both bulkhead seals are gas-tight. |
+| 1 | **Ground-test the bulkhead separation joint** | Recovery now depends entirely on the F15-4 charge pressurizing the Lower BT to separate the two body tubes at the bulkhead joint — this is the single point of the recovery system | Do the bench ground-separation test in `WYVERN_E4_Recovery.md` §8: fire a representative charge (or the motor's own charge in a restrained static test) and confirm the bulkhead joint releases cleanly in the 50-150 N band, the chute deploys, and the servo/STEMMA-QT cable pass-through survives the separation event. |
 | 3 | **Confirm LAUNCH_IRQ wiring (GP7)** | The hardware inertial-switch backup to the software 3g/50 ms launch latch is an *assumption* — no design doc specifies this pin | Either wire the redundant mechanical switch to GP7 (active-low, per `launch_status.h`), or remove the IRQ branch from `LaunchDetect::update()` if no such switch exists in this build. Flying with an undocumented floating input is worse than removing the dead code path. |
 | 4 | **Confirm RBF sense polarity** | `wyvern4_tvc.ino` assumes RBF pulled = HIGH (pull-up, switch open); this is a documented assumption, not measured. GP6/GP1 (formerly RRC_ARM / RRC3 telemetry) are now spare | With the RBF switch in each position, read `HB:...rbf=` over serial via `host_monitor.py` and confirm it matches "pulled" when you expect it to. |
 | 5 | **Verify the battery divider + shared-rail decoupling in hardware** | GP26/100k-62k is a firmware-side allocation; the resistors, 1000 µF servo bulk cap, 100 µF VSYS cap and SS34 hold-up Schottky are harness additions that don't exist on any current board yet | Install the divider + decoupling, then with a known bench voltage on the 2S input confirm `host_monitor.py`'s `batt=` reading agrees with a multimeter within ~2%, and scope VSYS during a servo stall to confirm it stays above the Pico brown-out threshold. |
@@ -109,10 +117,12 @@ the same folder. Open `wyvern4_tvc/wyvern4_tvc.ino` in the IDE and every file be
 
 ## 7. Known limitations / honest caveats
 
-- Recovery is a **single passive event** — the F15-4 motor's own ejection charge. There is no
-  electronic deploy path and no backup channel; the ground-ejection test (action item #1) is the
-  primary way to build confidence before flight. Robustness margin is the 3.4× bay-pressurization
-  figure in `WYVERN_E4_Recovery.md`.
+- Recovery is a **single passive event** — the F15-4 motor's own ejection charge, now separating the
+  two body tubes at the bulkhead joint rather than popping a nose off one continuous tube. There is
+  no electronic deploy path and no backup channel; the ground-separation test (action item #1) is
+  the primary way to build confidence before flight. The bulkhead joint's release-force spec and the
+  bay-pressurization margin against it both need re-verification for the new two-BT geometry — see
+  `WYVERN_E4_Recovery.md` §4, §6.
 - Launch detect's hardware-IRQ branch (GP7) and the camera/CAM_EN polarity are implemented per the
   design docs' stated intent but are unconfirmed against an actual wired harness (action item #3).
 - The WiFi telemetry path is bench-only by explicit design (fire-and-forget UDP, no flight-critical

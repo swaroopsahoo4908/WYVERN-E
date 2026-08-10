@@ -16,12 +16,15 @@ disagree, **the table wins** — and the disagreement is a defect worth fixing b
 
 ### A1 Material zoning — get this right or the thermal margin is gone
 
+**⚠ Airframe is now two body tubes (Lower BT, Upper BT) joined at one bulkhead, not the old
+single-tube 3-bay layout — see `WYVERN_E4_Recovery.md` §1.** The old solid-walled bypass tube no
+longer exists; the single bulkhead is now the separation joint and takes the ejection gas directly.
+
 | Part | Material | Why |
 |---|---|---|
-| Nose cone, 3 bay tubes, 4 fins | **PLA** (foamed, ~0.65 g/cm³) | No motor heat. This is where the ~130 g mass saving comes from. |
-| Bulkhead A, Bulkhead B | **PETG-CF** | Bulkhead A takes plume heat; B takes the ~140 kPa ejection pulse. |
-| Bypass tube | **PETG-CF** | Carries hot ejection gas the length of the FC bay. |
-| Engine/TVC bay, motor mount, gimbal | **PETG-CF** | Sustained plume heating. |
+| Nose cone, both body tubes, 4 fins | **PLA** (foamed, ~0.65 g/cm³) | No motor heat. This is where the ~130 g mass saving comes from. |
+| Bulkhead (single separation joint) | **PETG-CF** | Takes the ~140 kPa ejection pulse directly and is now sized to **release** at a target force, not just survive one — see `WYVERN_E4_FEA_Structural.md` §4 (open item). |
+| TVC bay, motor mount, gimbal | **PETG-CF** | Sustained plume heating. |
 
 ### A2 Print settings
 
@@ -33,8 +36,8 @@ disagree, **the table wins** — and the disagreement is a defect worth fixing b
 
 ### A3 Print checks before you assemble
 
-- [ ] Bay tubes: check OD 70 mm and roundness at three stations. Ovality kills the friction fit.
-- [ ] Bulkheads: 12 mm bypass pass-through is clear and to size.
+- [ ] Body tubes: check OD 70 mm and roundness at three stations. Ovality kills the friction fit at the bulkhead joint.
+- [ ] Bulkhead: servo-extension and STEMMA-QT cable pass-through holes are clear and to size (see `WYVERN_E4_Recovery.md` §1, §5).
 - [ ] Fin root: fits the slot without forcing. Forced = pre-stressed = cracks under load.
 - [ ] Gimbal: pivots freely through the full range with no binding. **Check this before wiring.**
 - [ ] Weigh every part and compare against `3D parts/_generator/mass_report.json`.
@@ -135,35 +138,41 @@ card can't keep up.
 
 ## C · Airframe assembly (Timeline Day 8)
 
-1. **Bulkheads.** Bond A and B with the bypass pass-through aligned. Both bays must be **gas-tight** —
-   this is what keeps ejection gas out of the avionics.
-2. **Bypass tube.** Fit from the plenum at Bulkhead A to the recovery bay above B. Every joint sealed.
-3. **Motor mount + gimbal** into the engine bay. Confirm the gimbal still moves freely after bonding.
-4. **Fins.** Four, 90° apart. **Alignment matters more than strength here** — a misaligned fin set
+1. **Bulkhead joint.** Route the servo extensions and STEMMA-QT cable through the pass-through holes
+   before final fit — decide slack vs. breakaway connector per `WYVERN_E4_Recovery.md` §5 first, this
+   is much harder to redo after the tubes are together. The joint itself is friction-fit/shear-pinned
+   to **release** under ejection pressure, not sealed shut — see `WYVERN_E4_FEA_Structural.md` §4 for
+   the (still-open) release-force sizing.
+2. **TVC bay.** Motor mount + gimbal into the Lower BT. Confirm the gimbal still moves freely after
+   bonding.
+3. **Fins.** Four, 90° apart. **Alignment matters more than strength here** — a misaligned fin set
    induces roll, and roll couples into the pitch/yaw loops the whole experiment is measuring.
-5. **Rail buttons**, 1010, aligned along one fin line.
-6. **Recovery.** Chute, 1/8″ Kevlar shock cord, Nomex protector. Pack so the chute cannot snag the
-   bypass outlet.
-7. **Nose.** Friction fit — snug enough to survive boost, loose enough for ~140 kPa to release it.
-   Test the release force by hand: it should take firm but not two-handed effort.
+4. **Rail buttons**, 1010, aligned along one fin line.
+5. **Recovery.** Chute, 1/8″ Kevlar shock cord, Nomex protector — wadding on both faces of the
+   bulkhead joint. Pack so the chute cannot snag the cable pass-through.
+6. **Bulkhead release-force check.** Test the joint's separation force by hand before flight: it
+   should take firm but not two-handed effort, targeting the 50–150 N band in
+   `WYVERN_E4_Recovery.md` §4.
 
 ---
 
-## D · Ground ejection test (Timeline Day 9) — Gate 3
+## D · Ground separation test (Timeline Day 9) — Gate 3
 
 **Do this before you fly. It is the single point of failure in the entire recovery system.**
 
-The FC does not fire anything — recovery is the F15-4's own charge, routed through the bypass tube.
-There is no electronic backup. If this path doesn't work, the vehicle comes down ballistic.
+The FC does not fire anything — recovery is the F15-4's own charge, separating the two body tubes at
+the bulkhead joint. There is no electronic backup. If this path doesn't work, the vehicle comes down
+ballistic.
 
 1. Assemble fully, chute packed, **no flight battery, no camera** (don't risk them).
-2. Fire a representative ejection charge into the plenum.
-3. Confirm: nose releases cleanly · chute deploys fully · **both bulkhead seals intact** · bypass
-   joints intact · no scorching inside the FC bay.
-4. If the nose sticks: reduce the friction fit. If it releases too easily: increase it.
+2. Fire a representative ejection charge (or the motor's own charge, restrained) into the Lower BT.
+3. Confirm: bulkhead joint releases cleanly in the 50–150 N band · chute deploys fully · servo/
+   STEMMA-QT cable pass-through survives the separation without snagging or damage · no scorching
+   past the wadding.
+4. If the joint sticks: reduce the friction fit. If it releases too easily: increase it.
    **Retest after any change.**
 
-- [ ] Clean release, chute deployed, seals intact
+- [ ] Clean separation, chute deployed, cable pass-through intact
 
 ---
 

@@ -1,0 +1,88 @@
+WYVERN RING76 -- STEP-BY-STEP FIX SEQUENCE, 2026-08-07
+Do these in order in EasyEDA Pro. Each references the real net name from
+Netlist_Schematic1_2026-08-07.tel -- use Edit > Find, or click a pin and
+read the highlighted net name in the status bar, to jump straight there.
+
+-----------------------------------------------------------------------
+FIX 1 -- Split $1N206 (I2C0 SCL / I2C1 SDA / camera PCLK all shorted)
+-----------------------------------------------------------------------
+Click net $1N206 to highlight every wire in it. You'll see it touches
+H1-11, U1-8, U1-12, U1-13, R37-1, R38-1, and the SCL pins on U10/U11/
+U13/U14/U15 plus U3-15/U9-4/U18-30.
+
+1. Find the wire segment(s) that run FROM U1-13 (I2C1_SDA) into this
+   net and delete just those segments. U1-13 should end up isolated
+   except for its own wire to R38-1, U3-15, U9-4, and U18-30.
+2. Find the wire segment(s) that run FROM H1-11 into this net and
+   delete those too. H1-11 should end up with a single wire straight
+   to U1-8 and nothing else.
+3. What's left touching U1-12 should now just be: R37-1, U10-6, U11-4,
+   U13-1, U14-2, U15-19. That's the correct, isolated I2C0 SCL net.
+4. Redraw a new wire connecting U1-13, R38-1, U3-15, U9-4, and U18-30
+   into their own net -- this is I2C1 SDA.
+5. Confirm H1-11 -- U1-8 is now a clean two-point net.
+Run ERC after this step before moving on; a floating net here is
+obvious in the ratsnest view immediately.
+
+-----------------------------------------------------------------------
+FIX 2 -- Move U8-4 off I2C1 SCL onto I2C1 SDA
+-----------------------------------------------------------------------
+Net $1N217 currently has U8-4 (INA226 #1 SDA) sitting on the SCL line
+with U1-14, U3-14, U8-5, U9-5, U18-31.
+
+1. Delete the wire segment from U8-4 into $1N217.
+2. Draw a new wire from U8-4 to the I2C1 SDA net you just rebuilt in
+   Fix 1 (the one with U1-13, R38-1, U3-15, U9-4, U18-30).
+U8-5 stays right where it is -- that's correctly on SCL already.
+
+-----------------------------------------------------------------------
+FIX 3 -- Un-short LIS3MDL's ground/address pins from the IMU interrupt
+-----------------------------------------------------------------------
+Net $1N185 currently has C22-2, U13-2, U13-3, U13-9, U13-12, U1-47, and
+U14-11 all on one node.
+
+1. Delete the wires from U13-2, U13-3, U13-9, U13-12, and C22-2 into
+   this net.
+2. Draw new wires from all five of those points straight to U1-81
+   (GND) -- same GND net everything else on the board uses.
+3. What's left in the old net should just be U1-47 -- U14-11, a clean
+   two-point interrupt line. Leave that as-is.
+
+-----------------------------------------------------------------------
+FIX 4 -- Wire LIS3MDL's SDA pin (currently floating)
+-----------------------------------------------------------------------
+U13-11 isn't in any net right now. Draw a wire from U13-11 to the I2C0
+SDA net (the one with U1-11, R36-1, U10-4, U11-5, U14-4, U15-20).
+
+-----------------------------------------------------------------------
+FIX 5 -- Fix U4's FB/SW short and give it a real BOOT cap
+-----------------------------------------------------------------------
+C20 currently bridges U4-4 (FB) to U4-2/L2-1 (SW). It should bridge
+U4-6 (BOOT) to U4-2 (SW), exactly like C21 already does for U5-6/U5-2.
+
+1. Delete C20's wire to U4-4.
+2. Draw a new wire from C20's freed leg to U4-6 (BOOT).
+3. U4-4 (FB) is now floating -- leave it open for Fix 6, don't leave it
+   permanently disconnected.
+
+-----------------------------------------------------------------------
+FIX 6 -- Build feedback dividers for U4 and U5
+-----------------------------------------------------------------------
+Neither buck has a working FB network yet. R7/R43 (62k) and R31/R32/R33
+(100k) are your only unused resistors sized like a divider pair.
+
+1. Confirm your target output voltage for U4 and U5 and calculate the
+   divider ratio against each part's FB reference voltage (0.8V is
+   typical for both TPS563201/TPS54202, but check the datasheet before
+   committing to that number).
+2. Wire R7 (or R43) from U4's output node down to U4-4 (FB), then a
+   second resistor from U4-4 down to GND.
+3. Repeat for U5-4 with the second pair.
+4. Run ERC and check the output voltage in simulation/on the bench
+   before you trust it.
+
+-----------------------------------------------------------------------
+After Fix 1-6, re-export the netlist and I'll cross-check it against
+this list to confirm all six are clean before you move on to the
+still-missing items (DVDD/VREG loop, crystal load caps, floating
+grounds, C2-C8 bank, R41 shunt, unused parts).

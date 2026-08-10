@@ -6,6 +6,14 @@ to F15-4 motor ejection (§2). Both are resolved in favor of the current/validat
 firmware implements the resolution. The former third item (RRC3+ telemetry byte format) is retired:
 the RRC3+ has been removed from the vehicle (§3).
 
+**⚠ Open item (2026-08-09), not yet reconciled below:** the actual flight hardware is now a custom
+RP2350B PCB with **one** external STEMMA-QT port (one external BNO085, mounted at the TVC-bay/
+electronics boundary — see `WYVERN_E4_Recovery.md` §1), not the Pico 2 W + PCA9548A mux + tri-IMU
+(gimbal/body/recovery, 2-of-2 voting) architecture this whole document still describes below. The
+PID gains, recovery-architecture, and power sections remain accurate; the I2C bus map and IMU-count
+sections in §5 and elsewhere are stale against the custom board and need a real reconciliation pass
+against the actual PCB schematic, not a guess.
+
 ## 1. PID gains: flowchart vs. validated header/sim — SUPERSEDED by margin-analysis retune (2026)
 
 **This section has been updated. The gains below are frozen as of the phase-margin retune; do not
@@ -33,13 +41,15 @@ read `Kp=2.0/Ki=0.4/Kd=0.5` anywhere in this repo as current — it is a documen
   flowchart has now been regenerated from this table (2026-08) and no longer carries either prior
   value.
 
-## 2. Recovery architecture: motor ejection via bypass tube — RESOLVED (design change)
+## 2. Recovery architecture: motor ejection via bulkhead-joint separation — RESOLVED (design change)
 
 - Recovery was previously debated between a timer-forced electronic deploy (finless-era) and an
   apogee-primary RRC3+ dual-deploy (finned-era). **Both are now obsolete.** The current vehicle uses
   the **F15-4 motor's own ejection charge**, fired 4 s after burnout (t = 7.45 s, 0.63 s past
-  apogee), routed through a solid-walled bypass tube past the sealed FC bay into the recovery bay to
-  release the friction-fit nose (see `WYVERN_E4_Recovery.md` and `Simulations/we4_ejection_feasibility.py`).
+  apogee), pressurizing the Lower BT (TVC bay side) and **separating the two body tubes at the
+  bulkhead joint** between Lower BT and Upper BT — a dual-deploy-style break, not a friction-fit nose
+  pop off a single continuous tube (see `WYVERN_E4_Recovery.md` and
+  `Simulations/we4_ejection_feasibility.py`).
 - This **eliminates** the RRC3+, the isolated 9 V recovery battery, the e-match/black-powder charge,
   and the earlier CO2 solenoid system entirely. The finned airframe (4×72 mm, +1.20 cal, 792 g
   liftoff) is stable to apogee, so a single passive event just past apogee is appropriate.
@@ -112,7 +122,7 @@ not the regulated rail) into `GP26 VBAT`, and the regenerated preview shows the 
 | RBF (remove-before-flight) sense | GP22 | wyvern4_tvc.ino |
 | Battery ADC (NEW — gap filled, §4) | GP26 (ADC0), 100k/62k divider, V_BAT = V_ADC/0.3827 | this memo |
 | WiFi/BLE | Onboard CYW43439, bench-only UDP broadcast, never blocks core 0 | 01_FlightComputer_Spec.md |
-| Recovery sequencing | F15-4 motor ejection charge via bypass tube, t ≈ 7.45 s (1.18 s past apogee); no electronic deploy; FC only observes/logs | WYVERN_E4_Recovery.md |
+| Recovery sequencing | F15-4 motor ejection charge separating the two body tubes at the bulkhead joint, t ≈ 7.45 s (1.18 s past apogee); no electronic deploy; FC only observes/logs | WYVERN_E4_Recovery.md |
 
 All seven firmware modules below are written to this table. If the bench reveals a different real
 pin/address (e.g., the LAUNCH_IRQ assumption above), update this table and the `#define`s in

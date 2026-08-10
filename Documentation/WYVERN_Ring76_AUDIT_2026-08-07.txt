@@ -1,0 +1,151 @@
+WYVERN RING76 -- REAL WIRING AUDIT, 2026-08-07
+Source: Netlist_Schematic1_2026-08-07.tel (94 real nets, read in full)
+Compared against: WYVERN_Ring76_WIRING_GUIDE_v6.txt (the proposed doc)
+Everything below is what the real netlist actually says, not a guess.
+GND = U1-81 net ($1N226). +3V3 = L2.2 net ($1N163). Same convention as v6.
+
+=====================================================================
+PART A -- REAL ERRORS FOUND (already wired, but wired wrong)
+=====================================================================
+
+1. I2C0 and I2C1 are shorted together, and the camera header is caught
+   in it. Net $1N206:
+     H1.11  R37.1  R38.1  U1.8  U1.12  U1.13  U3.15  U9.4  U10.6  U11.4
+     U13.1  U14.2  U15.19  U18.30
+   U1.12 is I2C0_SCL. U1.13 is I2C1_SDA. Those are two different buses
+   and should never be on the same wire. This single net ties them
+   together, which also drags in H1.11 (CAM_PCLK per your GPIO map --
+   U1-8 is supposed to only talk to the camera header) and both bus
+   pullups (R37 = I2C0 SCL pullup, R38 = I2C1 SDA pullup). Right now
+   neither I2C bus works as a separate bus, and the camera's pixel
+   clock line is sitting on top of both of them.
+   Go find this net in EasyEDA/Altium directly (search $1N206 or click
+   H1 pin 11) and separate it into what it should be:
+     I2C0 SCL only: U1.12, R37.1, U10.6, U11.4, U13.1, U14.2, U15.19
+     I2C1 SDA only: U1.13, R38.1, U3.15, U9.4, U18.30
+     Camera only:   U1.8, H1.11
+
+2. INA226 #1 (U8) has SDA on the SCL line. Net $1N217:
+     R39.1  U1.14  U3.14  U8.4  U8.5  U9.5  U18.31
+   U1.14 is I2C1_SCL, and everything else in this net is correctly a
+   SCL pin (U3.14, U8.5, U9.5, U18.31) except U8.4, which per the real
+   INA226 datasheet is SDA (pin 4 = SDA, pin 5 = SCL). U8's SDA pin
+   needs to move over to the I2C1 SDA net (see item 1 above) instead
+   of sitting on SCL.
+
+3. LIS3MDL's ground/address pins are shorted into an IMU interrupt
+   line, and its decoupling cap isn't actually grounded. Net $1N185:
+     C22.2  U1.47  U13.2  U13.3  U13.9  U13.12  U14.11
+   U13.2/3/12 are LIS3MDL's GND/reserved pins, U13.9 is its SDO/SA1
+   address-select pin, C22.2 should be the ground leg of its decoupling
+   cap, and U1.47/U14.11 are the LSM9DS1-to-RP2350 interrupt line
+   (IMU_INT1). All of this is one node right now. Effects: the
+   decoupling cap isn't referenced to clean ground, LIS3MDL's I2C
+   address is floating on whatever voltage the interrupt line happens
+   to be at instead of a fixed high/low, and the interrupt line itself
+   is loaded down by all those LIS3MDL pins. U13.2/3/9/12 and C22.2
+   need to come off this net and go to U1-81 (GND) directly; U1.47/
+   U14.11 need their own clean net.
+
+4. LIS3MDL's real SDA pin isn't wired to I2C0 at all. The I2C0 SDA net
+   ($1N198: R36.1, U1.11, U10.4, U11.5, U14.4, U15.20) has every I2C0
+   device's SDA pin except LIS3MDL's. Per the real datasheet, LIS3MDL
+   SDA is physical pin 11 -- U13.11 doesn't appear in any net in this
+   file. It's simply not connected yet.
+
+5. U4's (TPS563201) feedback pin is shorted to its own switching node.
+   Net $1N239: C20.1, U4.4. U4 pin 4 is FB. C20's other leg ($1N238)
+   goes to U4.2/L2.1, which is the SW node. So C20 currently bridges
+   FB straight to SW -- the regulator's feedback pin is reading the
+   raw switching square wave instead of a clean sense of the output
+   voltage. This will prevent U4 from regulating correctly, if it
+   starts up at all. Compare with U5 (TPS54202), which has the same
+   cap topology done right: C21 bridges BOOT(6) to SW(2) exactly like
+   a bootstrap cap should ($1N241/$1N244). U4's BOOT pin (6) has no
+   net anywhere in this file -- so what looks like it was meant to be
+   U4's bootstrap cap got wired one pin off, onto FB instead of BOOT,
+   and BOOT itself is floating.
+
+6. U4's FB is floating in the sense that it has no real feedback
+   divider -- and neither does U5. Beyond the C20/SW short above,
+   neither U4.4 nor U5.4 connects to anything resembling a resistor
+   divider from an output node. R7 and R43 (62kΩ, qty 2, unused) and
+   R31/R32/R33 (100kΩ, qty 3, unused) are the only real unused
+   resistors sized like a divider pair for two independent bucks --
+   worth checking whether those are meant to be U4 and U5's FB
+   dividers, since nothing else in the BOM looks purpose-built for it.
+
+=====================================================================
+PART B -- CONFIRMED CORRECT (matches v6, verified against real nets)
+=====================================================================
+
+CARD1 (microSD), all 9 servo JST connectors + GPIO assignment, UART
+header U20, status LED1/R9, QSPI flash+PSRAM bus (U6/U7, all 6 lines),
+camera header pins 1-10 and 12 (H1.1-H1.10, H1.12), reset button U16,
+charge button U22, BQ25798 STAT LED (now really LED2, not the D1 typo
+still sitting in v6 -- fix that label when you touch the doc again),
+BQ25798 bootstrap caps C17/C18, BQ25798 TS thermistor R1, BQ25798
+PROG-loop grounding down to R12, USB-C CC1/CC2/D+/D-/VBUS section,
+CH224K CFG/PG wiring, U2-EP (shows up as real numbered pin 11, already
+tied to GND -- your tool just numbers the exposed pad instead of
+labeling it EP), U16/U22 buttons, ADAU1450 reset/BCLK/SDATA port
+wiring to the mic and RP2350, LSM9DS1 and BNO055 decoupling caps
+(C23/C24/C25), BNO055 PS0/PS1 I2C-mode grounding, and the RP2350's
+main +3V3/IOVDD/GND fan-out (L2.2 and U1.81 super-nets).
+
+Old flag resolved: the 08-06 netlist's $1N23 anomaly (U1.66/67 shorted
+to U6's flash data pins) does not reproduce here. USB D+/D- and the
+QSPI bus are cleanly separate in this file.
+
+=====================================================================
+PART C -- CONNECTIONS STILL MISSING (real gaps, nothing wired at all)
+=====================================================================
+
+RP2350 internal 1.1V core supply (DVDD / VREG):
+  U1-10 (DVDD) is incorrectly sitting on the +3V3 net ($1N163) --
+    3.3V directly into a pin meant for ~1.1V core supply.
+  U1-32 and U1-51 (the other two DVDD pins) each only have a lone
+    decoupling cap (C12, C13) with no actual supply connected.
+  U1-63 (VREG_LX) -> L1-1 is wired, but L1's other leg (L1-2), U1-65
+    (VREG_FB), and U1-62 (VREG_PGND) are all floating. The internal
+    switching regulator's feedback loop isn't complete.
+  These four items are one connected problem: finish the VREG_LX ->
+  L1 -> VREG_FB loop per the RP2350 datasheet application circuit,
+  then tie all three DVDD pins (10, 32, 51) to that regulated output
+  -- not to +3V3.
+
+Crystal networks:
+  X1 (12MHz, HC-49S 2-pin can): only X1-1 -> U1-30 (XIN) is wired.
+    No load caps anywhere in the netlist reference X1, and X1's other
+    leg / XOUT (U1-31) has no connection at all.
+  X2 (32.768kHz-ish 4-pad, feeds U18/ADAU1450): X2-1/X2-3 to U18-21/22
+    are wired, but the "case ground" pins aren't grounded directly --
+    X2-2 goes through C16 to GND instead of straight to GND ($1N167),
+    and X2-4 doesn't appear in any net at all. Also X2-1 (the pin v6
+    called out for a load cap, C15) has no cap anywhere in this file
+    -- C15 isn't in a single net. Worth a clean pass on both crystals'
+    load-cap networks.
+
+I2C / power odds and ends:
+  U6-4 and U7-4 (flash/PSRAM ground pins) aren't in any net -- floating.
+  U10-10 (LPS22HB VDD) isn't in any net -- the barometer has no power.
+  USBC1's GND pads (A1, A12, B1, B12) aren't tied to U1-81 anywhere.
+
+Unused/placed-but-unwired parts (matches what you already flagged):
+  U21 (1.27mm 2x3 header) -- zero nets.
+  Q1, Q2 (SOT-23 AO3401A-class MOSFETs) -- zero nets.
+  ZD1 (Zener, SOD-123) -- zero nets.
+  F1, F2 (1206 fuses) -- zero nets.
+  LED3, LED4, LED5 -- zero nets.
+  C2, C3, C4, C5, C6, C7, C8 (the 10/22/1/1/10/47uF bank from the
+    screenshot you sent earlier) -- all six are placed with real
+    values now, but none show up in a single net. This is the buck
+    output-filter bank flagged a few turns back; still unconnected.
+  R41 (10mΩ shunt) -- still the only shunt resistor for two INA226
+    instances (U8, U9); U8-8/9 and U9-8/9 remain open until you decide
+    whether R41 is shared or you need a second shunt.
+
+=====================================================================
+Net names above ($1N206, $1N217, $1N185, $1N239/238, etc.) are exactly
+what's in Netlist_Schematic1_2026-08-07.tel -- search those strings in
+EasyEDA to jump straight to the real wires.

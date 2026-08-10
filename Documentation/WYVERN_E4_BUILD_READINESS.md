@@ -5,17 +5,25 @@
 
 ## 1. Verdict
 
-**GO for build.** All project files (docs, BOM, firmware, CAD, wiring, simulations, proposals) have
-been reconciled to a single canonical configuration. No superseded mass/apogee/material/motor/
-electronics values remain in any active file. The remaining work is *fabrication + a short bench/
-ground-test punch-list* (§6), not design or documentation. The 1-week build / 2-week launch schedule
-in §7 is achievable.
+**⚠ Airframe geometry changed since this reconciliation pass was run (2026-08-09): the vehicle is now
+two body tubes (Lower BT, Upper BT) joined at one bulkhead, replacing the single-tube 3-bay/2-bulkhead
+layout this whole document describes.** The recovery-architecture and bay-layout language below has
+been updated to match, but the numeric mass/CG/apogee/structural figures throughout are **stale**
+pending a `we4_sim.py`/`we4_flightsim.py` re-run for the new geometry (flagged in
+`WYVERN_E4_Mathematics.md` §1–4) — do not treat §2's table below as current without that re-run.
+
+Prior verdict, still true for everything *except* the bay split: all project files (docs, BOM,
+firmware, CAD, wiring, simulations, proposals) were reconciled to a single canonical configuration as
+of this pass. The remaining work is *fabrication + a short bench/ground-test punch-list* (§6), **plus
+the sim re-run and the bulkhead release-force/cable-slack decisions now open** (see
+`WYVERN_E4_Recovery.md` §4–5). The 1-week build / 2-week launch schedule in §7 needs re-checking
+against those before it's trusted as-is.
 
 ## 2. Canonical configuration (single source of truth)
 
 | Parameter | Value |
 |---|---|
-| Airframe | 70 mm OD, ~0.74 m, single stage, 3 bays + 2 sealed bulkheads |
+| Airframe | 70 mm OD, ~0.74 m (stale, pending re-run), single stage, **two body tubes (Lower BT, Upper BT) + one separation bulkhead** (was 3 bays + 2 sealed bulkheads) |
 | Liftoff / dry mass | **792 g / 690 g** |
 | Motor (flight) | **Estes F15-4** ×4 (4 s delay + ejection charge = recovery) |
 | Motor (ground) | **Estes F15-0** ×10 (plugged; static thrust curves + MTVC + servo TVC on the balance) |
@@ -26,11 +34,11 @@ in §7 is achievable.
 | T/W | **1.85 avg / 3.26 peak** |
 | Fins | 4 × **72 mm** PLA, root 70 / tip 35 / LE-sweep 25° |
 | Stability | CG 48.4 cm / CP 56.8 cm → **+1.20 cal** (→1.3 cal burnout), no ballast |
-| Materials | **PLA**: nose, body, fins, FC + recovery bays · **PETG-CF**: both bulkheads, bypass tube, engine/TVC bay, motor mount, gimbal |
-| Recovery | **F15-4 motor ejection** via solid-walled bypass tube; deploy t≈7.45 s (+1.18 s past apogee, ~11.5 m/s); 24″ chute → ~6 m/s; **3.4× bay-pressurization margin**; no RRC3/9 V/CO2/e-match |
+| Materials | **PLA**: nose, both body tubes, fins · **PETG-CF**: separation bulkhead, TVC bay, motor mount, gimbal |
+| Recovery | **F15-4 motor ejection** separating the two body tubes at the bulkhead joint; deploy t≈7.45 s (+1.18 s past apogee, ~11.5 m/s); 24″ chute → ~6 m/s; bay-pressurization margin **pending re-check against the new two-BT volume**; no RRC3/9 V/CO2/e-match |
 | Flight computer | **Raspberry Pi Pico 2 W (RP2350)**, dual-core, 500 Hz TVC PID **Kp0.10/Ki0.40/Kd0.18**, ±8° gimbal |
 | Sensors | 3× BNO085 (GRV), BME688 + **BMP388** (Adafruit 3966) baro, microSD, i3 4K Thumb Action Camera cam, Wi-Fi bench telemetry |
-| Structural margins | flight min SF ~340×; bulkhead-B ejection SF ~8×; bypass tube ~107×; engine-bay thermal < HDT |
+| Structural margins | flight min SF ~340× (unaffected by the bay split); bulkhead separation-joint release-force sizing and direct-gas thermal check are **open items**, see `WYVERN_E4_FEA_Structural.md` §4; engine-bay thermal < HDT |
 | Servo torque margin | **2.3× at the full ±8° gimbal** (0.086 N·m hinge vs 0.20 N·m stall) — below the 3.0× gate, see §11 |
 
 ## 3. Per-target readiness
@@ -50,11 +58,14 @@ in §7 is achievable.
   runs the full FC in software-in-the-loop with sensor noise and simulated Wi-Fi telemetry — use it to
   rehearse the flight and sanity-check the state machine before the pad.
 
-### 3.2 Rocket airframe — READY to print
-- All printable parts present in `3D parts/`: nose (ASA), 3 bay tubes, both sealed bulkheads
-  (PETG-CF, with 12 mm bypass pass-through), bypass tube (PETG-CF), motor mount, 2-axis gimbal,
-  72 mm fin, 1010 rail buttons, full assembly. Superseded parts moved to `_superseded/`.
-- FEA (`WYVERN_E4_FEA_Structural.md`) covers flight loads, ejection pressure, and thermal.
+### 3.2 Rocket airframe — **NEEDS RE-CUT for the two-BT layout, not print-ready as listed**
+- The parts list below (nose, 3 bay tubes, both sealed bulkheads with bypass pass-through, bypass
+  tube) describes the **old single-tube layout** and has not yet been regenerated for the new
+  two-body-tube/single-bulkhead design. `3D parts/` needs a re-pass: nose (ASA), Upper BT, Lower BT,
+  one separation bulkhead (PETG-CF, with servo-extension + STEMMA-QT cable pass-through holes instead
+  of a 12 mm bypass bore), motor mount, 2-axis gimbal, 72 mm fin, 1010 rail buttons.
+- FEA (`WYVERN_E4_FEA_Structural.md` §4) covers flight loads (unaffected) but flags the ejection/
+  separation-joint analysis as an open item pending the release-force sizing pass.
 
 ### 3.3 Wind tunnel — REMOVED FROM PROGRAM (2026-08)
 - The Hofferth (2025) modular tunnel and the airfoil-CFD package that fed it are **out of scope.**
@@ -70,21 +81,54 @@ in §7 is achievable.
 
 ## 4. Bill of materials
 
-`Documentation/WYVERN_E4_BOM.xlsx` — **8 live sections** spanning **all three build targets**: FC &
+`Documentation/WYVERN_E4_BOM.xlsx` — **9 live sections** spanning **all three build targets**: FC &
 sensors, power, TVC (flight servo + ground magnetic A/B), recovery (motor ejection), propulsion
 (F15-4 flight / F15-0 ground / E16-4 commissioning), airframe filament (PLA + PETG-CF),
-harness/connectors/prototyping, and the TVC balance + static stand. **Former §9 (Hofferth wind
-tunnel) has been deleted** per the 2026-08 scope change, and the gross/net formulas rewired to the
-eight surviving subtotals. Every live line has a purchase link and verified price. Filament
-allocation matches the material zoning in §2.
+harness/connectors/prototyping, the TVC balance + static stand, and the new §9 (custom PCB fab +
+2026-08-09 cart reconciliation). **Former §9 (Hofferth wind tunnel) has been deleted** per the
+2026-08 scope change and that section number reused for the cart-reconciliation section above.
+Every live line has a purchase link and verified price. Filament allocation matches the material
+zoning in §2.
+
+**2026-08-09: reconciled against 3 live carts (Amazon $252.93, Adafruit $95.10, Estes $325.01) plus
+a $175 custom PCB fab cost, added as new Section 9; corrected per follow-up feedback; then the
+to-buy total was restricted to only what's actually in those 3 carts.** A handful of stale duplicate
+line items from an earlier gap-fill pass were zeroed to avoid double-counting. Design-intent
+quantities were corrected: 1 flight chute (not 4), 1 wadding pack (not 2), USB-C dust covers already
+sufficient, and the BNO085 count drops to **1** — the custom PCB has a single STEMMA-QT port, so
+there is one external IMU (mounted at the TVC-bay/electronics boundary, near the bulkhead joint), not
+a gimbal+body+recovery+spare set. The Amazon 5kg load cell was dropped for the Adafruit one. Section
+4's bypass-gas-tube line item was retired — the design now uses a single separation-joint bulkhead
+with no bypass tube (see `WYVERN_E4_Recovery.md`).
+
+**Final pass (2026-08-09b): every to-buy line not present in one of the 3 carts was zeroed from
+cost**, kept as a line item and flagged "NOT IN CURRENT CART" rather than deleted, so nothing
+silently disappears from the procurement record. Airframe filament (Section 6) is the one explicit
+exception and stays costed. **⚠ This zeroes the F15-4 flight motor (row 41) and the E16-4
+commissioning motors (row 43)** — neither is in the given Estes cart, so they're zeroed from this
+total, not from the build. They still need to be purchased separately before flight/commissioning.
+Also zeroed: the Raspberry Pi Pico 2 W line (superseded by the custom PCB, already costed in
+Section 9), BMP388, the old harness/prototyping line items (solder, wire, heat-set inserts,
+breadboard, etc. — none in the current carts), microSD breakout, 1010 rail, Nomex protector,
+anemometer, and the steel blast deflector.
+
+**Filament pass (2026-08-09c):** Section 6 reconciled against the real Bambu Lab cart — PC-FR
+($54.99), PC ($39.99), ABS ($19.99), ASA Aero ($49.99), all 1 kg, $164.96 total. **⚠ None of these
+four match the current design's material scope.** PLA (primary airframe) and PETG-CF (TVC bay/
+gimbal/bulkhead) are the only materials the design actually calls for as of the 2026-08b scope
+change, when the RQ2 coupon-testing program (which needed PC-FR/PC/ABS/ASA-Aero) was dropped —
+see `CONFLICTS.md` §7. Added to the BOM as real cart items and flagged for confirmation rather than
+assumed as flight-part material; if this is reserve stock or an RQ2-baseline archive, fine, but it's
+not covering anything the current build needs. The "buy 2 more kg PLA" line was dropped — ~8kg
+PLA/PETG-CF already acquired covers the airframe.
 
 | Budget line | Value |
 |---|---|
-| Gross to-buy | $1,285.07 |
-| Less reimbursed (launch controller) | −$43.99 |
-| **Net out-of-pocket (still to buy)** | **$1,241.08** |
+| Gross to-buy | $993.20 |
+| Less reimbursed (launch controller) | −$39.60 |
+| **Net out-of-pocket (still to buy)** | **$953.60** |
 | Already acquired (owned) | $479.27 |
-| **Total program spend** | **$1,720.35** |
+| **Total program spend** | **$1,432.87** |
 
 > Rose from $1,725.46 on 2026-08-01 when the cart gap analysis found **five items the BOM never
 > costed at all** — the microSD SPI breakout the firmware requires, the 1010 launch rail, the Nomex
@@ -110,9 +154,9 @@ allocation matches the material zoning in §2.
 
 These are hardware-verification steps from `FLIGHT_READINESS.md` §4 — none are design changes:
 
-1. **Ground-test the ejection gas path** — fire a representative charge; confirm the friction-fit
-   nose releases cleanly, the chute deploys, and both bulkhead seals + bypass-tube joints are
-   gas-tight. *(Single point of the recovery system — do this first.)*
+1. **Ground-test the bulkhead separation joint** — fire a representative charge; confirm the joint
+   releases cleanly in the 50–150 N band, the chute deploys, and the servo/STEMMA-QT cable
+   pass-through survives the separation. *(Single point of the recovery system — do this first.)*
 2. **Confirm LAUNCH_IRQ (GP7) wiring** — wire the redundant inertial switch or remove the branch.
 3. **Confirm RBF sense polarity** — verify `HB:...rbf=` matches the switch state.
 4. **Verify the 2S LiPo divider** (GP26, 100 k/62 k) against a multimeter within ~2 %, and scope VSYS during a servo stall to confirm the bulk-cap + SS34 hold-up keeps it above the Pico brown-out threshold.
@@ -134,8 +178,9 @@ Run `selftest.py` before every flight; it gates on all of the above that are obs
   and both stands. Order-long-lead items already in BOM.
 - Days 3–4: assemble FC (Pico 2 W + sensors on perfboard), wire per the schematic, flash firmware,
   run `t1`–`t4` bench tests + `selftest.py`.
-- Days 5–7: assemble rocket; install recovery (chute + bypass tube + Nomex); commission stands with
-  E16-4; run **ground ejection test** (punch-list #1).
+- Days 5–7: assemble rocket; join the two body tubes at the bulkhead (route the servo/STEMMA-QT
+  cables through the pass-through holes first), install recovery (chute + shock cord + Nomex);
+  commission stands with E16-4; run **ground separation test** (punch-list #1).
 
 **Week 2 — ground data & fly:**
 - Days 8–10: F15-0 static thrust-curve verification (+ engine-bay wall temperature for RQ2); F15-0 TVC balance
@@ -147,8 +192,9 @@ Run `selftest.py` before every flight; it gates on all of the above that are obs
 
 ## 8. Notes / residual risk
 
-- Recovery is a **single passive event** (motor charge) with no electronic backup — the 3.4×
-  pressurization margin and the ground ejection test (punch-list #1) are what retire that risk.
+- Recovery is a **single passive event** (motor charge) with no electronic backup — the bulkhead
+  joint's release-force calibration (still open, see `WYVERN_E4_Recovery.md` §4) and the ground
+  separation test (punch-list #1) are what retire that risk.
 - The vehicle is authority-limited in strong wind (documented low-speed weathercocking); the
   atmospheric dataset + PID tuner in `Simulations/wyvern_datagen/` quantify this — prefer a
   low-wind launch window.
@@ -304,7 +350,7 @@ The firmware was audited line by line against the frozen parameter table in `CON
 
 Unchanged from §6 and still open — these need a bench, not a code change:
 
-1. Ground ejection test (Gate 3 in the timeline).
+1. Ground bulkhead-separation test (Gate 3 in the timeline).
 2. `SERVO_LINKAGE_RATIO` calibration (build guide §B4) — the flight code assumes the nozzle
    actually reaches ±8°.
 3. LAUNCH_IRQ (GP7) wiring confirmed or the branch removed.

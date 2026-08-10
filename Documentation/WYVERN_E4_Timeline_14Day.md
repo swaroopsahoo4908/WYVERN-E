@@ -95,12 +95,12 @@ on Day 10.
 
 | Day | Task | Gate |
 |---|---|---|
-| 5 | Print airframe: nose, three bay tubes, both bulkheads, bypass tube, motor mount, gimbal, 4 × fins, rail buttons. ~20 h of printer time — start the longest plate overnight Day 4. | |
+| 5 | Print airframe: nose, Upper BT, Lower BT, separation bulkhead, motor mount, gimbal, 4 × fins, rail buttons. ~20 h of printer time — start the longest plate overnight Day 4. | |
 | 6 | Solder the FC on perfboard per the regenerated schematic. **Include the GP26 battery divider** (100 k / 62 k) — it was missing from every schematic until this pass. Keep the servo feed and VSYS feed as separate star runs off the UBEC. | |
 | 7 | Bench bring-up: `t1_i2c_scan` → `t2_imu_grv_deflection` → `t3_servo_sweep` → `t4_sensors_sdlog`, then `selftest.py`. Full procedure in `WYVERN_E4_Build_Guide.md` §B. | **Gate 2: `>>> PREFLIGHT GO <<<`** |
 | 7 | **Calibrate `SERVO_LINKAGE_RATIO`** in `t3` and copy it into `wyvern4_tvc.ino`. Do not skip — the flight code assumes the nozzle actually reaches ±8°. | |
-| 8 | Assemble the airframe. Bond bulkheads, fit the bypass tube, seal both bays gas-tight, install rail buttons, mount the gimbal and servos. | |
-| 9 | **Ground ejection test** — the single most important pre-flight check. Fire a representative charge, confirm the nose releases and the chute deploys, confirm both bulkhead seals and the bypass joints hold. | **Gate 3: clean nose release** |
+| 8 | Assemble the airframe. Route servo/STEMMA-QT cables through the bulkhead pass-through, join the two body tubes at the bulkhead joint, install rail buttons, mount the gimbal and servos. | |
+| 9 | **Ground separation test** — the single most important pre-flight check. Fire a representative charge, confirm the bulkhead joint releases cleanly in the 50–150 N band and the chute deploys, confirm the cable pass-through survives. | **Gate 3: clean bulkhead separation** |
 
 **Track B — stands (runs alongside Track A)**
 
