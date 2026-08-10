@@ -1,33 +1,57 @@
 # WYVERN-E — Ground Test Stands & Motor Plan
 
-## 1. TVC thrust-vector balance (3-axis; magnetic & servo)
-The actuator under test (magnetic-solenoid gimbal *or* servo gimbal) bolts to a thrust block
-restrained from a fixed base by **three strain-gauge load cells through flexures**: one **axial (Z)**
-and two **lateral (X, Y)**. This resolves the full thrust vector — magnitude *and* direction:
+**2026-08-10: full project spec restored.** Four independent ground-test rigs, one per research
+question that needs physical validation before flight: static fire (RQ2 materials + calibration),
+servo TVC stand (RQ1/RQ5), magnetic TVC stand (RQ1/RQ5), wind tunnel (RQ3/RQ4). Jetvane testing —
+dropped 2026-08 — is back in scope on the static-fire stand.
+
+## 1. Static fire test stand — calibration, thrust curves, jetvane/filament testing
+Axial-only load path (1× 5 kg cell + HX711) with a **steel blast deflector**, sized for the F15-0's
+3.45 s burn thermal case. Three jobs run on this one stand:
+
+- **RQ1 baseline**: total impulse, average and peak thrust, burn time and curve shape for the
+  F15-0 — the reference curve both TVC stands are compared against.
+- **Stand/DAQ calibration**: known hanging masses calibrate the load cell before every firing
+  campaign; E16-4 commissioning firings validate the calibrated chain against a published curve.
+- **RQ2 material + jetvane testing (restored 2026-08-10)**: the material coupon rack returns —
+  ABS/PC coupon set for plume-exposure erosion, and printed jetvanes (PLA/PETG-CF baseline,
+  ABS/PC-FR as the RQ2 comparison set per the coupon-testing program) mounted in the exhaust
+  stream to measure erosion, deflection retention, and filament performance under real motor
+  plume conditions. The BME688 already on the stand takes the **engine-bay wall temperature**
+  on the PETG-CF liner (RQ2) in addition to plume-adjacent readings for the jetvane coupons.
+
+## 2. Servo TVC test stand
+The servo-gimbal actuator bolts to a thrust block restrained from a fixed base by **three
+strain-gauge load cells through flexures**: one **axial (Z)** and two **lateral (X, Y)**. Resolves
+the full thrust vector — magnitude *and* direction:
 
 $$T=\sqrt{F_x^2+F_y^2+F_z^2},\quad \theta=\arctan\frac{\sqrt{F_x^2+F_y^2}}{F_z},\quad
 \phi=\operatorname{atan2}(F_y,F_x)$$
 
 Sized for the small motors here: **F15 peak 25.3 N**, side force at ±8° ≈ **3.5 N** → a **5 kg
-axial + two 1 kg lateral** cells + 3× HX711 → Raspberry Pi Pico DAQ at 80 SPS. (Elegant alternative: a
-cruciform flexure with a Wheatstone bridge per arm = a one-piece 3-axis F/T sensor.) The rig is
-actuator-agnostic, so the magnetic-vs-servo A/B comparison runs here, repeatably, *before* flight —
-logging commanded vs measured (θ, φ) gives bandwidth, slew, overshoot, steady-state error per system.
+axial + two 1 kg lateral** cells + 3× HX711 → Raspberry Pi Pico DAQ at 80 SPS. Logging commanded vs
+measured (θ, φ) gives bandwidth, slew, overshoot, and steady-state error for the servo system —
+this is the rig the flight vehicle's actual TVC gets qualified on (`wyvern4_gse_servo_rig`).
 
-## 2. Static thrust stand — axial only, + deflector
-Axial-only (1× load cell + HX711), with a **steel blast deflector**. Its single job is **RQ1's
-thrust-curve baseline**: total impulse, average and peak thrust, burn time and curve shape for the
-F15-0, measured on the same instrumentation chain as the TVC balance so the two datasets are
-directly comparable. The deflector + mounts are sized for the F15-0's 3.45 s burn thermal case.
+## 3. Magnetic TVC test stand
+A second, physically separate rig (`wyvern4_gse_solenoid_rig`) using the same three-load-cell
+flexure and DAQ chain as the servo stand, but with the magnetic-solenoid gimbal actuator in place
+of the servo gimbal. Running the identical instrumentation chain on both stands is what makes the
+**RQ1 magnetic-vs-servo A/B comparison** valid — commanded vs measured (θ, φ) from each stand feed
+directly into the same bandwidth/slew/overshoot/steady-state-error metrics for a like-for-like
+comparison. Only the servo system flies (RQ1 answers which actuation type wins on the bench; the
+flight vehicle carries the winner's specs into the record either way).
 
-**Jetvane testing is dropped from the program** (scope decision, 2026-08). The material coupon
-rack, the ABS/PC coupon set and the "Jetvane Suitability" datagen tab are all removed. Thrust
-vectoring is demonstrated by the magnetic (MTVC) and servo-gimbal systems only, and only the
-servo system flies. The one thermal measurement retained is the **engine-bay wall temperature**
-on the PETG-CF liner (RQ2), taken with the BME688 already on the stand — not a plume-immersion
-test.
+## 4. Wind tunnel — aerofoil performance testing (RQ3/RQ4)
+Bench aerofoil rig (`Wind Tunnel/`) for direct measurement of fin aerofoil performance —
+lift/drag/stall behavior across the flown fin's angle-of-attack range — to calibrate against the
+Barrowman-derived stability numbers in `WYVERN_E4_Stability_FinSizing.md`. This is the RQ4
+wind-tunnel-vs-flight comparison: tunnel-measured coefficients here, flight-derived weathercocking
+and stability margin from telemetry (`Simulations/plots_val/05_wind_weathercock.png`) after launch.
+Feeds RQ3 (fin aerofoil selection) directly — whichever aerofoil the tunnel run favors is the one
+committed to the flown fin can.
 
-## 3. Motor plan & counts (verified specs)
+## 5. Motor plan & counts (verified specs, jetvane firings restored)
 | Motor | Spec (verified) | Use |
 |---|---|---|
 | **Estes F15-4** | 49.6 N·s, 14.4 N avg / 25.3 N pk, 3.45 s, 4 s delay + ejection | **flight only** (ejection charge = recovery) |
@@ -36,13 +60,14 @@ test.
 
 **Counts:**
 - *F15-4* = **4 (flight only)** — the ejection charge is the recovery system.
-- *F15-0 (plugged)* = **10** for ground = 6 TVC-stand (3/system × 2, i.e. 3 MTVC + 3 servo) +
-  2 static thrust-curve + 2 spare. This is down from 13 — dropping jetvane testing removed the
-  3 coupon-immersion firings.
-  Ground fixtures use the 0-delay F15-0 so no ejection charge fires into the stand; the thrust curve is
+- *F15-0 (plugged)* = **13** for ground = 6 TVC-stand (3 servo + 3 magnetic) + 2 static
+  thrust-curve + 3 jetvane/coupon-immersion firings (restored 2026-08-10) + 2 spare. Ground
+  fixtures use the 0-delay F15-0 so no ejection charge fires into the stand; the thrust curve is
   identical to the F15-4 (same F15 propellant), so ground data transfers directly to the flight motor.
-- *E16-4 (calibration)* = **6 recommended** (3 per stand for repeatability); **4 is the floor**
-  (2/stand). Note: load cells are *calibrated* with known hanging masses (free, precise); the E16
-  firings *commission/validate* the calibrated stand against a published curve.
+- *E16-4 (calibration)* = **6 recommended** (3 per TVC stand for repeatability); **4 is the floor**
+  (2/stand). Load cells are *calibrated* with known hanging masses (free, precise); the E16 firings
+  *commission/validate* the calibrated stand against a published curve.
 
-## 4. Both stands → `Data/Motor (thrust curves)/` and `Data/TVC (vector + control)/`.
+## 6. Data paths
+Static fire + both TVC stands → `Data/Motor (thrust curves)/` and `Data/TVC (vector + control)/`.
+Wind tunnel → `Data/Wind Tunnel/`.

@@ -4,6 +4,12 @@ updated_at: 2026-08-01
 
 # WYVERN-E — Cart Gap Analysis (rev 2)
 
+> ⚠ **Stale vs. 2026-08-10 scope restoration.** This snapshot is checked against the 2026-08
+> jetvane-dropped scope. Jetvane testing is back in the program as of 2026-08-10 (see
+> `WYVERN_E4_GSE_TestStands.md` §1) — the "Creality ABS was jetvane coupon material only" line in
+> §2 below no longer applies as a removal candidate; ABS/PC coupon stock is needed again. Treat the
+> dollar figures here as historical, not current gap analysis.
+
 ### Cart of 2026-08-01 vs. the BOM and the design, **after** the 2026-08 scope + material change
 
 **Rev 2 supersedes rev 1.** The scope change (jetvane dropped, materials moved to PLA / PETG-CF)

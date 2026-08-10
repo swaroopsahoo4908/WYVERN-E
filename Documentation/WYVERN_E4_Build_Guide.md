@@ -220,10 +220,12 @@ deflection.** Log commanded vs measured throughout — that difference is the re
 > reduce the linkage ratio, or move the servo rail to 6 V, or fit a higher-torque servo — in that
 > order. See `WYVERN_E4_BUILD_READINESS.md` §11.
 
-### E4 RQ2 — PLA vs PETG-CF (Timeline Days 7 and 9)
+### E4 RQ2 — PLA vs PETG-CF (Timeline Days 7 and 9), jetvane testing restored 2026-08-10
 
-**Jetvane testing is dropped** (2026-08). RQ2 is now the material justification for the zoning
-actually flown.
+RQ2 is the material justification for the zoning actually flown, **plus** jetvane erosion/filament
+performance testing on the static-fire stand (reinstated 2026-08-10, see
+`WYVERN_E4_GSE_TestStands.md` §1) — print PLA/PETG-CF baseline jetvanes and the ABS/PC-FR
+comparison set for the coupon rack.
 
 - **Three-point bend** (Day 7, no motor needed): PLA and PETG-CF coupons, identical print
   parameters — same nozzle, layer height, wall count, infill. Report flexural modulus and
@@ -232,6 +234,11 @@ actually flown.
   inside of the engine-bay wall and log peak temperature across the 3.45 s burn. Compare against
   PLA's ~55 °C HDT and PETG-CF's ~80 °C. The model predicts a ~40 °C wall — if the measurement is
   much higher, that is a finding worth reporting and it validates the zoning decision directly.
+- **Jetvane erosion/deflection retention** (static-fire campaign, restored 2026-08-10): mount
+  printed jetvanes (PLA/PETG-CF baseline + ABS/PC-FR comparison) in the exhaust stream on the
+  static-fire stand, log erosion and deflection retention across the burn. Feeds directly into the
+  RQ1 magnetic-vs-servo comparison as a materials-side data point, not a flight-hardware decision —
+  only the servo TVC system flies.
 
 ---
 

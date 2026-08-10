@@ -67,17 +67,22 @@ against those before it's trusted as-is.
 - FEA (`WYVERN_E4_FEA_Structural.md` §4) covers flight loads (unaffected) but flags the ejection/
   separation-joint analysis as an open item pending the release-force sizing pass.
 
-### 3.3 Wind tunnel — REMOVED FROM PROGRAM (2026-08)
-- The Hofferth (2025) modular tunnel and the airfoil-CFD package that fed it are **out of scope.**
-  BOM §11 (tunnel) is struck; the tunnel STLs, print plates, and fan collar are not built.
-- Aerodynamic characterization is now carried by the Barrowman/drag-buildup model in the flight-sim
-  suite, cross-validated against flight telemetry and the instrumented ground stands. See
-  `CONFLICTS.md` §7 for the scope-change record.
+### 3.3 Wind tunnel — RESTORED TO PROGRAM (2026-08-10)
+- The bench wind tunnel is back in scope — see `WYVERN_E4_GSE_TestStands.md` §4 and `CONFLICTS.md`
+  §7 for the reversal record. Current rig is the STL/3MF kit in `Wind Tunnel/`, not the original
+  Hofferth (2025) modular design that was struck; the airfoil-CFD package (`Simulations/CFD/`) was
+  deleted during the 2026-08 removal and has not been rebuilt — optional, not blocking, per
+  `CONFLICTS.md` §7's action items.
+- Aerodynamic characterization now runs two independent tracks again: the Barrowman/drag-buildup
+  model in the flight-sim suite (RQ3 predicted), and direct tunnel-measured lift/drag/stall (RQ3
+  in-situ) cross-checked against flight telemetry (RQ4).
 
 ### 3.4 Motor test stands — READY to print/build
-- **TVC thrust-vector balance**: base, thrust block, flexure template (PETG-CF).
-- **Static thrust stand**: base plate, load-cell bracket, motor tower, steel blast deflector. (Jetvane erosion testing dropped 2026-08 — the stand is now motor thrust-curve verification only.)
-- DAQ: Raspberry Pi Pico + load cells/HX711 (BOM §10); ground-rig sketches target Pico.
+- **Servo TVC stand** (`wyvern4_gse_servo_rig`): base, thrust block, flexure template (PETG-CF).
+- **Magnetic TVC stand** (`wyvern4_gse_solenoid_rig`): separate physical rig, same flexure/DAQ chain as the servo stand, solenoid gimbal actuator swapped in for the RQ1 A/B comparison.
+- **Static fire stand**: base plate, load-cell bracket, motor tower, steel blast deflector, plus a jetvane/material coupon rack (restored 2026-08-10 — see `WYVERN_E4_GSE_TestStands.md` §1). Print PLA/PETG-CF baseline jetvanes and the ABS/PC-FR comparison set alongside the coupon set.
+- **Wind tunnel** (`Wind Tunnel/`): bench aerofoil rig for RQ3/RQ4 — assemble per the STL/3MF kit in that folder.
+- DAQ: Raspberry Pi Pico + load cells/HX711 (BOM §10); ground-rig sketches target Pico. Both TVC stands and the static-fire stand share the same DAQ chain for directly comparable data.
 
 ## 4. Bill of materials
 
@@ -210,6 +215,11 @@ Everything below was regenerated or corrected in a single pass. The verdict in �
 changed.
 
 ### 9.1 Scope change
+
+> ⚠ **Superseded 2026-08-10.** The wind tunnel and RQ3/RQ4 consolidation described below were
+> reversed on 2026-08-10 — see `CONFLICTS.md` §7. The full five-research-question program,
+> including a physical wind tunnel, is back in force. Text below is kept as the historical record
+> of the 2026-08 decision, not the current scope.
 
 The **wind tunnel and the airfoil-CFD package are removed from the program** (`CONFLICTS.md` §7).
 `Simulations/CFD/` is deleted, BOM §9 is deleted, and the proposal's five research questions

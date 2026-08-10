@@ -155,15 +155,60 @@ policy this memo already follows for §1–3:
    MCU-specific) before they'll run as-is. Treat "Pico" as the resolution going forward for any new
    ground-rig work, and update or retire the older Nano-based wiring references accordingly.
 
-## 7. Wind tunnel + airfoil CFD: REMOVED FROM PROGRAM — RESOLVED (2026-08 scope change)
+## 7. Wind tunnel + aerofoil testing: RESTORED TO PROGRAM (2026-08-10 scope reversal)
+
+**This reverses the 2026-08 removal below.** As of 2026-08-10 the full five-research-question
+program is back in force, including a physical wind tunnel for aerofoil performance testing. The
+bench rig now lives at `Wind Tunnel/` (a purchased/adapted STL+3MF kit, not the custom Hofferth
+open-return design originally struck — see action items below) and is documented as test stand #4
+in `WYVERN_E4_GSE_TestStands.md` §4.
+
+**Research questions, restored numbering** (matches the canonical five-RQ set in the project
+brief): RQ1 actuator class (magnetic vs servo TVC, now tested on two separate physical stands —
+`WYVERN_E4_GSE_TestStands.md` §2–3), RQ2 zoned AM materials (PC-FR/ASA-Aero/ABS coupon program,
+jetvane testing also restored — §1), **RQ3 fin aerofoil** (tunnel-measured lift/drag/stall,
+un-consolidated from the old merged "Predicted vs In-Situ Passive Stability" RQ3), **RQ4
+wind-tunnel-vs-flight calibration** (tunnel-measured coefficients vs flight-telemetry-derived
+static margin and coast-phase drag — un-renumbered back from the interim RQ4), RQ5 closed-loop PID
+gain sensitivity (was briefly RQ4 during the consolidated period, now back to RQ5).
+
+**Action items this reversal reopens** (not yet done — flagging, not silently resolving):
+- `Simulations/CFD/` (vortex-panel solver, airfoil profile library, `airfoil_polars.csv`,
+  `WYVERN_E2_airfoil_polars.xlsx`, `cl_alpha.png`, `cp_distribution.png`) was deleted from the repo
+  during the 2026-08 removal and has not been restored — if flight-fidelity CFD backing is wanted
+  again alongside the physical tunnel, that package needs rebuilding, not just un-flagging.
+  Tunnel-measured coefficients from the new bench rig do not require the CFD package to be useful,
+  so this is optional, not blocking.
+- The BOM's wind tunnel line items were struck when §7 was written; the BOM has not been
+  re-expanded for tunnel hardware as part of this 2026-08-10 pass (see README.md "BOM scope"
+  note) — check `Wind Tunnel/` against the BOM before assuming everything needed is already costed.
+  The 3MF/STL kit already in that folder still needs its BOM/print-time accounted for.
+- References removed in the original strike (Hofferth, Bell & Mehta, Maskell, Mehta & Bradshaw,
+  Pope & Harper, Kuethe & Chow, Selig ×2) are relevant again if RQ3/RQ4 methodology sections get
+  rewritten to cite tunnel literature.
+
+**What restoring this buys back.** Independent control of angle of attack, freestream velocity, and
+Reynolds number is available again on the bench, ahead of flight. Stall onset angle and the viscous
+portion of fin drag can be measured directly rather than modeled only — closing the gap the 2026-08
+removal explicitly called out as a cost ("no longer measured anywhere... unvalidated in that
+regime"). Documents and analyses may now cite a measured Cl/Cd/stall result for the fin section
+once tunnel data actually exists; until real runs are recorded, still don't assert a measured
+result — the rig existing is not the same as the campaign being done.
+
+**Resolution:** wind tunnel and aerofoil testing are back in scope as of 2026-08-10. Any file still
+saying the tunnel is struck, that RQ3/RQ4 are consolidated, or that BOM §11 doesn't exist is now
+itself the defect — flag and fix it against this section, not against the superseded text below.
+
+---
+
+<details>
+<summary>Superseded 2026-08 removal text (kept for history — do not treat as current)</summary>
 
 The custom open-return low-speed wind tunnel (Hofferth 2025 modular design) and the entire
 airfoil-CFD package that fed it (`Simulations/CFD/` — vortex-panel solver, airfoil profile library,
 `airfoil_polars.csv`, `WYVERN_E2_airfoil_polars.xlsx`, `cl_alpha.png`, `cp_distribution.png`) are
-**deleted from the repository and struck from the program.** This is a scope decision, not a
+deleted from the repository and struck from the program. This is a scope decision, not a
 technical failure of either artifact.
-
-**What was removed**
 
 | Artifact | Disposition |
 |---|---|
@@ -173,22 +218,8 @@ technical failure of either artifact.
 | Proposal RQ3 (aerofoil polars) and RQ4 (tunnel calibration) | consolidated away — see below |
 | References: Hofferth, Bell & Mehta, Maskell, Mehta & Bradshaw, Pope & Harper, Kuethe & Chow, Selig ×2 | removed from the reference list (tunnel-only citations) |
 
-**Research-question consequence.** The proposal previously carried five research questions, two of
-which (RQ3 aerofoil polars, RQ4 tunnel-vs-flight calibration) were answerable *only* in the tunnel.
-Those two are consolidated into a single new **RQ3 — Predicted versus In-Situ Passive Stability**,
-answered by two independent methods that survive the scope change: (A) Barrowman CP/CN plus the RK4
-trajectory and Monte Carlo dispersion suite; (B) reconstruction of static margin and coast-phase
-drag coefficient from recovered flight telemetry. The old RQ5 (control gain sensitivity) renumbers
-to **RQ4**. RQ1 (actuator class) and RQ2 (zoned AM materials) are unchanged. Every surviving
-question retains two independent, mutually cross-validating methods — see Proposal §3, Table 0.
+The proposal previously carried five research questions, two of which (RQ3 aerofoil polars, RQ4
+tunnel-vs-flight calibration) were answerable only in the tunnel. Those two were consolidated into
+a single RQ3 — Predicted versus In-Situ Passive Stability, and the old RQ5 renumbered to RQ4.
 
-**What this costs the program, stated plainly.** Independent control of angle of attack, freestream
-velocity, and Reynolds number is lost. Stall onset angle and the viscous portion of fin drag are no
-longer measured anywhere — they are now modeled only, and the model is unvalidated in that regime.
-The honest form of the surviving aerodynamic claim is therefore a *predictive-accuracy bound* on a
-Barrowman-class model versus flight telemetry, not a measured polar. Documents and analyses must not
-assert a measured Cl/Cd/stall result for the fin section.
-
-**Resolution:** wind tunnel and airfoil CFD are out of scope. Any surviving reference to a tunnel
-campaign, aerofoil polars, tunnel-derived coefficients, or the `CFD/` directory in any file is a
-defect and should be removed on sight.
+</details>
