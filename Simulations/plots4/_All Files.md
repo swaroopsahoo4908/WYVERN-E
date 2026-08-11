@@ -1,9 +1,9 @@
 ---
 updated_at: 2026-08-02
 ---
-# plots4 — All Files
+# plots4, All Files
 
-*Auto-generated index — every file and subfolder linked for vault graph connectivity.*
+*Auto-generated index, every file and subfolder linked for vault graph connectivity.*
 
 ---
 

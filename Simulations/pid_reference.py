@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E — PID reference implementation (matches firmware/wyvern_pid.h exactly).
+"""WYVERN-E, PID reference implementation (matches firmware/wyvern_pid.h exactly).
 Discrete PID: integral-clamp anti-windup + first-order filtered derivative + output clamp.
 
 Flight gains (re-tuned numerically; see ../Documentation/PID_TUNING_REPORT.md):
@@ -45,11 +45,11 @@ class PID:
         if not self.primed:
             self.prev = err
             self.primed = True
-        self.i = min(max(self.i + err*dt, -self.ilim), self.ilim)   # integrate + anti-windup
+        self.i = min(max(self.i + err*dt, -self.ilim), self.ilim) # integrate + anti-windup
         raw = (err - self.prev)/dt; self.prev = err
-        self.d += (raw - self.d) * dt/(self.tau + dt)               # filtered derivative
+        self.d += (raw - self.d) * dt/(self.tau + dt) # filtered derivative
         u = self.kp*err + self.ki*self.i + self.kd*self.d
-        u = min(max(u, -self.lim), self.lim)                        # output clamp
+        u = min(max(u, -self.lim), self.lim) # output clamp
         self.prev_out = u
         return u
 
@@ -67,14 +67,14 @@ if __name__ == "__main__":
     # the bare double-integrator lacks). Authoritative validation is we4_atmos_tvc.py; this is a quick
     # sanity demo: a 2° vertical-trim command settles cleanly with the gimbal well inside ±8°.
     I, T_arm, tau_s, dt = 0.0323, 14.4*0.253, 0.04, 1e-3
-    C_restore, C_damp = 0.30, 0.045          # fin restoring (N·m/rad) + pitch aero damping (N·m·s/rad)
+    C_restore, C_damp = 0.30, 0.045 # fin restoring (N·m/rad) + pitch aero damping (N·m·s/rad)
     pid = PID(KP, KI, KD, GIMBAL_LIM)
     th=w=delta=0.0; setp=np.radians(2.0); t=0.0
-    print(" t(s)  pitch(deg)  gimbal(deg)")
+    print(" t(s) pitch(deg) gimbal(deg)")
     while t < 1.0:
         cmd = pid.update(setp - th, dt)
         delta += (cmd - delta)*dt/tau_s
         M = T_arm*np.sin(delta) - C_restore*th - C_damp*w
         w += (M/I)*dt; th += w*dt; t += dt
         if abs((t*1000) % 100) < 1:
-            print(f"{t:5.2f}  {np.degrees(th):8.2f}   {np.degrees(delta):8.2f}")
+            print(f"{t:5.2f} {np.degrees(th):8.2f} {np.degrees(delta):8.2f}")

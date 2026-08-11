@@ -31,8 +31,8 @@ class S:
         ax = {"x":gp_Dir(1,0,0),"y":gp_Dir(0,1,0),"z":gp_Dir(0,0,1)}[axis]
         t = gp_Trsf(); t.SetRotation(gp_Ax1(gp_Pnt(*origin), ax), math.radians(deg))
         return S(BRepBuilderAPI_Transform(self.shape, t, True).Shape())
-    def cut(self, o):    return S(BRepAlgoAPI_Cut(self.shape, o.shape).Shape())
-    def fuse(self, o):   return S(BRepAlgoAPI_Fuse(self.shape, o.shape).Shape())
+    def cut(self, o): return S(BRepAlgoAPI_Cut(self.shape, o.shape).Shape())
+    def fuse(self, o): return S(BRepAlgoAPI_Fuse(self.shape, o.shape).Shape())
     def common(self, o): return S(BRepAlgoAPI_Common(self.shape, o.shape).Shape())
     def fillet_all(self, r):
         try:
@@ -88,6 +88,34 @@ def fin(root_chord, tip_chord, span, sweep, thickness):
     face = BRepBuilderAPI_MakeFace(poly.Wire()).Face()
     pr = BRepPrimAPI_MakePrism(face, gp_Vec(0, thickness, 0)).Shape()
     return S(pr).translate(0, -thickness/2, 0)
+
+# ---------------------------------------------------------------------------------- DFM helpers
+# Fastener/print-readiness primitives shared by every generator. Keep magic numbers out of part
+# functions -- name them here or in the calling script's parameter block.
+def _axis_dir(axis):
+    return {"x": gp_Dir(1,0,0), "y": gp_Dir(0,1,0), "z": gp_Dir(0,0,1)}[axis]
+def hole_cutter(d, depth, x=0, y=0, z=0, axis="z", margin=1.0):
+    """A cylinder sized to CUT a hole of diameter d, length `depth`, centered at (x,y,z),
+    extended by `margin` past both ends so the cut is always a clean through-cut against a
+    coincident face (avoids zero-thickness/coplanar-face boolean failures)."""
+    ax = gp_Ax2(gp_Pnt(x, y, z - margin), _axis_dir(axis)) if axis == "z" else gp_Ax2(gp_Pnt(x, y, z), _axis_dir(axis))
+    if axis != "z":
+        # for x/y-axis holes, back the cylinder origin off along its own axis by `margin`
+        off = {"x": (-margin,0,0), "y": (0,-margin,0)}[axis]
+        ax = gp_Ax2(gp_Pnt(x+off[0], y+off[1], z+off[2]), _axis_dir(axis))
+    return S(BRepPrimAPI_MakeCylinder(ax, d/2, depth + 2*margin).Shape())
+def boss(od, height, x=0, y=0, z=0):
+    """Solid cylindrical boss (fuse onto a part to add wall thickness around a fastener)."""
+    return cyl(od/2, height, z).translate(x, y, 0)
+def insert_boss(od, height, pilot_d, x=0, y=0, z=0, pilot_depth=None):
+    """A boss with its heat-set-insert pilot hole already cut, ready to `.fuse()` onto a part.
+    Caller supplies od/pilot_d (see the M3_* constants convention in each generator's header)."""
+    pilot_depth = pilot_depth if pilot_depth is not None else height
+    b = boss(od, height, x, y, z)
+    return b.cut(hole_cutter(pilot_d, pilot_depth, x, y, z, axis="z", margin=0.5))
+def bolt_circle(r, n, start_deg=0.0):
+    """List of (x,y) points evenly spaced on a circle of radius r -- standard bolt-pattern helper."""
+    return [(r*math.cos(math.radians(start_deg+360*i/n)), r*math.sin(math.radians(start_deg+360*i/n))) for i in range(n)]
 
 def export_step(shapes, path):
     Interface_Static.SetCVal_s("write.step.unit","MM")

@@ -1,4 +1,4 @@
-# Superseded 3D parts — archive only, do not print
+# Superseded 3D parts, archive only, do not print
 
 These files are retained as a record of design changes, not as buildable parts. Nothing here is
 referenced by `_generator/gen_rocket4.py`, the BOM, or the mass stack in `Simulations/we4_sim.py`.

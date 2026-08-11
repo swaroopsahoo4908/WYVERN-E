@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-WYVERN-E — ground-test bench simulators (backend-agnostic, no Tk).
+WYVERN-E, ground-test bench simulators (backend-agnostic, no Tk).
 
 Pure functions + matplotlib-Figure builders for three bench tools surfaced in the datagen GUI:
-  1. Static motor tester   -> select a motor, get its thrust curve + the axial load-cell trace a
+  1. Static motor tester -> select a motor, get its thrust curve + the axial load-cell trace a
                               static stand would log (with sensor noise).
-  2. Jetvane suitability    -> RETIRED 2026-08 (jetvane testing dropped from the program). The
+  2. Jetvane suitability -> RETIRED 2026-08 (jetvane testing dropped from the program). The
                               analysis is kept because it is what justified dropping it -- any
                               printed vane ablates in a 1150 K BP exhaust -- but it is no longer
                               part of the test plan and the GUI tab is informational only.
-  3. Ground TVC test + PID  -> the 3-axis thrust-vector balance reading (Fz axial, Fx/Fy lateral)
+  3. Ground TVC test + PID -> the 3-axis thrust-vector balance reading (Fz axial, Fx/Fy lateral)
                               while the firmware PID gimbals the nozzle through a bench maneuver,
                               incl. servo lag, and the resolved thrust vector (T, theta, phi).
 
@@ -18,19 +18,19 @@ constants in core.py where relevant (F15 curve, gains, gimbal limit, arm) so ben
 with the flight model.
 
 --------------------------------------------------------------------------------------------
-FIDELITY REVISION 2026-08 — the stands are now modeled at the SIGNAL level, not the ideal level
+FIDELITY REVISION 2026-08, the stands are now modeled at the SIGNAL level, not the ideal level
 --------------------------------------------------------------------------------------------
 The previous version modeled each load cell as "true force + white gaussian noise" and the servo
 as a first-order lag. That is optimistic in the two ways that actually bite on a real stand:
 
-1.  STAND STRUCTURAL COMPLIANCE.  A printed stand is not rigid. The motor + gimbal mass on the
+1. STAND STRUCTURAL COMPLIANCE. A printed stand is not rigid. The motor + gimbal mass on the
     flexure stack forms a lightly-damped second-order system (mount resonance, `f_mount`), and the
     load cell reads the *stand's* response to the thrust, not the thrust. The ignition transient
-    is a near-step input, so it rings the mount — this is the single largest error source on an
+    is a near-step input, so it rings the mount, this is the single largest error source on an
     amateur thrust stand and it is now modeled explicitly, along with the digital low-pass the
     DAQ must apply to suppress it.
 
-2.  DAQ CHAIN.  The HX711 is a 24-bit sigma-delta at 10 or 80 SPS with a settling requirement
+2. DAQ CHAIN. The HX711 is a 24-bit sigma-delta at 10 or 80 SPS with a settling requirement
     after channel switch; it is not a clean continuous sensor. Now modeled: sample-rate aliasing
     of the mount ring, ADC quantization at the cell's actual mV/V sensitivity and the amplifier
     gain, 1/f drift, thermal zero drift over the burn, and a per-channel calibration-slope error
@@ -53,32 +53,32 @@ _trapz = getattr(np, "trapezoid", getattr(np, "trapz", None))
 
 # ------------------------------------------------------------------ DAQ / stand hardware model
 # NOYITO HX711 + generic strain-gauge bridge cells, as specified in BOM section 10.
-HX711_SPS_LOW   = 10.0      # HX711 RATE pin low  (default on most breakouts)
-HX711_SPS_HIGH  = 80.0      # HX711 RATE pin high (used here; set by cutting the RATE trace)
-HX711_BITS      = 24
-HX711_GAIN      = 128.0     # channel A gain
-CELL_SENS_MV_V  = 1.0       # bridge sensitivity [mV/V] at full scale (typical for these cells)
-BRIDGE_EXC_V    = 5.0       # HX711 on-board excitation
-ADC_FS_V        = 0.5 * BRIDGE_EXC_V / HX711_GAIN   # +-20 mV differential input span at gain 128
+HX711_SPS_LOW = 10.0 # HX711 RATE pin low (default on most breakouts)
+HX711_SPS_HIGH = 80.0 # HX711 RATE pin high (used here; set by cutting the RATE trace)
+HX711_BITS = 24
+HX711_GAIN = 128.0 # channel A gain
+CELL_SENS_MV_V = 1.0 # bridge sensitivity [mV/V] at full scale (typical for these cells)
+BRIDGE_EXC_V = 5.0 # HX711 on-board excitation
+ADC_FS_V = 0.5 * BRIDGE_EXC_V / HX711_GAIN # +-20 mV differential input span at gain 128
 
 # Stand mechanical model (printed PETG-CF base + flexure stack carrying motor + gimbal)
-MOUNT_F_HZ      = 42.0      # first mount/flexure resonance [Hz] (measured-class for this build)
-MOUNT_ZETA      = 0.035     # structural damping ratio (printed polymer + bolted joints: very light)
-CROSS_AXIS_PCT  = 1.8       # lateral force appearing on the axial channel and vice versa [%]
+MOUNT_F_HZ = 42.0 # first mount/flexure resonance [Hz] (measured-class for this build)
+MOUNT_ZETA = 0.035 # structural damping ratio (printed polymer + bolted joints: very light)
+CROSS_AXIS_PCT = 1.8 # lateral force appearing on the axial channel and vice versa [%]
 
 # Drift and calibration residuals
-ZERO_DRIFT_N_PER_S = 0.004  # thermal zero drift while the stand heats during a burn [N/s]
-CAL_SLOPE_SIGMA    = 0.006  # residual calibration-slope error after dead-weight cal (0.6%)
+ZERO_DRIFT_N_PER_S = 0.004 # thermal zero drift while the stand heats during a burn [N/s]
+CAL_SLOPE_SIGMA = 0.006 # residual calibration-slope error after dead-weight cal (0.6%)
 
 # ------------------------------------------------------------------ motors
 # Estes F15 is the real digitized curve from core.py (49.6 N.s / 3.45 s). Others are represented by
 # a plausible rise->sustain->tail shape scaled to the published total impulse / burn / peak so the
 # tester shows the right impulse, average and peak. cls = NAR letter class.
 MOTORS = {
-    "Estes C6":  dict(It=8.8,  tb=1.86, peak=14.1, cls="C"),
+    "Estes C6": dict(It=8.8, tb=1.86, peak=14.1, cls="C"),
     "Estes D12": dict(It=16.8, tb=1.65, peak=29.7, cls="D"),
     "Estes E12": dict(It=28.5, tb=2.62, peak=28.0, cls="E"),
-    "Estes E16": dict(It=30.0, tb=1.90, peak=35.0, cls="E"),   # commissioning motor (Gate 5)
+    "Estes E16": dict(It=30.0, tb=1.90, peak=35.0, cls="E"), # commissioning motor (Gate 5)
     "Estes F15": dict(It=49.6, tb=3.45, peak=25.3, cls="F", real="F15"),
 }
 MOTOR_NAMES = list(MOTORS)
@@ -114,7 +114,7 @@ def _shape_curve(total, burn, peak, spike=0.14, n=80):
     lo, hi = 0.02, 80.0
     for _ in range(80):
         mid = 0.5 * (lo + hi)
-        if _trapz(curve(mid), t) > total: lo = mid       # too much impulse -> decay faster
+        if _trapz(curve(mid), t) > total: lo = mid # too much impulse -> decay faster
         else: hi = mid
     f = curve(0.5 * (lo + hi))
     err = abs(_trapz(f, t) - total) / max(total, 1e-9)
@@ -167,9 +167,9 @@ def _daq_chain(t_fine, signal_N, cell_kg, sample_hz, rng, add_drift=True):
     """
     fs_N = cell_kg * 9.80665
     # ADC resolution referred to force: full-scale bridge output vs 24-bit span
-    v_fs = CELL_SENS_MV_V * 1e-3 * BRIDGE_EXC_V          # differential volts at cell full scale
+    v_fs = CELL_SENS_MV_V * 1e-3 * BRIDGE_EXC_V # differential volts at cell full scale
     counts_fs = (v_fs / ADC_FS_V) * (2 ** (HX711_BITS - 1))
-    lsb_N = fs_N / max(counts_fs, 1.0)                    # force per ADC count
+    lsb_N = fs_N / max(counts_fs, 1.0) # force per ADC count
     # decimate to the DAQ rate (no anti-alias filter on an HX711 breakout -> genuine aliasing)
     ts = np.arange(0.0, float(t_fine[-1]), 1.0 / sample_hz)
     idx = np.clip(np.searchsorted(t_fine, ts), 0, len(t_fine) - 1)
@@ -235,13 +235,13 @@ def make_motor_figure(name, cell_kg=5.0, seed=0):
     ax.axhline(st["avg"], ls="--", color="#386641", lw=1, label=f"avg {st['avg']:.1f} N")
     ax.axhline(st["peak"], ls=":", color="#bc4749", lw=1, label=f"true peak {st['peak']:.1f} N")
     ax.set_xlabel("t (s)"); ax.set_ylabel("thrust (N)")
-    over = "  ⚠ cell under-ranged!" if info["headroom"] < 1.05 else ""
-    alias = "  ⚠ mount ring ALIASED" if info["mount_aliased"] else ""
+    over = " ⚠ cell under-ranged!" if info["headroom"] < 1.05 else ""
+    alias = " ⚠ mount ring ALIASED" if info["mount_aliased"] else ""
     ax.set_title(f"{name}: {st['It']:.1f} N·s ({st['cls']}-class) · burn {st['tb']:.2f} s · "
                  f"{cell_kg:.0f} kg cell = {info['cell_fs_N']:.0f} N FS ({info['headroom']:.1f}×){over}{alias}",
                  fontweight="bold")
     ax.text(0.98, 0.55,
-            f"peak err {info['peak_error_pct']:+.1f}%   impulse err {info['impulse_error_pct']:+.1f}%\n"
+            f"peak err {info['peak_error_pct']:+.1f}% impulse err {info['impulse_error_pct']:+.1f}%\n"
             f"resolution {info['resolution_pct_fs']:.3f}% FS ({info['lsb_N']*1000:.1f} mN/count)\n"
             f"mount {info['mount_f_hz']:.0f} Hz ζ={info['mount_zeta']:.3f} · Nyquist {info['nyquist_hz']:.0f} Hz",
             transform=ax.transAxes, ha="right", va="top", fontsize=7.5,
@@ -256,14 +256,14 @@ def make_motor_figure(name, cell_kg=5.0, seed=0):
 # drag + cosine; thermal is the killer for a 3.45 s black-powder burn on a printed vane.
 EXHAUST = {
     "Estes BP (F15)": dict(Tflame_K=1150.0, kind="black powder"),
-    "APCP composite":  dict(Tflame_K=2100.0, kind="ammonium-perchlorate composite"),
+    "APCP composite": dict(Tflame_K=2100.0, kind="ammonium-perchlorate composite"),
 }
 VANE_MAT = {
-    "PETG-CF (printed)":  dict(Tmax_K=353.0,  survives=False),  # HDT ~80 C -> ablates instantly
-    "PLA (printed)":      dict(Tmax_K=328.0,  survives=False),  # HDT ~55 C -> ablates instantly
-    "ABS (printed)":      dict(Tmax_K=371.0,  survives=False),  # coupon: HDT ~98 C -> ablates
-    "Graphite":           dict(Tmax_K=3900.0, survives=True),   # sublimes ~3900 K; mild erosion in BP
-    "Tungsten":           dict(Tmax_K=3695.0, survives=True),
+    "PETG-CF (printed)": dict(Tmax_K=353.0, survives=False), # HDT ~80 C -> ablates instantly
+    "PLA (printed)": dict(Tmax_K=328.0, survives=False), # HDT ~55 C -> ablates instantly
+    "ABS (printed)": dict(Tmax_K=371.0, survives=False), # coupon: HDT ~98 C -> ablates
+    "Graphite": dict(Tmax_K=3900.0, survives=True), # sublimes ~3900 K; mild erosion in BP
+    "Tungsten": dict(Tmax_K=3695.0, survives=True),
 }
 
 
@@ -295,9 +295,9 @@ def jetvane_analysis(motor="Estes F15", vane_mat="Graphite", exhaust="Estes BP (
                    f"(servo gimbal at 8 deg gives ~{servo_side:.2f} N for comparison).")
     verdict.append(f"Axial thrust loss at {max_defl_deg:.0f} deg ~= {axial_loss_pct[-1]:.1f}% of average thrust.")
     ok = survives and side_at_max >= 0.6 * servo_side and axial_loss_pct[-1] <= 12.0
-    verdict.append("SUITABLE (graphite/tungsten only) — jetvanes give control authority comparable to "
+    verdict.append("SUITABLE (graphite/tungsten only), jetvanes give control authority comparable to "
                    "the servo gimbal, at the cost of a few % axial loss." if ok else
-                   "NOT the preferred TVC for WYVERN — the servo (or magnetic) nozzle gimbal beats a "
+                   "NOT the preferred TVC for WYVERN, the servo (or magnetic) nozzle gimbal beats a "
                    "jetvane on axial loss and, for any printed vane, on survivability.")
     return dict(d=d, side=side, axial_loss_pct=axial_loss_pct, survives=survives,
                 servo_side=servo_side, verdict="\n".join("• " + v for v in verdict), suitable=ok)
@@ -314,7 +314,7 @@ def make_jetvane_figure(motor="Estes F15", vane_mat="Graphite", exhaust="Estes B
     ax2.plot(r["d"], r["axial_loss_pct"], color="#bc4749", lw=2.0, label="axial thrust loss (%)")
     ax2.set_ylabel("axial thrust loss (%)", color="#bc4749")
     tv = "SUITABLE" if r["suitable"] else ("THERMAL FAIL" if not r["survives"] else "not preferred")
-    ax.set_title(f"Jetvane suitability — {motor} · {vane_mat} vane · {exhaust} → {tv}", fontweight="bold")
+    ax.set_title(f"Jetvane suitability, {motor} · {vane_mat} vane · {exhaust} → {tv}", fontweight="bold")
     ax.grid(alpha=0.3)
     lines = ax.get_lines() + ax2.get_lines()
     ax.legend(lines, [l.get_label() for l in lines], loc="upper left", fontsize=8)
@@ -354,7 +354,7 @@ def ground_tvc_test(motor="Estes F15", kp=None, ki=None, kd=None, gimbal_deg=8.0
         cmd = lim * 0.8 * np.sin(2 * np.pi * 0.7 * T_axis)
     # (pid_mode handled in the loop below: PID rejects a 3 deg mount misalignment disturbance)
 
-    meas = np.zeros(n)         # measured nozzle angle (servo lag + linkage)
+    meas = np.zeros(n) # measured nozzle angle (servo lag + linkage)
     Fz = np.zeros(n); Fx = np.zeros(n)
     g = 0.0; integ = 0.0; theta = 3.0 if pid_mode else 0.0; prev = 0.0
     fs_ax = axial_cell_kg * 9.80665; fs_lat = lat_cell_kg * 9.80665
@@ -411,7 +411,7 @@ def make_ground_tvc_figure(motor="Estes F15", kp=None, ki=None, kd=None, gimbal_
     ax1.plot(r["t"], r["meas"], color="#bc4749", lw=1.8, label="measured nozzle δ (servo lag)")
     ax1.axhline(gimbal_deg, ls="--", color="#999", lw=0.7); ax1.axhline(-gimbal_deg, ls="--", color="#999", lw=0.7)
     ax1.set_ylabel("gimbal δ (deg)"); ax1.grid(alpha=0.3); ax1.legend(fontsize=8, loc="upper right")
-    ax1.set_title(f"Ground 3-axis TVC balance — {motor} · "
+    ax1.set_title(f"Ground 3-axis TVC balance, {motor} · "
                   f"{'PID reject' if r['pid_mode'] else scenario} · sat {m['sat_pct']:.0f}%",
                   fontweight="bold")
     ax2.plot(r["t"], r["Fz"], color="#2a6f97", lw=1.6, label="Fz axial (load cell)")
@@ -426,7 +426,7 @@ if __name__ == "__main__":
     import matplotlib; matplotlib.use("Agg")
     for nm in MOTOR_NAMES:
         s = motor_stats(nm)
-        print(f"{nm:10} It={s['It']:5.1f} N·s  avg={s['avg']:5.1f} N  peak={s['peak']:5.1f} N  burn={s['tb']:.2f}s  {s['cls']}")
+        print(f"{nm:10} It={s['It']:5.1f} N·s avg={s['avg']:5.1f} N peak={s['peak']:5.1f} N burn={s['tb']:.2f}s {s['cls']}")
     j = jetvane_analysis("Estes F15", "PETG-CF (printed)")
     print("jetvane PETG-CF survives:", j["survives"], "| graphite:",
           jetvane_analysis("Estes F15", "Graphite")["survives"])

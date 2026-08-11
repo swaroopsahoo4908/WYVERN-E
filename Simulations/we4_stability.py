@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E — fin sizing and passive-stability trade study (Barrowman), remass, re-trajectory,
+"""WYVERN-E, fin sizing and passive-stability trade study (Barrowman), remass, re-trajectory,
 rail-exit, weathercock, flutter, drift -> plots4/.
 
 REWRITTEN 2026-08. The previous version of this file was internally inconsistent in four ways,
@@ -15,11 +15,16 @@ every one of which propagated into the documentation:
      inline comment flagged but never fixed.
 
 This version evaluates the real trade: static margin vs. fin semispan for the canonical mass
-stack, with the historical 35 mm candidate and the flown 72 mm configuration both marked, and
-it reproduces the canonical CG/CP/margin (48.4 cm / 56.8 cm / +1.20 cal) exactly at 72 mm.
+stack, with the historical 35 mm candidate and the flown fin configuration both marked.
+
+UPDATED 2026-08-10: the airframe re-zoned to ASA-Aero (upper body) / PETG-CF (lower body + fins) /
+PC-FR (TVC assembly). The lighter foamed-ASA upper body plus heavier PETG-CF fins moved CG aft from
+48.4 to 50.4 cm against an unchanged 56.8 cm CP, dropping margin to 0.92 cal, under the 1.0 cal
+floor. Fin span was increased 72 -> 87 mm to restore margin; this file now reproduces the canonical
+CG/CP/margin (50.8 cm / 59.3 cm / +1.20 cal) at 87 mm.
 """
 import os, json, numpy as np
-_TRAPZ = getattr(np, "trapezoid", getattr(np, "trapz", None))   # NumPy 2.x renamed trapz
+_TRAPZ = getattr(np, "trapezoid", getattr(np, "trapz", None)) # NumPy 2.x renamed trapz
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "plots4" + os.environ.get("WYVERN_RUN_TAG", "")); os.makedirs(OUT, exist_ok=True)
@@ -28,15 +33,15 @@ g = 9.80665; rho0 = 1.225; D = 0.070; Rb = D / 2; A = np.pi * Rb**2
 Lnose = 0.12; Ltot = 0.74
 
 # ---- canonical mass stack (we4_sim.py) -----------------------------------------------------
-M_LIFT_FLOWN = 0.792      # kg, incl. 4x 72 mm PLA fins and the loaded F15-4
-M_DRY_FLOWN  = 0.690
-CG_FLOWN     = 0.484      # m from nose, flown config
-SPAN_FLOWN   = 0.072      # m semispan
-PROP         = 0.060; TB = 3.45
-CD_NOMINAL   = 0.539      # componentwise Barrowman buildup, shared with we4_flightsim/core.py
-FIN_RHO      = 1240.0     # kg/m^3, PLA (was 650 for foamed ASA-Aero -- material change 2026-08)
-FIN_T        = 0.003      # m fin thickness
-cr, ct, swLE = 0.070, 0.035, 0.025   # root chord, tip chord, LE sweep
+M_LIFT_FLOWN = 0.7292 # kg, incl. 4x 87 mm PETG-CF fins and the loaded F15-4
+M_DRY_FLOWN = 0.6272
+CG_FLOWN = 0.5083 # m from nose, flown config
+SPAN_FLOWN = 0.087 # m semispan
+PROP = 0.060; TB = 3.45
+CD_NOMINAL = 0.539 # componentwise Barrowman buildup, shared with we4_flightsim/core.py
+FIN_RHO = 1300.0 # kg/m^3, PETG-CF (lower body + fins zone, 2026-08-10 re-zoning)
+FIN_T = 0.003 # m fin thickness
+cr, ct, swLE = 0.070, 0.035, 0.025 # root chord, tip chord, LE sweep
 
 def fin_mass_kg(span, N=4, t=FIN_T):
     """Mass of N trapezoidal fins [kg]. Single definition -- the duplicate, unit-broken
@@ -44,17 +49,17 @@ def fin_mass_kg(span, N=4, t=FIN_T):
     return N * (0.5 * (cr + ct) * span * t) * FIN_RHO
 
 # Back out the fins-excluded CG so the model reproduces the canonical flown CG exactly.
-X_FIN = Ltot - cr * 0.4                       # fin-set centroid station [m]
+X_FIN = Ltot - cr * 0.4 # fin-set centroid station [m]
 M_FIN_FLOWN = fin_mass_kg(SPAN_FLOWN)
 M_EX_FINS = M_LIFT_FLOWN - M_FIN_FLOWN
 CG_EX_FINS = (CG_FLOWN * M_LIFT_FLOWN - X_FIN * M_FIN_FLOWN) / M_EX_FINS
 
 def barrowman(span, N=4, xroot=None):
     """Barrowman CP and normal-force slope for the nose + fin set."""
-    if xroot is None: xroot = Ltot - cr        # fin root LE near the base
+    if xroot is None: xroot = Ltot - cr # fin root LE near the base
     CNn = 2.0; Xn = 0.333 * Lnose
-    Lf = np.sqrt(span**2 + (swLE + (ct - cr) / 2) ** 2)     # mid-chord line length
-    kfb = 1 + Rb / (span + Rb)                              # body-interference factor
+    Lf = np.sqrt(span**2 + (swLE + (ct - cr) / 2) ** 2) # mid-chord line length
+    kfb = 1 + Rb / (span + Rb) # body-interference factor
     CNf = kfb * (4 * N * (span / D) ** 2) / (1 + np.sqrt(1 + (2 * Lf / (cr + ct)) ** 2))
     Xf = xroot + (swLE / 3) * (cr + 2 * ct) / (cr + ct) + (1 / 6) * ((cr + ct) - cr * ct / (cr + ct))
     CP = (CNn * Xn + CNf * Xf) / (CNn + CNf)
@@ -70,7 +75,7 @@ def config(span):
 
 # ---- span sweep ----------------------------------------------------------------------------
 spans = np.linspace(0.015, 0.140, 600)
-sweep = np.array([config(s)[1:4] for s in spans])       # (CG, CP, margin)
+sweep = np.array([config(s)[1:4] for s in spans]) # (CG, CP, margin)
 margins = sweep[:, 2]
 
 def span_for_margin(target):
@@ -81,14 +86,14 @@ def span_for_margin(target):
 s_1p0 = span_for_margin(1.0); s_1p5 = span_for_margin(1.5)
 
 # ---- the two named configurations ----------------------------------------------------------
-m35, cg35, cp35, marg35, _ = config(0.035)              # historical candidate, ACTUALLY 35 mm
-m72, cg72, cp72, marg72, cn72 = config(SPAN_FLOWN)      # flown
+m35, cg35, cp35, marg35, _ = config(0.035) # historical candidate, ACTUALLY 35 mm
+m72, cg72, cp72, marg72, cn72 = config(SPAN_FLOWN) # flown
 
 res = dict(
     fin_count=4, fin_root_mm=cr * 1000, fin_tip_mm=ct * 1000, fin_sweepLE_mm=swLE * 1000,
-    fin_thickness_mm=FIN_T * 1000, fin_material="PLA (1240 kg/m^3)",
+    fin_thickness_mm=FIN_T * 1000, fin_material="PETG-CF (1300 kg/m^3)",
     cg_excl_fins_cm=round(CG_EX_FINS * 100, 2),
-    # flown configuration (must reproduce the canonical 49.1 / 56.8 / 1.10)
+    # flown configuration (must reproduce the canonical 48.4 / 56.8 / 1.20)
     flown_span_mm=SPAN_FLOWN * 1000, flown_fin_mass_g=round(M_FIN_FLOWN * 1000, 1),
     flown_m_lift_g=round(m72 * 1000, 1), flown_CG_cm=round(cg72 * 100, 1),
     flown_CP_cm=round(cp72 * 100, 1), flown_static_margin_cal=round(marg72, 2),
@@ -103,11 +108,11 @@ res = dict(
 )
 
 # ---- re-trajectory for the flown config (RK4, matches we4_flightsim) -----------------------
-T_DEPLOY = TB + 4.0        # F15-4 ejection charge: 4 s after burnout
+T_DEPLOY = TB + 4.0 # F15-4 ejection charge: 4 s after burnout
 tc = np.array([0, .05, .12, .2, .3, .5, 1, 1.5, 2, 2.5, 3, 3.3, 3.45])
 # F15 thrust curve CORRECTED 2026-08. The digitized shape integrated to 41.97 N.s, so the
 # 49.6 N.s renormalization below scaled the whole curve by 1.1817 and pushed peak thrust to
-# 29.9 N -- against Estes' published 25.3 N peak, and against the 3.66 peak T/W quoted
+# 29.9 N -- against Estes' published 25.3 N peak, and against the 3.26 peak T/W quoted
 # throughout this repo (29.9 N gives 4.32). The sustain block (t >= 0.3 s) has been lifted by
 # +2.4408 N so the curve now matches ALL THREE published values simultaneously:
 # total impulse 49.6 N.s, peak 25.3 N, average 14.4 N. The renormalization is retained as a
@@ -117,7 +122,7 @@ Fc *= 49.6 / _TRAPZ(Fc, tc)
 thr = lambda t: float(np.interp(t, tc, Fc, left=0, right=0)) if 0 <= t <= TB else 0.0
 mdot = PROP / TB
 rhoh = lambda h: rho0 * np.exp(-h / 8500)
-m_dry72 = m72 - 0.102       # loaded F15-4 is 102 g
+m_dry72 = m72 - 0.102 # loaded F15-4 is 102 g
 
 def deriv(s, t, m_lift):
     h, v = s
@@ -160,8 +165,8 @@ res["weathercock_deg_at_5ms"] = round(float(np.degrees(np.arctan(5.0 / max(v_rai
 # ---- fin flutter (NACA TN-4197 form) --------------------------------------------------------
 # Vf = a * sqrt( G / ( (1.337 M^2 (lambda+1) / (2 (AR+2)) ) * (t/c)^-3 * P ) ), evaluated at the
 # flight ambient pressure. G is the fin material's shear modulus.
-G_SHEAR = 1.3e9                      # Pa, PLA (fins are PLA as of the 2026-08 material change)
-lam = ct / cr                        # taper ratio
+G_SHEAR = 1.3e9 # Pa, PLA (fins are PLA as of the 2026-08 material change)
+lam = ct / cr # taper ratio
 S_fin = 0.5 * (cr + ct) * SPAN_FLOWN
 AR = SPAN_FLOWN**2 / S_fin
 tc_ratio = FIN_T / (0.5 * (cr + ct))
@@ -176,7 +181,7 @@ res["flutter_margin_x"] = round(float(Vf) / max(v_max, 1e-6), 1)
 res["max_flight_mach"] = round(v_max / a_snd, 3)
 
 # ---- descent drift --------------------------------------------------------------------------
-res["drift_m_per_ms_wind"] = round(float(H[ap]) / 6.2, 1)   # 18" chute, ~6.2 m/s descent
+res["drift_m_per_ms_wind"] = round(float(H[ap]) / 6.2, 1) # 18" chute, ~6.2 m/s descent
 
 # ---------- PLOTS ----------
 def sv(fig, n): fig.tight_layout(); fig.savefig(f"{OUT}/{n}.png", dpi=130); plt.close(fig)
@@ -191,7 +196,7 @@ ax.axvline(SPAN_FLOWN * 1000, ls='--', c='#386641', label=f"72 mm FLOWN → {mar
 ax.scatter([s_1p0 * 1000], [1.0], c='k', zorder=5, label=f"min span @1.0 cal = {s_1p0*1000:.0f} mm")
 ax.set_xlabel("fin semispan (mm)"); ax.set_ylabel("static margin (cal)")
 ax.legend(fontsize=8); ax.grid(alpha=.3)
-ax.set_title("WYVERN-E · fin sizing — Barrowman static margin vs semispan (4 fins, canonical mass stack)",
+ax.set_title("WYVERN-E · fin sizing, Barrowman static margin vs semispan (4 fins, canonical mass stack)",
              fontweight='bold'); sv(fig, "13_fin_sizing")
 
 fig, ax = plt.subplots(figsize=(10, 2.8))
@@ -201,7 +206,7 @@ ax.annotate('', xy=(cp72 * 100, 0.5), xytext=(cg72 * 100, 0.5), arrowprops=dict(
 ax.text((cg72 + cp72) * 50, 0.6, f"{marg72:.2f} cal", ha='center', color='g')
 ax.set_xlim(0, Ltot * 100); ax.set_ylim(0, 1); ax.set_yticks([])
 ax.set_xlabel("station from nose (cm)"); ax.legend(loc='upper left')
-ax.set_title("WYVERN-E · CG / CP, FLOWN 72 mm fins — passively stable through the ignition transient",
+ax.set_title("WYVERN-E · CG / CP, FLOWN 72 mm fins, passively stable through the ignition transient",
              fontweight='bold'); sv(fig, "14_cp_cg")
 
 fig, ax = plt.subplots(figsize=(8.5, 5))

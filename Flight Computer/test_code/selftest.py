@@ -9,21 +9,21 @@ live serial session via host_monitor.py, not printed unconditionally.
 
 Checks performed by the firmware and reported here (see CONFLICTS.md for the frozen parameter
 table these depend on):
-  MUX            PCA9548A @0x70 acknowledges on I2C0
-  IMU_GIMBAL     BNO085 on I2C1 (dedicated bus) inits + GRV report enabled
-  IMU_BODY       BNO085 on I2C0 mux ch0 inits + GRV report enabled (+ accel report)
-  IMU_RECOVERY   BNO085 on I2C0 mux ch1 inits + GRV report enabled
-  IMU_MINIMUM    gimbal AND (body OR recovery) all initialized -- flight-critical minimum
-  BARO_BMP       BMP388 on mux ch3 (0x77) inits
-  BARO_BME       BME688 on mux ch2 (0x76) inits
-  SERVO          pitch/yaw sweep to the full +-8 deg limit completes without a hang
+  MUX PCA9548A @0x70 acknowledges on I2C0
+  IMU_GIMBAL BNO085 on I2C1 (dedicated bus) inits + GRV report enabled
+  IMU_BODY BNO085 on I2C0 mux ch0 inits + GRV report enabled (+ accel report)
+  IMU_RECOVERY BNO085 on I2C0 mux ch1 inits + GRV report enabled
+  IMU_MINIMUM gimbal AND (body OR recovery) all initialized -- flight-critical minimum
+  BARO_BMP BMP388 on mux ch3 (0x77) inits
+  BARO_BME BME688 on mux ch2 (0x76) inits
+  SERVO pitch/yaw sweep to the full +-8 deg limit completes without a hang
                  (visually confirm actual nozzle travel on the bench -- see test_code/t3)
-  CORE0_READY    core 0's own init sequence finished
-  BATTERY        2S LiPo voltage above CRITICAL_CUTOFF_V (see battery.h)
-  SD             microSD (SPI0) mounts and the flight-log file opens for write
-  WIFI           bench WiFi association, only if WIFI_ENABLED is set in the .ino (SKIP otherwise)
-  RBF            Remove-Before-Flight switch sensed pulled (PASS) or still inserted (WAIT)
-  LOG_RING       core 0 -> core 1 shared-RAM log ring is actually moving (core 1 draining), and
+  CORE0_READY core 0's own init sequence finished
+  BATTERY 2S LiPo voltage above CRITICAL_CUTOFF_V (see battery.h)
+  SD microSD (SPI0) mounts and the flight-log file opens for write
+  WIFI bench WiFi association, only if WIFI_ENABLED is set in the .ino (SKIP otherwise)
+  RBF Remove-Before-Flight switch sensed pulled (PASS) or still inserted (WAIT)
+  LOG_RING core 0 -> core 1 shared-RAM log ring is actually moving (core 1 draining), and
                  zero frames dropped during the boot window
 
 Usage:

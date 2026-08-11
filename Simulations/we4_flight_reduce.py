@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-WYVERN-E — post-flight data reduction: onboard SD log  ->  RQ3 and RQ4 results.
+WYVERN-E, post-flight data reduction: onboard SD log -> RQ3 and RQ4 results.
 
 Point this at `WYV4_FLIGHT.csv` off the flight computer's microSD card and it produces every
 number the paper needs from that flight, plus the figures, in one pass. The intent is that the
@@ -17,7 +17,7 @@ WHAT IT COMPUTES
         the barometric altitude. Compared against the Barrowman buildup's 0.539.
     (b) Static margin from the weathercock response. The steady pitch offset the vehicle holds
         into the measured crosswind gives the aerodynamic restoring stiffness, hence CP:
-              k_alpha = q A CN_alpha (Xcp - Xcg)   =>   Xcp = Xcg + k_alpha / (q A CN_alpha)
+              k_alpha = q A CN_alpha (Xcp - Xcg) => Xcp = Xcg + k_alpha / (q A CN_alpha)
         Compared against the Barrowman CP of 56.8 cm (+1.20 cal).
 
   RQ4 -- closed-loop gain sensitivity
@@ -46,21 +46,21 @@ sys.path.insert(0, os.path.join(HERE, "wyvern_datagen"))
 
 # ---- canonical predictions this flight is scored against (single source: the sim suite) --------
 PRED = dict(
-    cd_nominal      = 0.539,     # we4_flightsim componentwise Barrowman buildup
-    xcp_m           = 0.568,     # Barrowman CP from nose
-    xcg_m           = 0.484,     # liftoff CG from nose
-    diameter_m      = 0.070,
-    margin_cal      = 1.20,
-    m_lift_kg       = 0.792,
-    m_dry_kg        = 0.690,
-    burn_s          = 3.45,
-    deploy_s        = 7.45,
-    apogee_m        = 98.9,
-    apogee_ft       = 324.0,
-    apogee_t_s      = 6.27,
-    cn_alpha        = 12.0,      # 1/rad, nose+fins
-    gimbal_lim_deg  = 8.0,
-    ctrl_hz         = 500.0,
+    cd_nominal = 0.539, # we4_flightsim componentwise Barrowman buildup
+    xcp_m = 0.568, # Barrowman CP from nose
+    xcg_m = 0.484, # liftoff CG from nose
+    diameter_m = 0.070,
+    margin_cal = 1.20,
+    m_lift_kg = 0.792,
+    m_dry_kg = 0.690,
+    burn_s = 3.45,
+    deploy_s = 7.45,
+    apogee_m = 98.9,
+    apogee_ft = 324.0,
+    apogee_t_s = 6.27,
+    cn_alpha = 12.0, # 1/rad, nose+fins
+    gimbal_lim_deg = 8.0,
+    ctrl_hz = 500.0,
 )
 G, R_AIR, LAPSE, T0_ISA = 9.80665, 287.05, 0.0065, 288.15
 A_REF = math.pi * (PRED["diameter_m"] / 2) ** 2
@@ -76,7 +76,7 @@ def load_log(path):
         for ln in fh:
             parts = ln.rstrip("\n").split(",")
             if len(parts) != len(header):
-                continue                       # partial final row after power loss -- skip
+                continue # partial final row after power loss -- skip
             try:
                 rows.append([float(x) for x in parts])
             except ValueError:
@@ -164,9 +164,9 @@ def reconstruct_cd(d):
     best = (1e9, 0.539, v0_seed)
     cd_lo, cd_hi = 0.15, 1.60
     v_lo, v_hi = v0_seed * 0.85, v0_seed * 1.15
-    for _ in range(4):                                   # coarse-to-fine, 4 refinements
+    for _ in range(4): # coarse-to-fine, 4 refinements
         cds = np.linspace(cd_lo, cd_hi, 13)
-        vs  = np.linspace(v_lo, v_hi, 13)
+        vs = np.linspace(v_lo, v_hi, 13)
         for c in cds:
             for vv in vs:
                 r_ = resid(c, vv)
@@ -204,7 +204,7 @@ def reconstruct_margin(d, wind_ms=None):
     exactly the condition the Barrowman prediction describes.
 
     Physics: for small theta the passive pitch dynamics are
-          Iyy * theta_ddot = k_alpha * (alpha_wind - theta),   k_alpha = q A CN_alpha (Xcp - Xcg)
+          Iyy * theta_ddot = k_alpha * (alpha_wind - theta), k_alpha = q A CN_alpha (Xcp - Xcg)
     Fit theta_ddot over the window, solve for k_alpha, and back out Xcp.
 
     This is the weaker of the two RQ3 reconstructions and is reported with that caveat: the window
@@ -251,8 +251,8 @@ def reconstruct_margin(d, wind_ms=None):
     rho = float(np.median(isa_density(alt[win], t_g)))
     q = 0.5 * rho * v_w ** 2
     IYY = 0.0257
-    k_alpha = IYY * theta_ddot / drive                      # N.m/rad
-    arm = k_alpha / (q * A_REF * PRED["cn_alpha"])          # (Xcp - Xcg), m
+    k_alpha = IYY * theta_ddot / drive # N.m/rad
+    arm = k_alpha / (q * A_REF * PRED["cn_alpha"]) # (Xcp - Xcg), m
     margin_cal = arm / PRED["diameter_m"]
     out.update(alpha_wind_deg=math.degrees(alpha_w), q_pa=q, v_window_ms=v_w,
                theta_ddot_rad_s2=theta_ddot, k_alpha_Nm_per_rad=float(k_alpha),
@@ -269,7 +269,7 @@ def control_metrics(d):
     cmd_p = d["cmd_pitch_deg"]; cmd_y = d["cmd_yaw_deg"]
     defl_p = d.get("defl_pitch_deg"); state = d["state"]
     lim = PRED["gimbal_lim_deg"]
-    boost = np.isfinite(t) & (state == 2)                # BOOST
+    boost = np.isfinite(t) & (state == 2) # BOOST
     tvc = boost & (t >= 0.5)
     if tvc.sum() < 20:
         return dict(note="no TVC-active samples (did the flight reach BOOST past t=0.5 s?)")
@@ -361,7 +361,7 @@ def make_figures(logs, reports, outdir):
     ax[1, 1].axhline(1e6 / PRED["ctrl_hz"], ls="--", c="k", lw=0.8, label="500 Hz nominal")
     ax[1, 1].set_xlabel("t (s)"); ax[1, 1].set_ylabel("loop dt (us)")
     ax[1, 1].set_title("Health · control-loop timing"); ax[1, 1].legend(fontsize=7); ax[1, 1].grid(alpha=.3)
-    fig.suptitle("WYVERN-E — post-flight reduction", fontweight="bold")
+    fig.suptitle("WYVERN-E, post-flight reduction", fontweight="bold")
     fig.tight_layout(); fig.savefig(os.path.join(outdir, "01_flight_overview.png"), dpi=130); plt.close(fig)
 
     # RQ3 summary: reconstructed vs predicted
@@ -395,32 +395,32 @@ def print_report(reports):
     print("WYVERN-E POST-FLIGHT REDUCTION")
     print("=" * 78)
     for r in reports:
-        print(f"\n--- {r['label']}  ({r['path']}, {r['rows']:,} rows) ---")
+        print(f"\n--- {r['label']} ({r['path']}, {r['rows']:,} rows) ---")
         cd = r["rq3_cd"]
         if cd:
-            print(f"  RQ3a coast Cd     {cd['cd_mean']:.3f} +- {cd['cd_sigma']:.3f}  "
+            print(f" RQ3a coast Cd {cd['cd_mean']:.3f} +- {cd['cd_sigma']:.3f} "
                   f"(predicted {cd['cd_predicted']:.3f}, error {cd['cd_error_pct']:+.1f}%, n={cd['n']})")
-            print(f"       apogee       {cd['apogee_baro_m']:.1f} m @ {cd['apogee_t_s']:.2f} s  "
+            print(f" apogee {cd['apogee_baro_m']:.1f} m @ {cd['apogee_t_s']:.2f} s "
                   f"(predicted {cd['apogee_predicted_m']:.1f} m, error {cd['apogee_error_pct']:+.1f}%)")
         else:
-            print("  RQ3a coast Cd     NOT RECONSTRUCTABLE (too few clean coast samples)")
+            print(" RQ3a coast Cd NOT RECONSTRUCTABLE (too few clean coast samples)")
         mg = r["rq3_margin"]
         if mg and mg.get("margin_cal"):
-            print(f"  RQ3b margin       {mg['margin_cal']:.2f} cal -> CP {mg['xcp_m']*100:.1f} cm "
+            print(f" RQ3b margin {mg['margin_cal']:.2f} cal -> CP {mg['xcp_m']*100:.1f} cm "
                   f"(predicted {PRED['margin_cal']:.2f} cal / {PRED['xcp_m']*100:.1f} cm)")
         elif mg:
-            print(f"  RQ3b margin       {mg.get('note','n/a')}  "
+            print(f" RQ3b margin {mg.get('note','n/a')} "
                   f"(steady pitch {mg['theta_steady_deg']:+.2f} deg)")
         c = r["rq4_control"]
         if "note" in c:
-            print(f"  RQ4 control       {c['note']}")
+            print(f" RQ4 control {c['note']}")
         else:
-            print(f"  RQ4 control       peak pitch {c['peak_pitch_dev_deg']:.2f} deg, "
+            print(f" RQ4 control peak pitch {c['peak_pitch_dev_deg']:.2f} deg, "
                   f"RMS {c['rms_pitch_dev_deg']:.2f} deg")
-            print(f"                    gimbal peak {c['peak_gimbal_cmd_deg']:.2f} deg, "
+            print(f" gimbal peak {c['peak_gimbal_cmd_deg']:.2f} deg, "
                   f"RMS {c['rms_gimbal_cmd_deg']:.2f} deg, sat {c['gimbal_saturation_pct']:.1f}%")
             if "tracking_rms_deg" in c:
-                print(f"                    servo tracking error RMS {c['tracking_rms_deg']:.2f} deg, "
+                print(f" servo tracking error RMS {c['tracking_rms_deg']:.2f} deg, "
                       f"peak {c['tracking_peak_deg']:.2f} deg")
         h = r["health"]
         bits = []
@@ -429,7 +429,7 @@ def print_report(reports):
                         f"({h['loop_overrun_pct']:.2f}% overrun)")
         if "dropped_frames" in h: bits.append(f"dropped {h['dropped_frames']}")
         if "batt_min_v" in h: bits.append(f"batt {h['batt_start_v']:.2f}->{h['batt_min_v']:.2f} V")
-        if bits: print("  health            " + " | ".join(bits))
+        if bits: print(" health " + " | ".join(bits))
     print("\n" + "=" * 78)
 
 

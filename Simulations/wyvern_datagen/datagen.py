@@ -1,30 +1,30 @@
 #!/usr/bin/env python3
 """
-WYVERN-E — Monte-Carlo dataset generator.
+WYVERN-E, Monte-Carlo dataset generator.
 
 Streams millions of datapoints to disk in chunks so memory stays flat regardless of dataset size.
 Three dataset types (all selectable from the GUI or CLI):
 
-  outcomes : one row per flight   (sampled atmosphere -> apogee, maxQ, maxMach, drift, landing, ...)
+  outcomes : one row per flight (sampled atmosphere -> apogee, maxQ, maxMach, drift, landing, ...)
   timeseries: many rows per flight (t, x, z, v, a, Mach, q + conditions) -- the big ML dataset
-  tvc      : one row per flight   (peak pitch error, RMS gimbal, saturation %, settle time)
+  tvc : one row per flight (peak pitch error, RMS gimbal, saturation %, settle time)
 
 Format is chosen automatically: Parquet when pyarrow is present (compact, columnar, ideal for the
 huge time-series set), otherwise gzip-CSV. Override with fmt="csv"/"parquet".
 
 CLI (run from this folder; use the interpreter that has numpy/pyarrow, e.g. /opt/homebrew/bin/python3):
-  /opt/homebrew/bin/python3 datagen.py outcomes   --n 2000000 --out datasets/outcomes.parquet
+  /opt/homebrew/bin/python3 datagen.py outcomes --n 2000000 --out datasets/outcomes.parquet
   /opt/homebrew/bin/python3 datagen.py timeseries --flights 50000 --stride 10 --out datasets/timeseries.parquet
-  /opt/homebrew/bin/python3 datagen.py tvc        --n 1000000 --out datasets/tvc.parquet
-  /opt/homebrew/bin/python3 datagen.py flightlog  --flights 2000 --out datasets/sil.parquet   (closed-loop SIL)
+  /opt/homebrew/bin/python3 datagen.py tvc --n 1000000 --out datasets/tvc.parquet
+  /opt/homebrew/bin/python3 datagen.py flightlog --flights 2000 --out datasets/sil.parquet (closed-loop SIL)
 """
 import os, sys, time, argparse, gzip
 import numpy as np
 
 try:
-    import core, fc_sil  # when run as a script from inside the package dir
+    import core, fc_sil # when run as a script from inside the package dir
 except ImportError:
-    from . import core, fc_sil  # when imported as wyvern_datagen.*
+    from . import core, fc_sil # when imported as wyvern_datagen.*
 
 try:
     import pyarrow as pa
@@ -134,7 +134,7 @@ class _Writer:
         if self._rows_since_open > 0 and cur_size > 0:
             avg = cur_size / self._rows_since_open
         else:
-            avg = 300.0 if self.fmt == "parquet" else 80.0  # bytes/row, conservative
+            avg = 300.0 if self.fmt == "parquet" else 80.0 # bytes/row, conservative
         return cur_size + avg * n_rows
 
     def write(self, coldict):
@@ -170,10 +170,10 @@ def _resolve_path(path, fmt):
 
 def _timestamped(path):
     """Insert a _YYYYMMDD_HHMMSS stamp before the extension so every run writes a new file
-    (arc-sim style — never overwrite). Handles the double extension .csv.gz."""
+    (arc-sim style, never overwrite). Handles the double extension .csv.gz."""
     import datetime
     root, ext = os.path.splitext(path)
-    if ext == ".gz":                       # .csv.gz -> peel both
+    if ext == ".gz": # .csv.gz -> peel both
         root, ext2 = os.path.splitext(root); ext = ext2 + ext
     ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     return f"{root}_{ts}{ext}"
@@ -245,12 +245,12 @@ def generate_timeseries(n_flights, out, fmt="auto", flight_chunk=2000, stride=10
         m = min(flight_chunk, n_flights - done)
         out_o, tr, cond = core.simulate_trace(m, seed=seed + done, envelope=envelope,
                                               dt=dt, trace_stride=stride)
-        nsp = tr["t"].shape[0]                      # states per flight in this chunk
+        nsp = tr["t"].shape[0] # states per flight in this chunk
         # flatten (nsp, m) -> (nsp*m,), flight-major
         fid = np.repeat(np.arange(fid0, fid0 + m), nsp)
         col = {"flight_id": fid}
         for k in ("t", "x", "z", "vx", "vz", "accel_g", "mach", "q", "rho", "wind_local_ms"):
-            col[k] = tr[k].T.reshape(-1)            # (m, nsp) -> flat
+            col[k] = tr[k].T.reshape(-1) # (m, nsp) -> flat
         for k in ("wind_ms", "turb_pct", "shear_alpha", "temp_C", "pressure_mbar",
                   "site_alt_m", "m_lift_kg", "cd_scale"):
             col[k] = np.repeat(cond[k], nsp)
@@ -265,7 +265,7 @@ def generate_flightlog(n_flights, out, fmt="auto", flight_chunk=200, seed=0, env
                        dt=0.004, t_max=9.0, log_hz=50, timestamp=True,
                        progress_cb=None, cancel_cb=None, max_bytes=MAX_FILE_BYTES):
     """Closed-loop SIL flight logs (state machine + sensor noise + PID), one flight at a time.
-    Sequential (~5-15 flights/s) — realism over raw count. Truncates at t_max (default 9 s, through
+    Sequential (~5-15 flights/s), realism over raw count. Truncates at t_max (default 9 s, through
     deploy + chute-open) to focus on the controlled phase."""
     fmt = _default_fmt(fmt); out = _resolve_path(out, fmt)
     if timestamp: out = _timestamped(out)
@@ -368,7 +368,7 @@ def generate_combined(n_flights, out, fmt="auto", seed=0, envelope=None, gimbal_
 # ---------------------------------------------------------------- CLI
 def _cli_progress(done, total, rows, rate):
     pct = 100.0 * done / max(total, 1)
-    sys.stdout.write(f"\r  {pct:5.1f}%  flights={done:,}/{total:,}  rows={rows:,}  {rate:,.0f}/s ")
+    sys.stdout.write(f"\r {pct:5.1f}% flights={done:,}/{total:,} rows={rows:,} {rate:,.0f}/s ")
     sys.stdout.flush()
 
 
@@ -419,14 +419,14 @@ def main(argv=None):
     elif a.kind == "combined":
         r = generate_combined(a.flights, a.out, a.fmt, seed=a.seed, gimbal_deg=a.gimbal_deg,
                               timestamp=a.timestamp, progress_cb=_cli_progress, max_bytes=max_bytes)
-        print(f"\nDONE  {r['flights']:,} flights -> log {r['log_paths']} + summary {r['summary_paths']}  "
+        print(f"\nDONE {r['flights']:,} flights -> log {r['log_paths']} + summary {r['summary_paths']} "
               f"({r['rows']:,} log rows, {r['seconds']}s)")
         return r
     else:
         r = generate_timeseries(a.flights, a.out, a.fmt, a.flight_chunk, a.stride, a.seed,
                                 timestamp=a.timestamp, progress_cb=_cli_progress, max_bytes=max_bytes)
-    parts_note = f"  [{r['parts']} parts]" if r["parts"] > 1 else ""
-    print(f"\nDONE  {r['rows']:,} rows -> {r['paths']}{parts_note}  ({r['fmt']}, {r['seconds']}s, "
+    parts_note = f" [{r['parts']} parts]" if r["parts"] > 1 else ""
+    print(f"\nDONE {r['rows']:,} rows -> {r['paths']}{parts_note} ({r['fmt']}, {r['seconds']}s, "
           f"{r['rows']/max(r['seconds'],1e-9):,.0f} rows/s)")
     return r
 

@@ -1,35 +1,37 @@
 #!/usr/bin/env python3
-"""WYVERN-E — single-stage F15-4 finned TVC sustainer (motor-ejection recovery): mass/CG/inertia,
+"""WYVERN-E, single-stage F15-4 finned TVC sustainer (motor-ejection recovery): mass/CG/inertia,
 trajectory, TVC control authority + maneuver, recovery, dispersion -> plots4/."""
 import os, json, numpy as np
-_TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None))  # NumPy 2.x renamed trapz
+_TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None)) # NumPy 2.x renamed trapz
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 HERE=os.path.dirname(os.path.abspath(__file__)); OUT=os.path.join(HERE,"plots4"+os.environ.get("WYVERN_RUN_TAG","")); os.makedirs(OUT,exist_ok=True)
 g=9.80665; rho0=1.225; OD=0.070; A=np.pi*(OD/2)**2
-# ---------- 1. MASS / CG / INERTIA (station = m from nose tip; ASA-Aero nose/body/fins, PC-FR bulkheads/tube/engine) ----------
+# ---------- 1. MASS / CG / INERTIA (station = m from nose tip; ASA-Aero upper body, PETG-CF lower body + fins, PC-FR TVC assembly) ----------
 # (name, mass_kg, station_m)
 ITEMS=[
  # ---- printed structure ----------------------------------------------------------------------
- # MATERIAL CHANGE 2026-08: ASA-Aero / PC-FR -> PLA / PETG-CF.
- #   PLA (1.24 g/cm3)      nose, recovery + FC bay tubes, fins, rail buttons -- no heat, no gas.
- #   PETG-CF (1.30 g/cm3)  the ejection-gas path (both bulkheads + bypass tube) and the TVC
- #                          assemblies (engine bay, motor mount, gimbal).
- # PLA parts also drop to a 1.2 mm wall (from 1.6) -- the FEA has the airframe at ~340x minimum
- # safety factor, i.e. print/handling-limited rather than load-limited, so the wall was carrying
- # margin it never needed. That recovers 45.6 g.
- # Masses below come from 3D parts/_generator/mass_report.json; motor mount and gimbal keep an
- # as-built allowance below raw solid volume (sparse infill), scaled by the 1.30/1.25 density ratio.
- ("Nose cone (PLA)",0.030,0.06),
- ("Recovery bay tube (PLA)",0.058,0.24),
- ("FC bay tube (PLA)",0.051,0.40),
+ # MATERIAL CHANGE 2026-08-10: three-zone split by section rather than by thermal exposure alone.
+ # ASA-Aero (foamed, 0.65 g/cm3) upper body -- nose, recovery bay tube, FC bay tube -- the section
+ # that houses avionics. Lightest zone, no motor heat or gas load.
+ # PETG-CF (1.30 g/cm3) lower body and fins -- engine/TVC bay tube, 4 fins, both bulkheads,
+ # bypass gas tube, ejection plenum/nose retention.
+ # PC-FR (1.20 g/cm3) TVC assembly proper -- motor mount/retention and the gimbal assembly.
+ # Fin span increased 72 -> 87 mm in the same pass: the lighter ASA-Aero upper body plus the heavier
+ # PETG-CF fins moved CG aft to 50.4 cm against an unchanged 56.8 cm CP, dropping margin to 0.92 cal,
+ # under the 1.0 cal floor. 87 mm fins restore +1.20 cal (see we4_stability.py span sweep).
+ # Masses below come from 3D parts/_generator/mass_report.json geometry, rescaled per item from the
+ # prior PLA/PETG-CF stack by (old_mass / old_density) * new_density -- same volume, new material.
+ ("Nose cone (ASA-Aero)",0.0157,0.06),
+ ("Recovery bay tube (ASA-Aero)",0.0304,0.24),
+ ("FC bay tube (ASA-Aero)",0.0267,0.40),
  ("Engine/TVC bay tube (PETG-CF)",0.071,0.60),
- ("4 fins (PLA, 72 mm)",0.056,0.70),
+ ("4 fins (PETG-CF, 87 mm)",0.0713,0.70),
  ("Bulkhead A (PETG-CF, sealed)",0.017,0.50),
  ("Bulkhead B (PETG-CF, sealed)",0.017,0.30),
  ("Bypass gas tube (PETG-CF)",0.015,0.40),
- ("Motor mount/retention (PETG-CF)",0.047,0.64),
- ("TVC gimbal assy (PETG-CF)",0.109,0.60),
- ("Ejection plenum + nose retention",0.008,0.31),
+ ("Motor mount/retention (PC-FR)",0.0434,0.64),
+ ("TVC gimbal assy (PC-FR)",0.1006,0.60),
+ ("Ejection plenum + nose retention (PETG-CF)",0.008,0.31),
  # ---- recovery (motor ejection; no RRC3/9V/e-match) ----
  # Chute is now 24 in (was 18 in) -- larger canopy, +8 g, and a slower descent (see section 5).
  ("Chute (24 in) + cord + swivel",0.058,0.24),("Nomex chute protector",0.006,0.24),
@@ -39,26 +41,26 @@ ITEMS=[
  ("i3 4K thumb cam",0.036,0.42),("2S LiPo + 5V UBEC",0.040,0.355),
  ("2x TVC servo",0.030,0.56),
  ("Wiring/connectors",0.022,0.45)]
-MOTOR=("Estes F15-4 (loaded)",0.102,0.68); PROP=0.060; Ln=0.74; PIVOT=0.62  # gimbal pivot station
+MOTOR=("Estes F15-4 (loaded)",0.102,0.68); PROP=0.060; Ln=0.74; PIVOT=0.62 # gimbal pivot station
 dry=ITEMS; m_dry=sum(m for _,m,_ in dry); m_lift=m_dry+MOTOR[1]
 def cg(items): 
     M=sum(m for _,m,_ in items); return sum(m*x for _,m,x in items)/M, M
 cg_dry,_=cg(dry); cg_lift,_=cg(dry+[MOTOR]); cg_burn,_=cg(dry+[(MOTOR[0],MOTOR[1]-PROP,MOTOR[2])])
-def Iyy(items,c): return sum(m*(x-c)**2 for _,m,x in items)  # pitch inertia (point masses on axis) + slender add
-Iyy_lift=Iyy(dry+[MOTOR],cg_lift)+ (m_lift*(OD/2)**2)/4  # + thin-rod radial term approx
+def Iyy(items,c): return sum(m*(x-c)**2 for _,m,x in items) # pitch inertia (point masses on axis) + slender add
+Iyy_lift=Iyy(dry+[MOTOR],cg_lift)+ (m_lift*(OD/2)**2)/4 # + thin-rod radial term approx
 arm_lift=PIVOT-cg_lift; arm_burn=PIVOT-cg_burn
 TW_avg=14.4/(m_lift*g); TW_pk=25.3/(m_lift*g)
 # ---------- 2. F15-4 THRUST CURVE (same F15 propellant/curve; -4 = 4 s delay + ejection) (digitized, scaled to 49.6 Ns / 3.45 s) ----------
 tc=np.array([0,0.05,0.12,0.2,0.3,0.5,1.0,1.5,2.0,2.5,3.0,3.3,3.45])
 # F15 thrust curve CORRECTED 2026-08. The digitized shape integrated to 41.97 N.s, so the
 # 49.6 N.s renormalization below scaled the whole curve by 1.1817 and pushed peak thrust to
-# 29.9 N -- against Estes' published 25.3 N peak, and against the 3.66 peak T/W quoted
+# 29.9 N -- against Estes' published 25.3 N peak, and against the 3.26 peak T/W quoted
 # throughout this repo (29.9 N gives 4.32). The sustain block (t >= 0.3 s) has been lifted by
 # +2.4408 N so the curve now matches ALL THREE published values simultaneously:
 # total impulse 49.6 N.s, peak 25.3 N, average 14.4 N. The renormalization is retained as a
 # guard (it is now a ~1.0000 no-op) so any future re-digitization still lands on 49.6 N.s.
 Fc=np.array([0, 12, 25.3, 22, 18.441, 15.441, 14.941, 14.641, 14.441, 14.241, 13.941, 9.441, 0])
-Itot=_TRAPZ(Fc,tc); Fc*= 49.6/Itot   # normalize to 49.6 Ns
+Itot=_TRAPZ(Fc,tc); Fc*= 49.6/Itot # normalize to 49.6 Ns
 def thrust(t): return float(np.interp(t,tc,Fc,left=0,right=0)) if 0<=t<=3.45 else 0.0
 # ---------- 3. TRAJECTORY (RK4 point mass, Cd=0.539, mass loss) ----------
 # Cd 0.539 is the componentwise Barrowman buildup value shared with we4_flightsim.py and
@@ -86,21 +88,21 @@ res=dict(m_lift_g=round(m_lift*1000,1),m_dry_g=round(m_dry*1000,1),prop_g=PROP*1
  apogee_m=round(H[ap],1),apogee_ft=round(H[ap]*3.281,0),apogee_t=round(T[ap],2),
  deploy_v=round(V[dep],1),deploy_t=round(T_DEPLOY,2))
 # ---------- 4. TVC PITCH CONTROL (rigid body, gimbal lag, PID) ----------
-Iyy=Iyy_lift; th=0.02; q=0.0; dt2=2e-3; gim=0.0; lim=np.radians(8)   # ±8° gimbal (matches firmware OUT_LIM_DEG)
+Iyy=Iyy_lift; th=0.02; q=0.0; dt2=2e-3; gim=0.0; lim=np.radians(8) # ±8° gimbal (matches firmware OUT_LIM_DEG)
 # Gains frozen by the 24-point phase/gain-margin sweep (CONFLICTS.md 5, PID_TUNING_REPORT.md).
 # Previously this file hard-coded the never-simulated Kp=8.0/Ki=1.5/Kd=1.2 design-pass values,
 # which CONFLICTS.md 1 explicitly records as superseded and unstable -- so this plot disagreed
 # with the firmware, with pid_reference.py, and with every other sim in the repo.
 KP,KI,KD=0.10,0.40,0.18; integ=0; prev=0; TH=[];GI=[];SP=[];TT=[]
 def setp(t): return 0.0 if t<2.0 else np.radians(4)*np.sin((t-2.0)*np.pi/1.2)
-tau_servo=0.04  # 1st-order servo lag (~0.04s -> fast digital micro)
+tau_servo=0.04 # 1st-order servo lag (~0.04s -> fast digital micro)
 tt=0
 while tt<3.45:
     Fth=thrust(tt); arm=PIVOT-(cg_lift+(cg_burn-cg_lift)*min(tt/3.45,1))
     sp=setp(tt); e=sp-th; integ=np.clip(integ+e*dt2,-0.5,0.5); d=(e-prev)/dt2; prev=e
     cmd=np.clip(KP*e+KI*integ+KD*d,-lim,lim)
-    gim+=(cmd-gim)*dt2/tau_servo                     # servo slew lag
-    dist=Fth*np.sin(np.radians(1.0))*arm             # ~1deg thrust misalignment disturbance
+    gim+=(cmd-gim)*dt2/tau_servo # servo slew lag
+    dist=Fth*np.sin(np.radians(1.0))*arm # ~1deg thrust misalignment disturbance
     M=Fth*np.sin(gim)*arm - dist
     q+=M/Iyy*dt2; th+=q*dt2; tt+=dt2
     TT.append(tt);TH.append(np.degrees(th));GI.append(np.degrees(gim));SP.append(np.degrees(sp))
@@ -129,7 +131,7 @@ ax.fill_between(tt2,[thrust(x) for x in tt2],alpha=.2,color="#a7c957"); ax.set_x
 ax.set_title(f"Estes F15-4 thrust curve · {Itot if False else 49.6:.1f} N·s · avg 14.4 N / peak 25.3 N",fontweight='bold'); ax.grid(alpha=.3); save(fig,"02_f15_thrust")
 fig,ax=plt.subplots(figsize=(9,5)); ax.plot(TT,SP,'k:',label="setpoint"); ax.plot(TT,TH,c="#2a6f97",label="pitch θ"); ax.plot(TT,GI,c="#bc4749",label="gimbal δ")
 ax.axhline(5,ls='--',c='r',lw=.7); ax.axhline(-5,ls='--',c='r',lw=.7); ax.set_xlabel("burn time (s)"); ax.set_ylabel("deg"); ax.legend()
-ax.set_title("WYVERN-E · TVC pitch control — stabilize then maneuver (δ within ±8°)",fontweight='bold'); ax.grid(alpha=.3); save(fig,"03_tvc_control")
+ax.set_title("WYVERN-E · TVC pitch control, stabilize then maneuver (δ within ±8°)",fontweight='bold'); ax.grid(alpha=.3); save(fig,"03_tvc_control")
 fig,ax=plt.subplots(figsize=(9,5)); ax.plot(tb,M_ctrl*1000,lw=2,c="#386641",label="restoring @±8° gimbal"); ax.plot(tb,M_dist*1000,lw=2,c="#bc4749",label="disturbance @2°")
 ax.fill_between(tb,M_ctrl*1000,M_dist*1000,where=(M_ctrl>=M_dist),color="#a7c957",alpha=.3,label="margin"); ax.set_xlabel("burn time (s)"); ax.set_ylabel("pitch moment (mN·m)"); ax.legend()
 ax.set_title(f"WYVERN-E · TVC control authority (min margin {res['ctrl_margin_min_mNm']} mN·m)",fontweight='bold'); ax.grid(alpha=.3); save(fig,"04_control_authority")
@@ -142,7 +144,7 @@ ax.set_xlim(0,Ln); ax.set_yticks([]); ax.set_xlabel("station from nose (m)"); ax
 ax.set_title(f"WYVERN-E mass stack · liftoff {m_lift*1000:.0f} g · CG {cg_lift*100:.1f} cm · control arm {arm_lift*100:.1f} cm",fontweight='bold'); save(fig,"05_mass_cg")
 # dispersion (apogee Monte Carlo on mass+Cd)
 rng=np.random.default_rng(4); aps=[]
-for _ in range(1000):   # 400 -> 1000 draws (2026-08 fidelity pass; dt=5e-4 makes each draw ~4x costlier)
+for _ in range(1000): # 400 -> 1000 draws (2026-08 fidelity pass; dt=5e-4 makes each draw ~4x costlier)
     mm=m_lift*rng.normal(1,0.05); cc=Cd*rng.normal(1,0.15); v=0;h=0;t=0;m=mm; dtm=2e-3
     while True:
         Fth=thrust(t); m=max(m_dry,mm-mdot*min(t,3.45)); D=0.5*rho(h)*cc*A*v*abs(v); v+=(Fth-D-m*g)/m*dtm; h+=v*dtm; t+=dtm

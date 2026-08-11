@@ -1,9 +1,9 @@
 ---
 updated_at: 2026-08-02
 ---
-# wyvern4_gse_solenoid_rig — All Files
+# wyvern4_gse_solenoid_rig, All Files
 
-*Auto-generated index — every file and subfolder linked for vault graph connectivity.*
+*Auto-generated index, every file and subfolder linked for vault graph connectivity.*
 
 ---
 

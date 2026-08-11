@@ -1,74 +1,56 @@
 [
  [
-  "01_nose_cone_ellipsoid_PLA",
-  24.3,
-  30.1,
-  "PLA"
+  "01_nose_cone_ellipsoid_ASAAero",
+  32.2,
+  20.9,
+  "ASAAERO"
  ],
  [
-  "02_recovery_bay_PLA",
-  46.7,
-  57.9,
-  "PLA"
+  "02_upper_bt_avionics_ASAAero",
+  68.2,
+  44.3,
+  "ASAAERO"
  ],
  [
-  "03_fc_bay_PLA",
-  41.5,
-  51.5,
-  "PLA"
- ],
- [
-  "04_engine_tvc_bay_PETGCF",
-  55.0,
-  71.5,
+  "03_lower_bt_chute_tvc_PETGCF",
+  144.9,
+  188.3,
   "PETGCF"
  ],
  [
-  "05a_bulkhead_A_PETGCF",
-  12.8,
-  16.6,
+  "04_bulkhead_joint_PETGCF",
+  13.3,
+  17.2,
   "PETGCF"
  ],
  [
-  "05b_bulkhead_B_PETGCF",
-  12.8,
-  16.6,
-  "PETGCF"
+  "05_motor_mount_29mm_PCFR",
+  48.1,
+  57.7,
+  "PCFR"
  ],
  [
-  "09_bypass_tube_PETGCF",
-  11.5,
-  14.9,
-  "PETGCF"
+  "06_tvc_gimbal_2axis_PCFR",
+  88.0,
+  105.6,
+  "PCFR"
  ],
  [
-  "06_motor_mount_29mm_PETGCF",
-  47.2,
-  61.4,
+  "07_fin_single_PETGCF",
+  13.6,
+  17.7,
   "PETGCF"
- ],
- [
-  "07_tvc_gimbal_2axis_PETGCF",
-  90.0,
-  117.0,
-  "PETGCF"
- ],
- [
-  "08b_fin_single_PLA",
-  11.3,
-  14.1,
-  "PLA"
  ],
  [
   "TVC_balance_base",
-  467.2,
-  607.4,
+  466.9,
+  607.0,
   "PETGCF"
  ],
  [
   "TVC_balance_thrust_block",
-  178.5,
-  232.1,
+  177.3,
+  230.5,
   "PETGCF"
  ],
  [
@@ -78,21 +60,45 @@
   "PETGCF"
  ],
  [
+  "TVC_balance_hx711_mount",
+  2.7,
+  3.5,
+  "PETGCF"
+ ],
+ [
+  "TS_base_plate",
+  247.2,
+  321.4,
+  "PETGCF"
+ ],
+ [
+  "TS_motor_tower",
+  83.5,
+  108.5,
+  "PETGCF"
+ ],
+ [
+  "TS_loadcell_bracket",
+  17.3,
+  22.5,
+  "PETGCF"
+ ],
+ [
   "08_rail_button_1010_x2",
   1.0,
-  1.3,
-  "PLA"
+  1.2,
+  "PETGCF"
  ],
  [
   "static_blast_deflector",
-  281.6,
-  366.1,
+  281.5,
+  366.0,
   "PETGCF"
  ],
  [
   "00_full_assembly",
-  204.1,
-  253.0,
-  "PLA"
+  260.7,
+  338.9,
+  "PETGCF"
  ]
 ]

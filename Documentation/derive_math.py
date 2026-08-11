@@ -6,7 +6,7 @@
 
 (The former ToF-ring plane-fit and Kalman-fusion derivations were removed with the ToF sensors.)
 
-Run: python3 derive_math.py   -- prints every intermediate result and writes
+Run: python3 derive_math.py -- prints every intermediate result and writes
 phase0_math_constants.json (machine-readable).
 """
 import json
@@ -52,7 +52,7 @@ S_inv = np.linalg.inv(S_fit)
 
 print("S_fit (counts/N):\n", S_fit)
 print("cond(S_fit) =", np.linalg.cond(S_fit))
-print("eig(S_fit)  =", np.linalg.eigvals(S_fit))
+print("eig(S_fit) =", np.linalg.eigvals(S_fit))
 print("max abs err vs S_true:", np.max(np.abs(S_fit - S_true)))
 
 F_test_true = np.array([0.8*g, -0.6*g, 20.0])
@@ -129,17 +129,17 @@ ax[1].grid(alpha=.3)
 ax[2].scatter(th_true_all, th_err, s=3, alpha=.25, color="#bc4749")
 ax[2].axhline(0, c="k", lw=.8)
 ax[2].set_xlabel("true gimbal deflection θ (deg)"); ax[2].set_ylabel("θ error (deg)")
-ax[2].set_title(f"Deflection-angle resolution\n1σ {th_err.std():.4f}°  (N={N_MC})", fontsize=10)
+ax[2].set_title(f"Deflection-angle resolution\n1σ {th_err.std():.4f}° (N={N_MC})", fontsize=10)
 ax[2].grid(alpha=.3)
 
-fig.suptitle("WYVERN-E — 3-axis balance calibration validation (least-squares fit + Monte-Carlo resolve)",
+fig.suptitle("WYVERN-E, 3-axis balance calibration validation (least-squares fit + Monte-Carlo resolve)",
              fontweight="bold")
 fig.tight_layout()
 _p = os.path.join(HERE, "phase0_math_validation.png")
 fig.savefig(_p, dpi=130); plt.close(fig)
 print(f"Wrote {_p}")
-print(f"  resolved thrust  bias {T_err.mean():+.4f} N, 1-sigma {T_err.std():.4f} N")
-print(f"  resolved theta   1-sigma {th_err.std():.4f} deg")
+print(f" resolved thrust bias {T_err.mean():+.4f} N, 1-sigma {T_err.std():.4f} N")
+print(f" resolved theta 1-sigma {th_err.std():.4f} deg")
 
 out["balance_resolution"] = {
     "thrust_bias_N": float(T_err.mean()), "thrust_sigma_N": float(T_err.std()),

@@ -1,5 +1,5 @@
 import os, json, numpy as np
-_TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None))  # NumPy 2.x renamed trapz
+_TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None)) # NumPy 2.x renamed trapz
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 OUT=os.path.join(os.path.dirname(os.path.abspath(__file__)),"plots_eject"+os.environ.get("WYVERN_RUN_TAG","")); os.makedirs(OUT,exist_ok=True)
 BLU,RED,GRN,ORG,PUR="#2a6f97","#bc4749","#386641","#e09f3e","#6d597a"
@@ -7,7 +7,7 @@ g,rho0=9.80665,1.225; D=0.070; A=np.pi*(D/2)**2; m_lift,m_dry,PROP,tb=0.792,0.69
 Fc_t=np.array([0,0.05,0.12,0.2,0.3,0.5,1,1.5,2,2.5,3,3.3,3.45])
 # F15 thrust curve CORRECTED 2026-08. The digitized shape integrated to 41.97 N.s, so the
 # 49.6 N.s renormalization below scaled the whole curve by 1.1817 and pushed peak thrust to
-# 29.9 N -- against Estes' published 25.3 N peak, and against the 3.66 peak T/W quoted
+# 29.9 N -- against Estes' published 25.3 N peak, and against the 3.26 peak T/W quoted
 # throughout this repo (29.9 N gives 4.32). The sustain block (t >= 0.3 s) has been lifted by
 # +2.4408 N so the curve now matches ALL THREE published values simultaneously:
 # total impulse 49.6 N.s, peak 25.3 N, average 14.4 N. The renormalization is retained as a

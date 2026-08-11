@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
-"""WYVERN-E — ATMOSPHERIC EFFECTS ON TVC HANDLING  (F15-4, servo TVC, pitch-plane closed loop)
+"""WYVERN-E, ATMOSPHERIC EFFECTS ON TVC HANDLING (F15-4, servo TVC, pitch-plane closed loop)
 ================================================================================================
 How do real atmospheric conditions change how the TVC must work? Air density (set by temperature,
 pressure, field elevation, humidity) drives dynamic pressure q = ½ρv², which sets:
-  • the GUST disturbance moment the loop must reject   (∝ q)
-  • the aero restoring/damping the fins provide        (∝ q)
+  • the GUST disturbance moment the loop must reject (∝ q)
+  • the aero restoring/damping the fins provide (∝ q)
 while the TVC control moment (T·sinδ·arm) is ρ-INDEPENDENT (thrust-reaction) but falls with thrust.
 
 So a cold dense day hits the vehicle with bigger gusts but also stiffer fins; a hot / high-elevation
 day softens both and leans harder on the TVC. This script runs the SAME pitch-plane PID loop through
 4 atmospheres + a 1-cosine gust, with fixed gains vs thrust-scheduled gains, and reports the spread.
 
-Run:  python3 we4_atmos_tvc.py   ->  plots_atmos/*.png + atmos_tvc_summary.json
+Run: python3 we4_atmos_tvc.py -> plots_atmos/*.png + atmos_tvc_summary.json
 """
 import os, json, numpy as np
-_TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None))  # NumPy 2.x renamed trapz
+_TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None)) # NumPy 2.x renamed trapz
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 OUT=os.path.join(os.path.dirname(os.path.abspath(__file__)),"plots_atmos"+os.environ.get("WYVERN_RUN_TAG","")); os.makedirs(OUT,exist_ok=True)
 BLU,RED,GRN,ORG,PUR,GRY="#2a6f97","#bc4749","#386641","#e09f3e","#6d597a","#8d99ae"
@@ -28,11 +28,11 @@ m_lift,m_dry,PROP,tb=0.792,0.690,0.060,3.45
 # were both computed for an airframe that no longer exists. Corrected 2026-08. I_pitch is now
 # the measured 0.0209 kg m^2 from the we4_sim mass stack rather than a uniform-rod estimate.
 CG=0.484; Xcp=0.568; CN=2.0; x_gimbal=0.62; Rspec=287.05
-I_pitch=(1/12)*m_lift*Ltot**2                      # slender-body pitch inertia (kg·m²)
+I_pitch=(1/12)*m_lift*Ltot**2 # slender-body pitch inertia (kg·m²)
 Fc_t=np.array([0,0.05,0.12,0.2,0.3,0.5,1,1.5,2,2.5,3,3.3,3.45])
 # F15 thrust curve CORRECTED 2026-08. The digitized shape integrated to 41.97 N.s, so the
 # 49.6 N.s renormalization below scaled the whole curve by 1.1817 and pushed peak thrust to
-# 29.9 N -- against Estes' published 25.3 N peak, and against the 3.66 peak T/W quoted
+# 29.9 N -- against Estes' published 25.3 N peak, and against the 3.26 peak T/W quoted
 # throughout this repo (29.9 N gives 4.32). The sustain block (t >= 0.3 s) has been lifted by
 # +2.4408 N so the curve now matches ALL THREE published values simultaneously:
 # total impulse 49.6 N.s, peak 25.3 N, average 14.4 N. The renormalization is retained as a
@@ -49,15 +49,15 @@ def density(h, T_sl=288.15, P_sl=101325.0, elev=0.0, RH=0.0):
     L=0.0065; T=T_sl-L*(h+elev); P=P_sl*(T/T_sl)**(g/(Rspec*L))
     # humidity: subtract vapor partial pressure contribution (virtual-temperature bump)
     if RH>0:
-        es=610.94*np.exp(17.625*(T-273.15)/(T-30.11))    # sat vapor pressure (Pa)
-        e=RH*es; Tv=T/(1-0.378*e/P)                       # virtual temperature
+        es=610.94*np.exp(17.625*(T-273.15)/(T-30.11)) # sat vapor pressure (Pa)
+        e=RH*es; Tv=T/(1-0.378*e/P) # virtual temperature
         return P/(Rspec*Tv)
     return P/(Rspec*T)
 
 ATMOS={
- "ISA 15°C":      dict(T_sl=288.15,P_sl=101325,elev=0,   RH=0.0, c=GRY),
- "Cold −15°C":    dict(T_sl=258.15,P_sl=101325,elev=0,   RH=0.0, c=BLU),
- "Hot +40°C":     dict(T_sl=313.15,P_sl=101325,elev=0,   RH=0.2, c=RED),
+ "ISA 15°C": dict(T_sl=288.15,P_sl=101325,elev=0, RH=0.0, c=GRY),
+ "Cold −15°C": dict(T_sl=258.15,P_sl=101325,elev=0, RH=0.0, c=BLU),
+ "Hot +40°C": dict(T_sl=313.15,P_sl=101325,elev=0, RH=0.2, c=RED),
  "High DA 1500m": dict(T_sl=298.15,P_sl=101325,elev=1500,RH=0.3, c=ORG),
 }
 
@@ -81,9 +81,9 @@ class PID:
         self.i=0.0; self.d=0.0; self.prev=0.0
     def reset(self): self.i=self.d=self.prev=0.0
     def update(self,err,dt):
-        self.i=float(np.clip(self.i+err*dt,-self.ilim,self.ilim))         # integrate + clamp
+        self.i=float(np.clip(self.i+err*dt,-self.ilim,self.ilim)) # integrate + clamp
         raw=(err-self.prev)/dt; self.prev=err
-        self.d+=(raw-self.d)*dt/(self.tau+dt)                             # LP-filtered derivative
+        self.d+=(raw-self.d)*dt/(self.tau+dt) # LP-filtered derivative
         u=self.kp*err+self.ki*self.i+self.kd*self.d
         return float(np.clip(u,-self.lim,self.lim))
 
@@ -104,7 +104,7 @@ DMAX=np.radians(8.0); TAU_SERVO=0.04
 def run_loop(atm, schedule=False, kp=0.10, ki=0.40, kd=0.18, dt=1e-3):
     Tt,Hh,Vv=trajectory(atm);
     pid=PID(kp,ki,kd,DMAX,tau_d=0.02)
-    th=0.0; w=0.0; delta=0.0; t=0.5            # TVC engages at 0.5 s
+    th=0.0; w=0.0; delta=0.0; t=0.5 # TVC engages at 0.5 s
     rho_sl=density(0,**{k:atm[k] for k in("T_sl","P_sl","elev","RH")})
     LOG=[]
     while t<tb:
@@ -113,15 +113,15 @@ def run_loop(atm, schedule=False, kp=0.10, ki=0.40, kd=0.18, dt=1e-3):
         q=0.5*rho*v*v
         # wind gust -> angle of attack disturbance
         aoa_wind=np.arctan2(gust(t),v)
-        aoa=th - aoa_wind                       # body pitch relative to relative wind
+        aoa=th - aoa_wind # body pitch relative to relative wind
         # gain schedule: keep loop authority constant as thrust tails off
         Tcur=thrust(t); ksch=(14.4/max(Tcur,3.0)) if schedule else 1.0
-        cmd=pid.update(0.0-th, dt)*ksch         # command vertical (theta=0)
+        cmd=pid.update(0.0-th, dt)*ksch # command vertical (theta=0)
         cmd=float(np.clip(cmd,-DMAX,DMAX))
-        delta+=(cmd-delta)*dt/TAU_SERVO         # servo lag
+        delta+=(cmd-delta)*dt/TAU_SERVO # servo lag
         M_tvc=Tcur*np.sin(delta)*(x_gimbal-CG)
-        M_aero=-q*A*CN*(Xcp-CG)*aoa             # fins restore toward relative wind (∝ q)
-        M_damp=-q*A*CN*(Xcp-CG)*( (Xcp-CG)/max(v,5))*w   # pitch aero damping (∝ q)
+        M_aero=-q*A*CN*(Xcp-CG)*aoa # fins restore toward relative wind (∝ q)
+        M_damp=-q*A*CN*(Xcp-CG)*( (Xcp-CG)/max(v,5))*w # pitch aero damping (∝ q)
         wdot=(M_tvc+M_aero+M_damp)/I_pitch
         w+=wdot*dt; th+=w*dt; t+=dt
         LOG.append((t,np.degrees(th),np.degrees(delta),q,np.degrees(aoa_wind)))
@@ -143,10 +143,10 @@ for name,atm in ATMOS.items():
     qbars.append(float(L[:,3].max())); names.append(name)
 axT.axvspan(1.0,1.25,color=RED,alpha=.1); axT.axvspan(2.9,3.2,color=RED,alpha=.1); axT.text(2.6,axT.get_ylim()[1]*0.8,"gusts",color=RED,fontsize=8)
 axT.set_xlabel("t (s)"); axT.set_ylabel("pitch deviation (deg)"); axT.legend(fontsize=8); axT.grid(alpha=.3)
-axT.set_title("Atmospheric effect on TVC — pitch deviation, retuned PID Kp2.0/Ki0.4/Kd0.5 (well-damped)")
+axT.set_title("Atmospheric effect on TVC, pitch deviation, retuned PID Kp2.0/Ki0.4/Kd0.5 (well-damped)")
 figT.tight_layout(); figT.savefig(f"{OUT}/01_pitch_by_atmosphere.png",dpi=130); plt.close(figT)
 axD.set_xlabel("t (s)"); axD.set_ylabel("gimbal command (deg)"); axD.axhline(5,ls='--',c=RED); axD.axhline(-5,ls='--',c=RED)
-axD.legend(fontsize=8); axD.grid(alpha=.3); axD.set_title("Control effort (gimbal) by atmosphere — stays inside ±8° limit")
+axD.legend(fontsize=8); axD.grid(alpha=.3); axD.set_title("Control effort (gimbal) by atmosphere, stays inside ±8° limit")
 figD.tight_layout(); figD.savefig(f"{OUT}/02_gimbal_by_atmosphere.png",dpi=130); plt.close(figD)
 
 # q + density bar chart
@@ -161,7 +161,7 @@ x=np.arange(len(names)); wd=0.38
 ax.bar(x-wd/2,[summary[n]["max_pitch_dev_deg"] for n in names],wd,label="fixed gains",color=GRY)
 ax.bar(x+wd/2,[summary[n]["max_pitch_dev_scheduled_deg"] for n in names],wd,label="thrust-scheduled",color=GRN)
 ax.set_xticks(x); ax.set_xticklabels(names,rotation=15); ax.set_ylabel("max pitch deviation (deg)")
-ax.set_title("Fixed vs thrust-scheduled — <1% difference ⇒ simple fixed-gain PID is sufficient"); ax.legend(); ax.grid(alpha=.3)
+ax.set_title("Fixed vs thrust-scheduled, <1% difference ⇒ simple fixed-gain PID is sufficient"); ax.legend(); ax.grid(alpha=.3)
 fig.tight_layout(); fig.savefig(f"{OUT}/04_gain_schedule.png",dpi=130); plt.close()
 
 worst=max(summary.values(),key=lambda d:d["max_pitch_dev_deg"])

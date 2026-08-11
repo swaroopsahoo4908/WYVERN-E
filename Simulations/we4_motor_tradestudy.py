@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E — MOTOR TRADE STUDY  [HISTORICAL RECORD — superseded mass, conclusion still stands]
+"""WYVERN-E, MOTOR TRADE STUDY [HISTORICAL RECORD, superseded mass, conclusion still stands]
 ================================================================================
 NOTE (2026-08): this study was run against the 705 g vehicle. The flown vehicle is now 792 g after
 the PLA/PETG-CF material change and the 24 in canopy. The masses below are therefore NOT current --
@@ -12,42 +12,42 @@ keeping the same 2.95 s TVC window, so no alternative motor becomes preferable. 
 Question: the F15-4 is underpowered for 705 g (T/W 4.3, rail-exit 6.7 m/s). Fix it by
 (A) swapping to a higher-thrust single-stage motor, or (B) going two-stage with a punchy booster.
 
-This script recomputes — with the same RK4 + Barrowman engine as we4_flightsim/we4_validation —
+This script recomputes, with the same RK4 + Barrowman engine as we4_flightsim/we4_validation, 
 the apogee, rail-exit velocity, peak T/W, TVC window, max-Q and Mach for:
 
-  baseline  F15-4   (24 mm)  49.6 N·s   curve as-flown
-  single    G74W    (29 mm)  82.8 N·s   White Lightning, 1.1 s
-  single    G80T    (29 mm) 135.6 N·s   Blue Thunder, 1.7 s
-  single    G64W    (29 mm) 118.8 N·s   White Lightning, 2.1 s  <-- best off-line thrust + long burn
+  baseline F15-4 (24 mm) 49.6 N·s curve as-flown
+  single G74W (29 mm) 82.8 N·s White Lightning, 1.1 s
+  single G80T (29 mm) 135.6 N·s Blue Thunder, 1.7 s
+  single G64W (29 mm) 118.8 N·s White Lightning, 2.1 s <-- best off-line thrust + long burn
   two-stage G80T booster -> F15-4 sustainer (+150 g ASA booster + bigger fins)
 
 Motor specs are from ThrustCurve.org / manufacturer certs (see comments). Curve SHAPES are
 representative normalized profiles rescaled to each motor's certified total impulse + burn time.
-Run:  python3 we4_motor_tradestudy.py   ->  plots_motor/*.png + motor_tradestudy.json
+Run: python3 we4_motor_tradestudy.py -> plots_motor/*.png + motor_tradestudy.json
 """
 import os, json, numpy as np
-_TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None))  # NumPy 2.x renamed trapz
+_TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None)) # NumPy 2.x renamed trapz
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 OUT=os.path.join(os.path.dirname(os.path.abspath(__file__)),"plots_motor"+os.environ.get("WYVERN_RUN_TAG","")); os.makedirs(OUT,exist_ok=True)
 BLU,RED,GRN,ORG,PUR,GRY="#2a6f97","#bc4749","#386641","#e09f3e","#6d597a","#8d99ae"
 
 # ---------------- airframe (shared) ----------------
 g,rho0=9.80665,1.225; D=0.070; Rb=D/2; A=np.pi*Rb**2; Ltot=0.74; a_snd=343.0
-M_AIRFRAME=0.603            # dry airframe WITHOUT motor (705 g liftoff - 102 g F15 = 603 g)
+M_AIRFRAME=0.603 # dry airframe WITHOUT motor (705 g liftoff - 102 g F15 = 603 g)
 def Cd(M): return (0.0040*np.pi*D*Ltot/A + 0.12+0.10+0.150)*(1+0.25*max(M-0.8,0))
 
 # ---------------- motors: (Itot Ns, m_loaded kg, m_prop kg, tb s, [(t_frac,thrust_N)... shape]) ----------------
 # specs: F15 Estes; G74W/G80T/G64W AeroTech (ThrustCurve.org certs)
 MOTORS={
- "F15-4":  dict(I=49.6, m=0.102, mp=0.060, tb=3.45, dia=24, prop="BP",
+ "F15-4": dict(I=49.6, m=0.102, mp=0.060, tb=3.45, dia=24, prop="BP",
    shape=[(0,0),(0.014,12),(0.035,25.3),(0.06,22),(0.09,16),(0.14,13),(0.29,12.5),(0.43,12.2),(0.58,12),(0.72,11.8),(0.87,11.5),(0.96,7),(1.0,0)]),
- "G74W":   dict(I=82.8, m=0.087, mp=0.040, tb=1.10, dia=29, prop="White Lightning",
+ "G74W": dict(I=82.8, m=0.087, mp=0.040, tb=1.10, dia=29, prop="White Lightning",
    shape=[(0,75),(0.05,95),(0.10,90),(0.30,80),(0.55,70),(0.80,58),(0.95,30),(1.0,0)]),
- "G80T":   dict(I=135.6,m=0.108, mp=0.062, tb=1.70, dia=29, prop="Blue Thunder",
+ "G80T": dict(I=135.6,m=0.108, mp=0.062, tb=1.70, dia=29, prop="Blue Thunder",
    shape=[(0,40),(0.06,115),(0.18,108),(0.45,92),(0.70,84),(0.88,72),(0.96,45),(1.0,0)]),
- "G64W":   dict(I=118.8,m=0.151, mp=0.063, tb=2.10, dia=29, prop="White Lightning",
+ "G64W": dict(I=118.8,m=0.151, mp=0.063, tb=2.10, dia=29, prop="White Lightning",
    shape=[(0,96),(0.05,98.3),(0.18,80),(0.40,66),(0.65,58),(0.85,50),(0.93,34),(1.0,0)]),
- "F67W":   dict(I=61.1, m=0.081, mp=0.030, tb=0.90, dia=29, prop="White Lightning",
+ "F67W": dict(I=61.1, m=0.081, mp=0.030, tb=0.90, dia=29, prop="White Lightning",
    shape=[(0,83),(0.05,86),(0.20,75),(0.50,64),(0.80,45),(0.95,20),(1.0,0)]),
 }
 def curve(spec):
@@ -113,7 +113,7 @@ def fly2(boost="G80T"):
     # separation + 0.5 s coast, then F15-4 sustainer ignites (electronic), sustainer mass 705 g
     thF,_,_=curve(MOTORS["F15-4"]); tbF=MOTORS["F15-4"]["tb"]; mpF=MOTORS["F15-4"]["mp"]
     msF=lambda tt: max(0.792-mpF, 0.792-(mpF/tbF)*min(max(tt,0),tbF))
-    for _ in range(int(0.5/dt)):   # coast
+    for _ in range(int(0.5/dt)): # coast
         h,v=s; Dr=0.5*rho0*np.exp(-h/8500)*Cd(abs(v)/a_snd)*A*v*abs(v)
         s=s+dt*np.array([v,(-Dr-0.792*g)/0.792]); t+=dt; T.append(t);H.append(s[0]);V.append(s[1])
     t2=0.
@@ -146,9 +146,9 @@ json.dump(rows, open(f"{OUT}/motor_tradestudy.json","w"), indent=2)
 # 1. trajectory overlay
 fig,ax=plt.subplots(figsize=(10,5.5)); cmap={"F15-4":GRY,"F67W":"#43aa8b","G74W":ORG,"G80T":BLU,"G64W":GRN,"2-stage G80T→F15":RED,"2-stage G74W→F15":"#9d4edd"}
 for n,(T,H,V) in traj.items():
-    ax.plot(T,H,c=cmap[n],lw=2,label=f"{n}  ({rows[n]['apogee_ft']} ft)")
+    ax.plot(T,H,c=cmap[n],lw=2,label=f"{n} ({rows[n]['apogee_ft']} ft)")
 ax.set_xlabel("t (s)"); ax.set_ylabel("altitude (m)"); ax.grid(alpha=.3); ax.legend()
-ax.set_title("WYVERN-E — apogee by motor option (RK4 + Barrowman)")
+ax.set_title("WYVERN-E, apogee by motor option (RK4 + Barrowman)")
 fig.tight_layout(); fig.savefig(f"{OUT}/01_apogee_overlay.png",dpi=130); plt.close()
 
 # 2. metric bars: rail-exit v and T/W
@@ -168,7 +168,7 @@ tb_=ax.table(cellText=cell,colLabels=cols,loc="center",cellLoc="center"); tb_.au
 for i,n in enumerate(names,1):
     ok=rows[n]["rail_ok"] and rows[n]["tw_ok"]; tb_[(i,8)].set_facecolor(GRN if rows[n]["rail_ok"] else RED); tb_[(i,8)].set_text_props(color="white")
     tb_[(i,7)].set_facecolor(GRN if rows[n]["tw_ok"] else RED); tb_[(i,7)].set_text_props(color="white")
-ax.set_title("Motor trade — green = passes rail-exit / T/W gate",fontweight="bold")
+ax.set_title("Motor trade, green = passes rail-exit / T/W gate",fontweight="bold")
 fig.tight_layout(); fig.savefig(f"{OUT}/03_tradetable.png",dpi=130); plt.close()
 
 print(json.dumps(rows,indent=2))

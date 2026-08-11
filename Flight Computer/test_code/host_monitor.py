@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""WYVERN-E host monitor — reads the Pico 2 W's USB-serial stream during BOOT self-test and
+"""WYVERN-E host monitor, reads the Pico 2 W's USB-serial stream during BOOT self-test and
 flight, and tabulates results against the real line protocol emitted by build/firmware/wyvern4_tvc.ino.
 
 Protocol (see wyvern4_tvc.ino setup()/setup1()/loop1() for the authoritative source):
     SELFTEST:BEGIN
-    SELFTEST:<NAME>:PASS|FAIL|SKIP|WAIT[...]      one line per check, NAME in CHECK_ORDER below
-    SELFTEST:DONE:PASS|FAIL                        aggregate result core 0's BOOT state gates on
-    STATE:<BOOT|ARMED|BOOST|COAST|RECOVER|DESCENT|LANDED>   emitted once on every state transition
-    HB:t=<ms> state=<name> batt=<V>V rbf=<0|1> drop=<n>   ~1 Hz heartbeat, always
+    SELFTEST:<NAME>:PASS|FAIL|SKIP|WAIT[...] one line per check, NAME in CHECK_ORDER below
+    SELFTEST:DONE:PASS|FAIL aggregate result core 0's BOOT state gates on
+    STATE:<BOOT|ARMED|BOOST|COAST|RECOVER|DESCENT|LANDED> emitted once on every state transition
+    HB:t=<ms> state=<name> batt=<V>V rbf=<0|1> drop=<n> ~1 Hz heartbeat, always
 
 Usage:
     python3 host_monitor.py [PORT] [--timeout SECONDS]
@@ -68,8 +68,8 @@ def run(port: str, timeout_s: float, baud: int = 115200):
         sys.exit(2)
 
     print(f"listening on {port} @ {baud} (Ctrl-C to stop, auto-stop after {timeout_s:.0f}s)")
-    results = {}          # NAME -> (status, raw_value)
-    overall = None        # SELFTEST:DONE value, classified
+    results = {} # NAME -> (status, raw_value)
+    overall = None # SELFTEST:DONE value, classified
     last_state = None
     last_hb = None
     states_seen = []
@@ -124,8 +124,8 @@ def run(port: str, timeout_s: float, baud: int = 115200):
         status, raw = results.get(name, ("NOT SEEN", ""))
         tag = {"PASS": "PASS", "FAIL": "FAIL", "SKIP": "SKIP", "WAIT": "WAIT", "NOT SEEN": "????"}[status]
         suffix = f" ({raw})" if raw and status not in ("PASS", "FAIL") else ""
-        print(f"  [{tag:>4}]  {name}{suffix}")
-    print(f"  ---- aggregate SELFTEST:DONE = {overall or 'NOT SEEN'} ----")
+        print(f" [{tag:>4}] {name}{suffix}")
+    print(f" ---- aggregate SELFTEST:DONE = {overall or 'NOT SEEN'} ----")
     if last_hb:
         print(f"\nlast heartbeat: state={last_hb['state']} batt={last_hb['batt_v']:.2f}V "
               f"rbf_pulled={last_hb['rbf']} "
@@ -133,10 +133,10 @@ def run(port: str, timeout_s: float, baud: int = 115200):
         if last_hb.get("pend") is not None:
             print(f"log ring: pending={last_hb['pend']} peak={last_hb.get('peak')} of 256 frames")
         if last_hb["drop"] > 0:
-            print("  NOTE: dropped_frames > 0 -- core 1 fell more than a full 256-frame ring "
+            print(" NOTE: dropped_frames > 0 -- core 1 fell more than a full 256-frame ring "
                   "behind core 0. Suspect a slow SD card; raise FLUSH_EVERY or use a faster card.")
         if last_hb.get("peak") is not None and last_hb["peak"] > 200:
-            print("  NOTE: peak ring occupancy >200/256 -- close to dropping. Same remedy as above.")
+            print(" NOTE: peak ring occupancy >200/256 -- close to dropping. Same remedy as above.")
     if states_seen:
         print(f"state transitions observed: {' -> '.join(states_seen)}")
 

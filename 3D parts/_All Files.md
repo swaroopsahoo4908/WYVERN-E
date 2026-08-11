@@ -1,9 +1,9 @@
 ---
 updated_at: 2026-08-02
 ---
-# 3D parts — All Files
+# 3D parts, All Files
 
-*Auto-generated index — every file and subfolder linked for vault graph connectivity.*
+*Auto-generated index, every file and subfolder linked for vault graph connectivity.*
 
 ---
 

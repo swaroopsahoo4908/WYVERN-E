@@ -1,32 +1,32 @@
 #!/usr/bin/env python3
 """
-WYVERN-E — Simulation & Dataset Suite (single desktop GUI).
+WYVERN-E, Simulation & Dataset Suite (single desktop GUI).
 
 Tabs:
   1. Atmospheric Datasets : Monte-Carlo generator (outcomes / time-series / TVC) with envelope
      presets, seed, preview count + real ETA, progress bar, live log, working Cancel, open-folder.
-  2. Plots & Analysis     : load any generated dataset and build histograms / scatter / density
+  2. Plots & Analysis : load any generated dataset and build histograms / scatter / density
      (hexbin) / altitude-trajectory overlays / correlation heatmaps in an embedded matplotlib
      canvas with the standard zoom/pan/save toolbar, plus a per-column statistics panel.
-  3. Data Viewer          : tabular Parquet/CSV viewer -- full column headers, numeric formatting +
+  3. Data Viewer : tabular Parquet/CSV viewer -- full column headers, numeric formatting +
      right-align, horizontal/vertical scroll, click-to-sort, windowed reads (fast on huge files).
-  4. PID Tuner            : live closed-loop TVC tuning -- drag Kp/Ki/Kd (+ gimbal limit, wind,
+  4. PID Tuner : live closed-loop TVC tuning -- drag Kp/Ki/Kd (+ gimbal limit, wind,
      disturbance) and watch pitch/gimbal response redraw in real time vs the firmware defaults;
      Auto-tune runs a robust multi-wind gain search.
-  5. Flight Computer SIL  : software-in-the-loop digital twin -- state machine + 500 Hz PID on noisy
+  5. Flight Computer SIL : software-in-the-loop digital twin -- state machine + 500 Hz PID on noisy
      sensors + motor-ejection recovery, streaming simulated Wi-Fi telemetry to a live console.
-  6. Super Combined       : live-simulates the full closed-loop SIL over N random-condition flights
+  6. Super Combined : live-simulates the full closed-loop SIL over N random-condition flights
      (default 25,000), accumulating a live scatter and saving log + per-flight-summary datasets.
-  7. Static Motor Tester  : pick a motor -> thrust curve + static-stand axial load-cell trace.
-  8. Jetvane Suitability  : RETIRED 2026-08 (jetvane dropped from the program). Informational only
+  7. Static Motor Tester : pick a motor -> thrust curve + static-stand axial load-cell trace.
+  8. Jetvane Suitability : RETIRED 2026-08 (jetvane dropped from the program). Informational only
                             -- it is the analysis that justified dropping it: any printed vane
                             ablates in a 1150 K BP exhaust.
-  9. Ground TVC + PID     : 3-axis TVC balance reading while the firmware PID gimbals the nozzle.
-  10. Project Engines     : one-click launchers for the project's single-run sim engines (we4_*.py).
-  11. About               : canonical vehicle specs + notes.
+  9. Ground TVC + PID : 3-axis TVC balance reading while the firmware PID gimbals the nozzle.
+  10. Project Engines : one-click launchers for the project's single-run sim engines (we4_*.py).
+  11. About : canonical vehicle specs + notes.
 
 Opens maximized (fill screen); F11 toggles true fullscreen, Esc exits it.
-Requires: numpy, matplotlib, tkinter (+ pyarrow for Parquet). Launch:  python3 run_gui.py
+Requires: numpy, matplotlib, tkinter (+ pyarrow for Parquet). Launch: python3 run_gui.py
 """
 import os, sys, time, threading, queue, subprocess
 import tkinter as tk
@@ -47,29 +47,29 @@ DEFAULT_OUT = os.path.join(HERE, "datasets")
 
 ENGINES = [
     ("Flight trajectory (RK4+Barrowman)", "we4_flightsim.py"),
-    ("Ejection / recovery feasibility",   "we4_ejection_feasibility.py"),
-    ("Stability & fin sizing",            "we4_stability.py"),
-    ("Atmospheric TVC sweep",             "we4_atmos_tvc.py"),
-    ("Validation (Monte-Carlo gates)",    "we4_validation.py"),
-    ("Deep sim (2nd-tier checks)",        "we4_deepsim.py"),
-    ("Motor trade study",                 "we4_motor_tradestudy.py"),
+    ("Ejection / recovery feasibility", "we4_ejection_feasibility.py"),
+    ("Stability & fin sizing", "we4_stability.py"),
+    ("Atmospheric TVC sweep", "we4_atmos_tvc.py"),
+    ("Validation (Monte-Carlo gates)", "we4_validation.py"),
+    ("Deep sim (2nd-tier checks)", "we4_deepsim.py"),
+    ("Motor trade study", "we4_motor_tradestudy.py"),
 ]
 
 ENVELOPE_FIELDS = [
-    ("wind_ms",         "Wind speed [m/s]",     0.0, 15.0),
-    ("turb_pct",        "Turbulence [%]",       0.0, 30.0),
-    ("temp_C",          "Surface temp [C]",    -15.0, 40.0),
-    ("pressure_mbar",   "Pressure [mbar]",     985.0, 1030.0),
-    ("launch_tilt_deg", "Launch tilt [deg]",    0.0, 8.0),
-    ("site_alt_m",      "Site elevation [m]",   0.0, 300.0),
-    ("wind_dir_deg",    "Wind bearing [deg]",   0.0, 360.0),
+    ("wind_ms", "Wind speed [m/s]", 0.0, 15.0),
+    ("turb_pct", "Turbulence [%]", 0.0, 30.0),
+    ("temp_C", "Surface temp [C]", -15.0, 40.0),
+    ("pressure_mbar", "Pressure [mbar]", 985.0, 1030.0),
+    ("launch_tilt_deg", "Launch tilt [deg]", 0.0, 8.0),
+    ("site_alt_m", "Site elevation [m]", 0.0, 300.0),
+    ("wind_dir_deg", "Wind bearing [deg]", 0.0, 360.0),
 ]
 
 # dark grid palette for the Data Viewer
-GRID_BG = "#141414"      # cell background (dark)
+GRID_BG = "#141414" # cell background (dark)
 GRID_HEAD_BG = "#000000" # header background (darker)
-GRID_LINE = "#ffffff"    # white outlines
-GRID_FG = "#ffffff"      # white text
+GRID_LINE = "#ffffff" # white outlines
+GRID_FG = "#ffffff" # white text
 
 
 class GridTable(ttk.Frame):
@@ -78,10 +78,10 @@ class GridTable(ttk.Frame):
     ttk.Treeview cannot draw internal cell borders, so the body is drawn on a tk.Canvas.
     Only the on-screen rows are rendered, so 10k+ row windows stay responsive. Click a
     header cell to sort (delegated to on_sort)."""
-    ROWH = 30            # row height (thicker rows)
-    PAD = 12             # cell text left padding
-    ROW_LINE = 2         # horizontal (row) line width -- a little thicker
-    COL_LINE = 1         # vertical (column) line width
+    ROWH = 30 # row height (thicker rows)
+    PAD = 12 # cell text left padding
+    ROW_LINE = 2 # horizontal (row) line width -- a little thicker
+    COL_LINE = 1 # vertical (column) line width
 
     def __init__(self, master, on_sort=None):
         super().__init__(master)
@@ -89,8 +89,8 @@ class GridTable(ttk.Frame):
         self.cols, self.rows, self.numeric = [], [], set()
         self.colw, self.colx, self.total_w = [], [], 0
         self.sort_col, self.sort_rev = None, False
-        self._top = 0          # first visible row index
-        self._xoff = 0         # horizontal pixel offset
+        self._top = 0 # first visible row index
+        self._xoff = 0 # horizontal pixel offset
 
         try:
             self._font = tkfont.nametofont("TkDefaultFont").copy()
@@ -110,7 +110,7 @@ class GridTable(ttk.Frame):
         self.rowconfigure(1, weight=1); self.columnconfigure(0, weight=1)
 
         self.body.bind("<Configure>", lambda e: self._redraw())
-        self.body.bind("<MouseWheel>", self._on_wheel)          # macOS / Windows
+        self.body.bind("<MouseWheel>", self._on_wheel) # macOS / Windows
         self.body.bind("<Button-4>", lambda e: self._wheel(-3)) # X11 up
         self.body.bind("<Button-5>", lambda e: self._wheel(+3)) # X11 down
         self.header.bind("<Button-1>", self._on_header_click)
@@ -127,7 +127,7 @@ class GridTable(ttk.Frame):
         self.colw = []
         sample = self.rows[:60]
         for j, c in enumerate(self.cols):
-            w = self._measure(str(c)) + 24     # header + arrow room
+            w = self._measure(str(c)) + 24 # header + arrow room
             for r in sample:
                 if j < len(r):
                     w = max(w, self._measure(str(r[j])))
@@ -206,7 +206,7 @@ class GridTable(ttk.Frame):
             self.header.create_line(x0, 0, x0, self.ROWH, fill=GRID_LINE, width=self.COL_LINE)
             arrow = ""
             if c == self.sort_col:
-                arrow = "  ▲" if not self.sort_rev else "  ▼"
+                arrow = " ▲" if not self.sort_rev else " ▼"
             self.header.create_text(x0 + self.PAD, self.ROWH // 2, anchor="w",
                                     text=str(c) + arrow, fill=GRID_FG, font=self._font)
         # header right edge + baseline (thicker, like a row line)
@@ -248,11 +248,11 @@ class GridTable(ttk.Frame):
 PRESETS = {
     "Typical field": dict(wind_ms=(0, 8), turb_pct=(0, 15), temp_C=(5, 30), pressure_mbar=(995, 1025),
                           launch_tilt_deg=(0, 5), site_alt_m=(0, 200), wind_dir_deg=(0, 360)),
-    "Calm":          dict(wind_ms=(0, 2), turb_pct=(0, 5), temp_C=(10, 25), pressure_mbar=(1005, 1020),
+    "Calm": dict(wind_ms=(0, 2), turb_pct=(0, 5), temp_C=(10, 25), pressure_mbar=(1005, 1020),
                           launch_tilt_deg=(0, 2), site_alt_m=(0, 100), wind_dir_deg=(0, 360)),
-    "High wind":     dict(wind_ms=(8, 15), turb_pct=(15, 30), temp_C=(5, 30), pressure_mbar=(990, 1025),
+    "High wind": dict(wind_ms=(8, 15), turb_pct=(15, 30), temp_C=(5, 30), pressure_mbar=(990, 1025),
                           launch_tilt_deg=(2, 8), site_alt_m=(0, 200), wind_dir_deg=(0, 360)),
-    "Hot & high":    dict(wind_ms=(0, 8), turb_pct=(0, 15), temp_C=(30, 40), pressure_mbar=(985, 1000),
+    "Hot & high": dict(wind_ms=(0, 8), turb_pct=(0, 15), temp_C=(30, 40), pressure_mbar=(985, 1000),
                           launch_tilt_deg=(0, 5), site_alt_m=(200, 300), wind_dir_deg=(0, 360)),
     "Full envelope": dict(wind_ms=(0, 15), turb_pct=(0, 30), temp_C=(-15, 40), pressure_mbar=(985, 1030),
                           launch_tilt_deg=(0, 8), site_alt_m=(0, 300), wind_dir_deg=(0, 360)),
@@ -262,8 +262,8 @@ PRESETS = {
 class Suite(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("WYVERN-E — Simulation & Dataset Suite")
-        try:                                   # old macOS system Tk 8.5 fails to paint 'aqua'
+        self.title("WYVERN-E, Simulation & Dataset Suite")
+        try: # old macOS system Tk 8.5 fails to paint 'aqua'
             style = ttk.Style(self)
             mm = tuple(int(x) for x in self.tk.call("info", "patchlevel").split(".")[:2])
             if mm < (8, 6) and "clam" in style.theme_names():
@@ -273,9 +273,9 @@ class Suite(tk.Tk):
         self.q = queue.Queue()
         self.cancel_evt = threading.Event()
         self.worker = None
-        self.dataset = None            # loaded {col: array}
+        self.dataset = None # loaded {col: array}
         self.dataset_cols = []
-        self.last_output = None        # last generated file path
+        self.last_output = None # last generated file path
 
         nb = ttk.Notebook(self); nb.pack(fill="both", expand=True, padx=6, pady=6)
         self.nb = nb
@@ -417,7 +417,7 @@ class Suite(tk.Tk):
             else: core.simulate_trace(2000, seed=7, trace_stride=s)
             rate = 2000 / max(time.time() - t0, 1e-9)
             eta = int(self.n_var.get()) / max(rate, 1e-9)
-            self.q.put(("log", f"{note}\n  ~{rate:,.0f} flights/s -> ETA ~{eta/60:.1f} min "
+            self.q.put(("log", f"{note}\n ~{rate:,.0f} flights/s -> ETA ~{eta/60:.1f} min "
                                f"({eta:.0f} s) for {int(self.n_var.get()):,} flights"))
         threading.Thread(target=_measure, daemon=True).start()
 
@@ -454,7 +454,7 @@ class Suite(tk.Tk):
         self.worker = threading.Thread(target=run, daemon=True); self.worker.start()
 
     def _cancel(self):
-        self.cancel_evt.set(); self._logln("Cancel requested — finishing current chunk…")
+        self.cancel_evt.set(); self._logln("Cancel requested, finishing current chunk…")
 
     def _nominal_flight(self):
         """Run one calm nominal flight and show its altitude/velocity trace in the Plots tab."""
@@ -736,12 +736,12 @@ class Suite(tk.Tk):
         axd.plot(cur["t"], cur["delta_deg"], color="#2a6f97", lw=1.2, label="gimbal δ")
         if self.pid_overlay.get():
             dfl = core.simulate_tvc_trace(gimbal_deg=g["gimbal_deg"], wind=g["wind"], turb=g["turb"],
-                                          disturbance=dist)  # firmware defaults
+                                          disturbance=dist) # firmware defaults
             axt.plot(dfl["t"], dfl["theta_deg"], color="#999", lw=1.0, ls="--", label="firmware default")
             axd.plot(dfl["t"], dfl["delta_deg"], color="#999", lw=0.9, ls="--")
         axt.axhline(0, color="k", lw=0.5); axt.axvline(core.TVC_ENGAGE_T, color="g", ls=":", lw=0.8)
         axt.set_ylabel("pitch dev θ (deg)"); axt.grid(alpha=0.3); axt.legend(fontsize=8, loc="upper right")
-        axt.set_title(f"Closed-loop pitch response — Kp={g['kp']:.2f}  Ki={g['ki']:.2f}  Kd={g['kd']:.2f}")
+        axt.set_title(f"Closed-loop pitch response, Kp={g['kp']:.2f} Ki={g['ki']:.2f} Kd={g['kd']:.2f}")
         axd.axhline(g["gimbal_deg"], color="#bc4749", ls=":", lw=0.8)
         axd.axhline(-g["gimbal_deg"], color="#bc4749", ls=":", lw=0.8, label="gimbal limit")
         axd.set_xlabel("t (s)"); axd.set_ylabel("gimbal δ (deg)"); axd.grid(alpha=0.3)
@@ -751,10 +751,10 @@ class Suite(tk.Tk):
         self.pid_metrics.delete("1.0", "end")
         self.pid_metrics.insert("end",
             f"Disturbance: {dist}\n"
-            f"peak |θ|        {m['peak_pitch_deg']:.2f} deg\n"
+            f"peak |θ| {m['peak_pitch_deg']:.2f} deg\n"
             f"steady-state err {m['steady_err_deg']:.2f} deg\n"
-            f"settle (<1°)     {m['settle_time_s']:.2f} s\n"
-            f"RMS gimbal       {m['rms_gimbal_deg']:.2f} deg\n"
+            f"settle (<1°) {m['settle_time_s']:.2f} s\n"
+            f"RMS gimbal {m['rms_gimbal_deg']:.2f} deg\n"
             f"gimbal saturation {m['gimbal_saturation_pct']:.0f} %\n\n"
             f"firmware default: Kp={core.KP} Ki={core.KI} Kd={core.KD}")
 
@@ -820,7 +820,7 @@ class Suite(tk.Tk):
         axz.plot(a["t"], a["baro_alt"], "#f4a261", lw=0.7, alpha=0.7, label="baro (noisy)")
         axz.axvline(core.DEPLOY_T, color="r", ls="--", lw=0.8, label="eject 7.45 s")
         axz.set_ylabel("altitude (m)"); axz.legend(fontsize=7, loc="upper right"); axz.grid(alpha=0.3)
-        axz.set_title(f"SIL flight — apogee {r['summary']['apogee_true_m']} m, "
+        axz.set_title(f"SIL flight, apogee {r['summary']['apogee_true_m']} m, "
                       f"boost pitch {r['summary']['peak_pitch_boost_deg']}°, land {r['summary']['touchdown_v_ms']} m/s")
         axp.plot(a["t"], a["theta_deg"], "#bc4749", lw=1.0); axp.axhline(0, color="k", lw=0.4)
         axp.set_ylabel("pitch θ (deg)"); axp.grid(alpha=0.3)
@@ -905,7 +905,7 @@ class Suite(tk.Tk):
         sc = ax.scatter(a["wind"], a["pitch"], c=a["sat"], cmap="turbo", s=7, alpha=0.5, vmin=0, vmax=100)
         self._comb_fig.colorbar(sc, ax=ax, label="gimbal saturation %")
         ax.set_xlabel("wind (m/s)"); ax.set_ylabel("boost-phase peak pitch (deg)")
-        ax.set_title(f"Closed-loop TVC over random conditions — {len(a['wind']):,} flights")
+        ax.set_title(f"Closed-loop TVC over random conditions, {len(a['wind']):,} flights")
         ax.grid(alpha=0.3); self._comb_fig.tight_layout(); self._comb_canvas.draw()
 
     # =============================================================== Static Motor Tester tab
@@ -947,11 +947,11 @@ class Suite(tk.Tk):
             self._embed(self._mt_holder, fig)
             s = bench_sim.motor_stats(name); ts, true, rd, st, info = bench_sim.static_stand_trace(name, cell_kg=cell)
             self.mt_txt.delete("1.0", "end")
-            self.mt_txt.insert("end", f"{name}  ({s['cls']}-class)\n"
-                f"  total impulse : {s['It']:.1f} N·s\n  burn time     : {s['tb']:.2f} s\n"
-                f"  avg thrust    : {s['avg']:.1f} N\n  peak thrust   : {s['peak']:.1f} N\n"
-                f"  {cell:.0f} kg cell FS: {info['cell_fs_N']:.0f} N ({info['headroom']:.1f}× peak)\n"
-                + ("  ⚠ pick a larger cell — under-ranged!\n" if info['headroom'] < 1.05 else "  cell headroom OK\n"))
+            self.mt_txt.insert("end", f"{name} ({s['cls']}-class)\n"
+                f" total impulse : {s['It']:.1f} N·s\n burn time : {s['tb']:.2f} s\n"
+                f" avg thrust : {s['avg']:.1f} N\n peak thrust : {s['peak']:.1f} N\n"
+                f" {cell:.0f} kg cell FS: {info['cell_fs_N']:.0f} N ({info['headroom']:.1f}× peak)\n"
+                + (" ⚠ pick a larger cell, under-ranged!\n" if info['headroom'] < 1.05 else " cell headroom OK\n"))
         except Exception as e:
             messagebox.showerror("Motor tester", repr(e))
 
@@ -1037,10 +1037,10 @@ class Suite(tk.Tk):
             self.gt_txt.delete("1.0", "end")
             self.gt_txt.insert("end",
                 f"peak axial Fz : {m['peak_axial_N']:.1f} N ({m['ax_headroom']:.1f}× cell)\n"
-                f"peak side Fx  : {m['peak_side_N']:.2f} N ({m['lat_headroom']:.1f}× cell)\n"
-                f"max gimbal    : {m['max_gimbal_deg']:.1f}°\n"
-                f"saturation    : {m['sat_pct']:.1f}%\n"
-                f"motor         : {m['motor']['name']} ({m['motor']['It']:.0f} N·s)\n")
+                f"peak side Fx : {m['peak_side_N']:.2f} N ({m['lat_headroom']:.1f}× cell)\n"
+                f"max gimbal : {m['max_gimbal_deg']:.1f}°\n"
+                f"saturation : {m['sat_pct']:.1f}%\n"
+                f"motor : {m['motor']['name']} ({m['motor']['It']:.0f} N·s)\n")
         except Exception as e:
             messagebox.showerror("Ground TVC", repr(e))
 
@@ -1063,9 +1063,9 @@ class Suite(tk.Tk):
         script = os.path.join(SIM_DIR, self.eng_var.get())
         if not os.path.exists(script):
             self.eng_log.insert("end", f"[not found] {script}\n"); return
-        tag = "_" + time.strftime("%Y%m%d_%H%M%S")     # arc-sim style: each run -> its own folder
+        tag = "_" + time.strftime("%Y%m%d_%H%M%S") # arc-sim style: each run -> its own folder
         self.eng_log.insert("end", f"\n$ WYVERN_RUN_TAG={tag} python3 {os.path.basename(script)}\n"
-                                   f"  (outputs -> Simulations/plots*{tag}/)\n"); self.eng_log.see("end")
+                                   f" (outputs -> Simulations/plots*{tag}/)\n"); self.eng_log.see("end")
         def run():
             try:
                 env = dict(os.environ, WYVERN_RUN_TAG=tag)
@@ -1085,7 +1085,7 @@ class Suite(tk.Tk):
     def _os_open(path):
         try:
             if sys.platform == "darwin": subprocess.Popen(["open", path])
-            elif os.name == "nt": os.startfile(path)  # noqa
+            elif os.name == "nt": os.startfile(path) # noqa
             else: subprocess.Popen(["xdg-open", path])
         except Exception:
             pass
@@ -1095,18 +1095,18 @@ class Suite(tk.Tk):
         f = ttk.Frame(nb); nb.add(f, text="About")
         txt = tk.Text(f, wrap="word"); txt.pack(fill="both", expand=True, padx=10, pady=10)
         txt.insert("end",
-            "WYVERN-E — Simulation & Dataset Suite\n"
+            "WYVERN-E, Simulation & Dataset Suite\n"
             "==========================================\n\n"
             "Canonical vehicle (matches we4_flightsim.py):\n"
-            f"  Liftoff {core.M_LIFT*1000:.0f} g / dry {core.M_DRY*1000:.0f} g · Estes F15-4 (flight)\n"
-            f"  Apogee ~98.9 m / 324 ft @ ~6.27 s · deploy t={core.DEPLOY_T:.2f} s\n"
-            f"  Fins 4x72 mm PLA · CG {core.CG*100:.1f} cm / CP {core.XCP*100:.1f} cm\n\n"
+            f" Liftoff {core.M_LIFT*1000:.0f} g / dry {core.M_DRY*1000:.0f} g · Estes F15-4 (flight)\n"
+            f" Apogee ~98.9 m / 324 ft @ ~6.27 s · deploy t={core.DEPLOY_T:.2f} s\n"
+            f" Fins 4x72 mm PLA · CG {core.CG*100:.1f} cm / CP {core.XCP*100:.1f} cm\n\n"
             "Datasets: outcomes (1 row/flight), timeseries (ML), tvc (control perf). Parquet or gzip-CSV,\n"
             "streamed in chunks (flat memory, no row cap).\n\n"
             "Headless CLI (run from wyvern_datagen/):\n"
-            "  /opt/homebrew/bin/python3 datagen.py outcomes   --n 2000000 --out datasets/out.parquet\n"
-            "  /opt/homebrew/bin/python3 datagen.py timeseries --flights 50000 --out datasets/ts.parquet\n"
-            "  /opt/homebrew/bin/python3 datagen.py tvc        --n 1000000 --out datasets/tvc.parquet\n\n"
+            " /opt/homebrew/bin/python3 datagen.py outcomes --n 2000000 --out datasets/out.parquet\n"
+            " /opt/homebrew/bin/python3 datagen.py timeseries --flights 50000 --out datasets/ts.parquet\n"
+            " /opt/homebrew/bin/python3 datagen.py tvc --n 1000000 --out datasets/tvc.parquet\n\n"
             "Shortcuts: F11 fullscreen · Esc exit fullscreen.\n")
         txt.config(state="disabled")
 
@@ -1120,12 +1120,12 @@ class Suite(tk.Tk):
                 elif kind == "progress":
                     d, t, r, rate = payload
                     self.pbar["value"] = 100.0 * d / max(t, 1)
-                    self._logln(f"  {100.0*d/max(t,1):5.1f}%  flights={d:,}/{t:,}  rows={r:,}  {rate:,.0f}/s",
+                    self._logln(f" {100.0*d/max(t,1):5.1f}% flights={d:,}/{t:,} rows={r:,} {rate:,.0f}/s",
                                replace_last=True)
                 elif kind == "done":
                     self.last_output = payload["path"]
-                    self._logln(f"DONE  {payload['rows']:,} rows -> {payload['path']}  "
-                               f"({payload['fmt']}, {payload['seconds']}s).  "
+                    self._logln(f"DONE {payload['rows']:,} rows -> {payload['path']} "
+                               f"({payload['fmt']}, {payload['seconds']}s). "
                                f"Use 'Load last generated' in Plots & Analysis.")
                     self.go_btn.config(state="normal"); self.cancel_btn.config(state="disabled")
                 elif kind == "error":
@@ -1141,7 +1141,7 @@ class Suite(tk.Tk):
                     if numc:
                         self.xcol.set("apogee_m" if "apogee_m" in numc else numc[0])
                         self.ycol.set("wind_ms" if "wind_ms" in numc else numc[min(1, len(numc)-1)])
-                    self.ds_lbl.config(text=f"{os.path.basename(path)} — {ntot:,} rows"
+                    self.ds_lbl.config(text=f"{os.path.basename(path)}, {ntot:,} rows"
                                            + (f" ({nload:,} loaded)" if nload != ntot else "") + f", {len(cols)} cols")
                     self.nb.select(1)
                 elif kind == "viewer":
@@ -1159,7 +1159,7 @@ class Suite(tk.Tk):
                     d, t, rows, rate = payload
                     self.comb_pbar["value"] = 100.0 * d / max(t, 1)
                     eta = (t - d) / max(rate, 1e-9)
-                    self.comb_status.insert("end", f"  {100.0*d/max(t,1):5.1f}%  {d:,}/{t:,} flights · "
+                    self.comb_status.insert("end", f" {100.0*d/max(t,1):5.1f}% {d:,}/{t:,} flights · "
                                            f"{rows:,} log rows · {rate:.1f}/s · ETA {eta/60:.1f} min\n")
                     self.comb_status.see("end")
                 elif kind == "comb_sample":
@@ -1173,9 +1173,9 @@ class Suite(tk.Tk):
                     r = payload
                     self.last_output = r["summary_path"]
                     self.comb_status.insert("end",
-                        f"DONE  {r['flights']:,} flights · {r['rows']:,} log rows · {r['seconds']}s\n"
-                        f"  summary → {os.path.basename(r['summary_path'])}\n"
-                        f"  log     → {os.path.basename(r['log_path'])}\n"
+                        f"DONE {r['flights']:,} flights · {r['rows']:,} log rows · {r['seconds']}s\n"
+                        f" summary → {os.path.basename(r['summary_path'])}\n"
+                        f" log → {os.path.basename(r['log_path'])}\n"
                         f"'Load last generated' in Plots & Analysis opens the summary.")
                     self.comb_status.see("end")
                     self.comb_btn.config(state="normal"); self.comb_cancel.config(state="disabled")
@@ -1198,8 +1198,8 @@ class Suite(tk.Tk):
                     self.pid_metrics.delete("1.0", "end")
                     self.pid_metrics.insert("end",
                         f"Auto-tune (robust, winds 3-12 m/s):\n"
-                        f"best  Kp={best[1]:.3f} Ki={best[2]:.3f} Kd={best[3]:.3f}  cost {best[0]:.2f}\n"
-                        f"firmware {core.KP}/{core.KI}/{core.KD}  cost {fw[0]:.2f}  ({imp:+.1f}%)\n\n"
+                        f"best Kp={best[1]:.3f} Ki={best[2]:.3f} Kd={best[3]:.3f} cost {best[0]:.2f}\n"
+                        f"firmware {core.KP}/{core.KI}/{core.KD} cost {fw[0]:.2f} ({imp:+.1f}%)\n\n"
                         f"Note: grid-best often drops Ki; firmware keeps integral for steady-bias\n"
                         f"rejection (see PID_AUTOTUNE_REPORT.md). 'Apply best' loads it into the sliders.")
                     self.pid_autotune_btn.config(state="normal")
@@ -1210,7 +1210,7 @@ class Suite(tk.Tk):
                     self.xcol.config(values=numc); self.ycol.config(values=numc)
                     self.xcol.set("t"); self.ycol.set("z")
                     self.pk_var.set("Scatter")
-                    self.ds_lbl.config(text=f"nominal flight — apogee {apo:.1f} m @ {apot:.2f} s")
+                    self.ds_lbl.config(text=f"nominal flight, apogee {apo:.1f} m @ {apot:.2f} s")
                     self.nb.select(1); self._plot()
         except queue.Empty:
             pass

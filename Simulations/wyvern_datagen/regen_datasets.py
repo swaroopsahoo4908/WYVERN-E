@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-WYVERN-E — resumable, parallel dataset regeneration driver.
+WYVERN-E, resumable, parallel dataset regeneration driver.
 
 Why this exists: the full Monte-Carlo regeneration is tens of CPU-minutes, which is longer than
 any single interactive session or CI step wants to hold open. This driver splits the whole job
@@ -12,9 +12,9 @@ Each shard writes its own `_partNNN` file, so the 80 MB-per-file project rule is
 construction rather than by the writer's size estimator having to rotate mid-stream.
 
 Usage:
-    python3 regen_datasets.py --budget-s 35          # do ~35 s of work, then exit
+    python3 regen_datasets.py --budget-s 35 # do ~35 s of work, then exit
     python3 regen_datasets.py --budget-s 35 --status # show remaining work, do nothing
-    python3 regen_datasets.py --reset                # discard state, re-plan from scratch
+    python3 regen_datasets.py --reset # discard state, re-plan from scratch
 """
 import os, sys, json, time, argparse, multiprocessing as mp
 
@@ -29,25 +29,25 @@ SEED_BASE = 20260801
 # short enough to fit inside a bounded invocation while still amortizing NumPy's per-step
 # overhead across a large enough vector to run efficiently.
 PLAN = [
-    # (kind,        shards, per_shard, kwargs)
-    ("outcomes",    12, 20_000, dict(dt=0.002)),   #  240,000 flights, 34 columns
-    ("tvc",          9, 20_000, dict(dt=0.001)),   #  180,000 flights, 16 columns
-    ("timeseries",   9,  1_500, dict(dt=0.002, stride=10)),  # 13,500 flights ~ 5.0 M rows
+    # (kind, shards, per_shard, kwargs)
+    ("outcomes", 12, 20_000, dict(dt=0.002)), # 240,000 flights, 34 columns
+    ("tvc", 9, 20_000, dict(dt=0.001)), # 180,000 flights, 16 columns
+    ("timeseries", 9, 1_500, dict(dt=0.002, stride=10)), # 13,500 flights ~ 5.0 M rows
     # The SIL products are sequential, single-flight, full-firmware runs -- realism over raw
     # count, and now ~3x slower per flight than before because the servo, transport delay and
     # 500 Hz ZOH are modeled explicitly. t_max=12 s carries every flight through
     # ARMED->BOOST->COAST->RECOVER->DESCENT with the chute open and the descent rate settled;
     # the remaining ~15 s of steady parachute ride adds rows but no new dynamics.
-    ("flightlog",   10,     60, dict(dt=0.002, t_max=12.0)), #    600 SIL flight logs
-    ("combined",    10,     60, dict(dt=0.002, t_max=12.0)), #    600 SIL logs + per-flight summaries
+    ("flightlog", 10, 60, dict(dt=0.002, t_max=12.0)), # 600 SIL flight logs
+    ("combined", 10, 60, dict(dt=0.002, t_max=12.0)), # 600 SIL logs + per-flight summaries
 ]
 
 BASENAME = {
-    "outcomes":   "wyvern_outcomes",
-    "tvc":        "wyvern_tvc",
+    "outcomes": "wyvern_outcomes",
+    "tvc": "wyvern_tvc",
     "timeseries": "wyvern_timeseries",
-    "flightlog":  "wyvern_sil_flightlog",
-    "combined":   "wyvern_combined",
+    "flightlog": "wyvern_sil_flightlog",
+    "combined": "wyvern_combined",
 }
 
 
@@ -104,7 +104,7 @@ def _run_shard(sh):
             raise ValueError(kind)
         paths = r.get("paths") or (r.get("log_paths", []) + r.get("summary_paths", []))
         return (sh["id"], r.get("rows", 0), round(time.time() - t0, 1), paths, None)
-    except Exception as e:  # a shard failure must not take the whole run down
+    except Exception as e: # a shard failure must not take the whole run down
         import traceback
         return (sh["id"], 0, round(time.time() - t0, 1), [], traceback.format_exc(limit=4))
 
@@ -137,7 +137,7 @@ def main(argv=None):
     print(f"plan: {len(done)}/{len(plan)} shards complete "
           f"({st['total_seconds']:.0f} s spent so far)")
     for k, (d, t) in by_kind.items():
-        print(f"   {k:11} {d:3d}/{t:3d}")
+        print(f" {k:11} {d:3d}/{t:3d}")
     if a.status or not todo:
         if not todo:
             print("ALL_SHARDS_COMPLETE")
@@ -150,11 +150,11 @@ def main(argv=None):
         with mp.Pool(len(batch)) as pool:
             for sid, rows, secs, paths, err in pool.map(_run_shard, batch):
                 if err:
-                    print(f"  FAIL {sid} after {secs}s\n{err}")
+                    print(f" FAIL {sid} after {secs}s\n{err}")
                 else:
                     done.add(sid)
                     st["done"] = sorted(done)
-                    print(f"  ok   {sid}  {rows:>9,} rows  {secs:>5.1f}s  -> "
+                    print(f" ok {sid} {rows:>9,} rows {secs:>5.1f}s -> "
                           f"{os.path.basename(paths[0]) if paths else '?'}")
         todo = [s for s in plan if s["id"] not in done]
         st["total_seconds"] = round(st["total_seconds"] + (time.time() - t_start), 1)

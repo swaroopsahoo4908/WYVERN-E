@@ -2,11 +2,11 @@
 updated_at: 2026-08-01
 ---
 
-# WYVERN-E — Cart Gap Analysis (rev 2)
+# WYVERN-E, Cart Gap Analysis (rev 2)
 
 > ⚠ **Stale vs. 2026-08-10 scope restoration.** This snapshot is checked against the 2026-08
 > jetvane-dropped scope. Jetvane testing is back in the program as of 2026-08-10 (see
-> `WYVERN_E4_GSE_TestStands.md` §1) — the "Creality ABS was jetvane coupon material only" line in
+> `WYVERN_E4_GSE_TestStands.md` §1), the "Creality ABS was jetvane coupon material only" line in
 > §2 below no longer applies as a removal candidate; ABS/PC coupon stock is needed again. Treat the
 > dollar figures here as historical, not current gap analysis.
 
@@ -22,22 +22,22 @@ flight = servo TVC only.
 
 ---
 
-## 1. Still flight-blocking — order today
+## 1. Still flight-blocking, order today
 
 | # | Missing | Why it stops you | Where | Est. |
 |---|---|---|---|---|
 | **1** | **BMP388 barometer ×2** | No barometric altitude means **no apogee detection and no RQ3**. The coast-Cd reconstruction in `we4_flight_reduce.py` is computed entirely from baro altitude. `baro.h` initializes it on mux ch3 (0x77); the self-test gates on `BARO_BMP`. | Adafruit **PID 3966** | $9.95 ea |
-| **2** | **More PLA filament** | You own 2 kg (1 white + 1 black). The airframe needs ~195 g of PLA, but that is *finished part* mass — with supports, brims, purge and at least one reprint of something, 2 kg is thin for a two-week build with no second shipping cycle. Add 1–2 kg. | Bambu / any | ~$20–40 |
+| **2** | **More PLA filament** | You own 2 kg (1 white + 1 black). The airframe needs ~195 g of PLA, but that is *finished part* mass, with supports, brims, purge and at least one reprint of something, 2 kg is thin for a two-week build with no second shipping cycle. Add 1–2 kg. | Bambu / any | ~$20–40 |
 | **3** | **Estes E16-4 × 3 packs (6 motors)** | **Gate 5, stand commissioning.** Both stands must be validated against a published curve before any F15-0 data run, or the RQ1 numbers aren't defensible. | Estes | $33.33 ea |
 | **4** | **More STARTECH starters** | **6 starters for ~15 firings.** Buy 3–4 packs. Cheapest possible way to lose a test day. | Estes | $6.99 ea |
 | **5** | **LiPo balance charger** | You cannot charge the OVONIC 2S packs. In the BOM (HTRC B3), not in the cart. | Amazon | ~$14 |
-| **6** | **Decoupling kit — 1000 µF + 100 µF low-ESR + SS34 Schottky** | `COMPATIBILITY.md` §5c calls this **mandatory**. Servos and the Pico share one 5 V rail; a ~1 A servo-stall transient browns out the flight computer mid-burn without the bulk cap and hold-up diode. | Amazon | ~$10 |
+| **6** | **Decoupling kit, 1000 µF + 100 µF low-ESR + SS34 Schottky** | `COMPATIBILITY.md` §5c calls this **mandatory**. Servos and the Pico share one 5 V rail; a ~1 A servo-stall transient browns out the flight computer mid-burn without the bulk cap and hold-up diode. | Amazon | ~$10 |
 | **7** | **Arming switch ×2 (SPDT slide)** | `PIN_RBF` (GP22) needs something to sense. | Amazon | ~$2 |
-| **8** | **Calibration masses to ~2.5 kg** | Your UCEC set tops out at **211 g ≈ 2 N**. The axial cell is 5 kg (≈49 N). Calibrating over 4% of range will not pass **Gate 4**. Anything of *known* mass works — gym plates, water bottles on a kitchen scale. | — | ~$15 |
+| **8** | **Calibration masses to ~2.5 kg** | Your UCEC set tops out at **211 g ≈ 2 N**. The axial cell is 5 kg (≈49 N). Calibrating over 4% of range will not pass **Gate 4**. Anything of *known* mass works, gym plates, water bottles on a kitchen scale. | — | ~$15 |
 
 ---
 
-## 2. Now resolved — you have these
+## 2. Now resolved, you have these
 
 Confirmed against the *Already Acquired* sheet:
 
@@ -52,29 +52,29 @@ Confirmed against the *Already Acquired* sheet:
 | PCA9548A I2C mux | ✅ owned |
 | BME688 ×2 | ✅ owned |
 | microSD cards ×2 | ✅ owned |
-| **Full magnetic-solenoid actuator (MTVC)** | ✅ owned — 3 × 12 V electromagnets, 3 × AIRTAK 100 N, IRF520 pack, 1N4007 pack, 12 V 2 A supply. **The MTVC half of RQ1 is fully covered.** |
+| **Full magnetic-solenoid actuator (MTVC)** | ✅ owned, 3 × 12 V electromagnets, 3 × AIRTAK 100 N, IRF520 pack, 1N4007 pack, 12 V 2 A supply. **The MTVC half of RQ1 is fully covered.** |
 | STEMMA QT cables ×6 | ✅ owned |
 
 ---
 
-## 3. Take these OUT of the cart — the scope change made them unnecessary
+## 3. Take these OUT of the cart, the scope change made them unnecessary
 
 | Item | In cart | Why it's no longer needed |
 |---|---|---|
 | **kexcelled PC-FR filament** | $49.99 | PC-FR is gone from the design. PETG-CF replaces it in the gas path and TVC assemblies, and you already own 4 kg. |
 | **SUNLU PC (natural white)** | $30.39 | Was for pure-PC material coupons in the old zoned-materials RQ2. That RQ is now PLA vs PETG-CF. |
 | **Creality ABS** | $17.48 | Was **jetvane coupon material only**. Jetvane testing is dropped entirely. |
-| 18 in parachutes ×4 | $36.00 | Superseded — see §5. Keep if you want spares, but the flight canopy is 24 in. |
+| 18 in parachutes ×4 | $36.00 | Superseded, see §5. Keep if you want spares, but the flight canopy is 24 in. |
 
 **Removing the three filaments saves $97.86.**
 
 ---
 
-## 4. Schedule risk — the one thing that can still sink the flight
+## 4. Schedule risk, the one thing that can still sink the flight
 
 | Item | Delivery | Needed | Status |
 |---|---|---|---|
-| **M2 linkage rod ends** (uxcell, 4 pcs ×2) | **Aug 12–21**, *"only 2 left in stock"* | Day 7 bench, Aug 8 | **RE-SOURCE — see below** |
+| **M2 linkage rod ends** (uxcell, 4 pcs ×2) | **Aug 12–21**, *"only 2 left in stock"* | Day 7 bench, Aug 8 | **RE-SOURCE, see below** |
 | EMAX ES08MA II servos | Aug 8–14 | Day 7 bench | Find a faster source if you can |
 
 ### Re-sourced linkage rod ends
@@ -84,9 +84,9 @@ alternatives with more pieces per pack:
 
 | Option | Pack | Note |
 |---|---|---|
-| **[10 Pcs Metal M2 Link Tie Rod End Ball Joint](https://www.amazon.com/Buckle-Steering-Pushrod-Upgrade-Accessories/dp/B0F1XK7H11)** | **10** | **Recommended.** Metal, 15 mm, 2 mm bore — same geometry as the uxcell part, 10 per pack instead of 4, and not on a 3-week ship. |
-| [M2 rod ends + pushrod kit](https://www.amazon.com/Plastic-Pushrod-Connector-Airplane-M2x150mm/dp/B0FD8XVF9R) | 2 sets | Includes the pushrod and a linkage stopper — useful if you want the threaded rod as well as the ends. Plastic ends. |
-| [M2/M2.5/M3 nylon ball joints (eBay)](https://www.ebay.com/itm/196503474782) | varies | Backup only — eBay SpeedPAK timing is not reliable enough for this window. |
+| **[10 Pcs Metal M2 Link Tie Rod End Ball Joint](https://www.amazon.com/Buckle-Steering-Pushrod-Upgrade-Accessories/dp/B0F1XK7H11)** | **10** | **Recommended.** Metal, 15 mm, 2 mm bore, same geometry as the uxcell part, 10 per pack instead of 4, and not on a 3-week ship. |
+| [M2 rod ends + pushrod kit](https://www.amazon.com/Plastic-Pushrod-Connector-Airplane-M2x150mm/dp/B0FD8XVF9R) | 2 sets | Includes the pushrod and a linkage stopper, useful if you want the threaded rod as well as the ends. Plastic ends. |
+| [M2/M2.5/M3 nylon ball joints (eBay)](https://www.ebay.com/itm/196503474782) | varies | Backup only, eBay SpeedPAK timing is not reliable enough for this window. |
 | [uxcell original](https://www.amazon.com/uxcell-Linkage-Joint-Adapter-Crawler/dp/B07Q2V3R61) | 4 | Keep the order as a backstop, but do not plan around it. |
 
 Buy the 10-pack **and** keep the existing order. They're a few dollars, and the gimbal linkage is a
@@ -94,7 +94,7 @@ single point of failure on the bench gate.
 
 ---
 
-## 5. Parachute — 24 in confirmed
+## 5. Parachute, 24 in confirmed
 
 **Switched to 24 in and the simulations now match.** `CHUTE_D = 0.6096 m` is set in
 `wyvern_datagen/core.py`, `we4_sim.py` and `we4_validation.py`, and every descent number has been
@@ -110,7 +110,7 @@ regenerated from it:
 is drift: a slower descent from the same altitude spends longer in the wind, so the landing-dispersion
 figures grew. That trade is worth it on a vehicle carrying a camera and a flight computer.
 
-Your cart has 2 × 24 in — **order 2 more** so you have a spare per flight.
+Your cart has 2 × 24 in, **order 2 more** so you have a spare per flight.
 
 ---
 
@@ -118,16 +118,16 @@ Your cart has 2 × 24 in — **order 2 more** so you have a spare per flight.
 
 **Add:**
 
-- [ ] BMP388 × 2 — Adafruit PID 3966 — $19.90
-- [ ] PLA filament × 1–2 kg — ~$20–40
-- [ ] Estes E16-4 2-ct × 3 — ~$100
-- [ ] STARTECH starters × 3 packs — ~$21
-- [ ] LiPo balance charger — ~$14
-- [ ] Decoupling kit (1000 µF + 100 µF + SS34) — ~$10
-- [ ] SPDT slide switch × 2 — ~$2
-- [ ] Calibration masses to ~2.5 kg — ~$15
-- [ ] 24 in parachute × 2 more — ~$20
-- [ ] **M2 ball-link 10-pack (the re-sourced one)** — ~$10
+- [ ] BMP388 × 2, Adafruit PID 3966, $19.90
+- [ ] PLA filament × 1–2 kg, ~$20–40
+- [ ] Estes E16-4 2-ct × 3, ~$100
+- [ ] STARTECH starters × 3 packs, ~$21
+- [ ] LiPo balance charger, ~$14
+- [ ] Decoupling kit (1000 µF + 100 µF + SS34), ~$10
+- [ ] SPDT slide switch × 2, ~$2
+- [ ] Calibration masses to ~2.5 kg, ~$15
+- [ ] 24 in parachute × 2 more, ~$20
+- [ ] **M2 ball-link 10-pack (the re-sourced one)**, ~$10
 
 **Remove:** PC-FR filament (−$49.99), SUNLU PC (−$30.39), ABS (−$17.48), and the 18 in chutes if you
 don't want them as spares (−$36.00).

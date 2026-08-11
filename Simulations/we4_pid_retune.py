@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E — pitch-axis TVC PID re-tune (numerical, margin + nonlinear validated).
+"""WYVERN-E, pitch-axis TVC PID re-tune (numerical, margin + nonlinear validated).
 =========================================================================================
 Re-derives the flight PID gains in firmware/wyvern_pid.h and Simulations/pid_reference.py.
 
@@ -26,14 +26,14 @@ Method
    all 4 atmospheres) and pick the one minimizing worst-case gust-rejection pitch deviation,
    subject to being chatter-free (no growing/undamped gimbal oscillation in steady flight).
 
-Run: python3 we4_pid_retune.py  ->  prints the margin table + writes pid_retune_summary.json
+Run: python3 we4_pid_retune.py -> prints the margin table + writes pid_retune_summary.json
 Requires: numpy, scipy, python-control (pip install control)
 """
 import json
 import os
 HERE = os.path.dirname(os.path.abspath(__file__))
 import numpy as np
-_TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None))  # NumPy 2.x renamed trapz
+_TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None)) # NumPy 2.x renamed trapz
 import control as ct
 
 trapz = np.trapezoid if hasattr(np, "trapezoid") else _TRAPZ
@@ -51,7 +51,7 @@ I_pitch = 0.0257
 Fc_t = np.array([0,0.05,0.12,0.2,0.3,0.5,1,1.5,2,2.5,3,3.3,3.45])
 # F15 thrust curve CORRECTED 2026-08. The digitized shape integrated to 41.97 N.s, so the
 # 49.6 N.s renormalization below scaled the whole curve by 1.1817 and pushed peak thrust to
-# 29.9 N -- against Estes' published 25.3 N peak, and against the 3.66 peak T/W quoted
+# 29.9 N -- against Estes' published 25.3 N peak, and against the 3.26 peak T/W quoted
 # throughout this repo (29.9 N gives 4.32). The sustain block (t >= 0.3 s) has been lifted by
 # +2.4408 N so the curve now matches ALL THREE published values simultaneously:
 # total impulse 49.6 N.s, peak 25.3 N, average 14.4 N. The renormalization is retained as a
@@ -73,9 +73,9 @@ def density(h, T_sl=288.15, P_sl=101325.0, elev=0.0, RH=0.0):
     return P/(Rspec*T)
 
 ATMOS = {
- "ISA 15C":      dict(T_sl=288.15,P_sl=101325,elev=0,   RH=0.0),
- "Cold -15C":    dict(T_sl=258.15,P_sl=101325,elev=0,   RH=0.0),
- "Hot +40C":     dict(T_sl=313.15,P_sl=101325,elev=0,   RH=0.2),
+ "ISA 15C": dict(T_sl=288.15,P_sl=101325,elev=0, RH=0.0),
+ "Cold -15C": dict(T_sl=258.15,P_sl=101325,elev=0, RH=0.0),
+ "Hot +40C": dict(T_sl=313.15,P_sl=101325,elev=0, RH=0.2),
  "High DA 1500m":dict(T_sl=298.15,P_sl=101325,elev=1500,RH=0.3),
 }
 
@@ -155,7 +155,7 @@ def all_margins(kp, ki, kd, ops):
         try:
             gm, pm, _wg, _wp = ct.margin(L)
             gm_db = 20*np.log10(gm) if (gm is not None and gm > 0 and np.isfinite(gm)) else -99.0
-            pm_d  = float(pm) if (pm is not None and np.isfinite(pm)) else -99.0
+            pm_d = float(pm) if (pm is not None and np.isfinite(pm)) else -99.0
         except Exception:
             gm_db, pm_d = -99.0, -99.0
         out[name] = (pm_d, gm_db)
@@ -190,7 +190,7 @@ if __name__ == "__main__":
 
     OLD = (2.0, 0.4, 0.5)
     wpm_old, wgm_old = worst_case_margins(*OLD, OPS)
-    print(f"OLD  Kp=2.0 Ki=0.4 Kd=0.5:  worst PM={wpm_old:6.1f} deg  worst GM={wgm_old:6.1f} dB")
+    print(f"OLD Kp=2.0 Ki=0.4 Kd=0.5: worst PM={wpm_old:6.1f} deg worst GM={wgm_old:6.1f} dB")
 
     # Coarse-to-fine grid search: keep triples clearing PM>=30deg, GM>=6dB at every op point.
     # WYVERN_PID_GRID=coarse (default) searches a 6x4x5 grid; =fine searches the original
@@ -217,7 +217,7 @@ if __name__ == "__main__":
     scored.sort(key=lambda r: r[0])
     wp0,wg0,kp0,ki0,kd0,wpm0,wgm0 = scored[0]
     print(f"\nThis grid's best margin-safe, chatter-free candidate: Kp={kp0:.2f} Ki={ki0:.2f} "
-          f"Kd={kd0:.2f}  (worst PM={wpm0:.1f} deg, worst GM={wgm0:.1f} dB, "
+          f"Kd={kd0:.2f} (worst PM={wpm0:.1f} deg, worst GM={wgm0:.1f} dB, "
           f"worst gust dev={wp0:.2f} deg).")
     print("NOTE: the single best-scoring point near a hard PM/GM floor is somewhat grid- and")
     print("refinement-pass-dependent (ties resolve differently at different step sizes). The")
@@ -231,11 +231,11 @@ if __name__ == "__main__":
     ADOPTED = (0.10, 0.40, 0.18)
     wpm_a, wgm_a = worst_case_margins(*ADOPTED, OPS)
     wp_a, wg_a, ch_a = nonlinear_score(*ADOPTED, traj_cache)
-    print(f"\nFIRMWARE-ADOPTED  Kp={ADOPTED[0]:.2f} Ki={ADOPTED[1]:.2f} Kd={ADOPTED[2]:.2f}")
-    print(f"  worst PM={wpm_a:.1f} deg   worst GM={wgm_a:.1f} dB   "
+    print(f"\nFIRMWARE-ADOPTED Kp={ADOPTED[0]:.2f} Ki={ADOPTED[1]:.2f} Kd={ADOPTED[2]:.2f}")
+    print(f" worst PM={wpm_a:.1f} deg worst GM={wgm_a:.1f} dB "
           f"(floor: PM>=30 deg, GM>=6 dB -- {'PASS' if wpm_a>=30 and wgm_a>=6 else 'FAIL'})")
-    print(f"  worst gust pitch deviation={wp_a:.2f} deg   worst gimbal={wg_a:.2f} deg "
-          f"(limit +-8 deg)   chatter={ch_a}")
+    print(f" worst gust pitch deviation={wp_a:.2f} deg worst gimbal={wg_a:.2f} deg "
+          f"(limit +-8 deg) chatter={ch_a}")
 
     # ---------------- report figure (regenerates Documentation/PID_TUNING_REPORT.png) ----------
     import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
@@ -250,7 +250,7 @@ if __name__ == "__main__":
     ax[0].plot(idx, pm_o, "o-", c="#bc4749", ms=4, label=f"OLD Kp={OLD[0]}/Ki={OLD[1]}/Kd={OLD[2]} (worst {wpm_old:.1f}°)")
     ax[0].plot(idx, pm_n, "s-", c="#386641", ms=4, label=f"ADOPTED Kp={ADOPTED[0]}/Ki={ADOPTED[1]}/Kd={ADOPTED[2]} (worst {wpm_a:.1f}°)")
     ax[0].set_ylabel("phase margin (deg)"); ax[0].grid(alpha=.3); ax[0].legend(fontsize=8, loc="upper right")
-    ax[0].set_title("WYVERN-E — TVC PID stability margins across 24 operating points "
+    ax[0].set_title("WYVERN-E, TVC PID stability margins across 24 operating points "
                     "(4 atmospheres x 6 burn-time slices)", fontweight="bold")
     ax[1].axhspan(-100, 6, color="#bc4749", alpha=0.10)
     ax[1].axhline(6, ls="--", c="#bc4749", lw=1.2, label="GM floor 6 dB")

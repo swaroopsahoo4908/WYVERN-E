@@ -1,9 +1,9 @@
 ---
 updated_at: 2026-08-02
 ---
-# firmware — All Files
+# firmware, All Files
 
-*Auto-generated index — every file and subfolder linked for vault graph connectivity.*
+*Auto-generated index, every file and subfolder linked for vault graph connectivity.*
 
 ---
 

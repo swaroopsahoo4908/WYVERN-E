@@ -1,4 +1,4 @@
-# WYVERN-E — Research Proposal
+# WYVERN-E, Research Proposal
 
 ### A Skylight Rocketry Venture · 70 mm Single-Stage Servo-TVC Sustainer
 ##### Allison Hong · Chris Liu · Swaroop K. Sahoo
@@ -9,7 +9,7 @@ rocket that demonstrates closed-loop flight stabilization on a bare-metal **Rasp
 computer, powered by the **Estes F15-4**. It carries four 72 mm fins (no ballast) for
 **passive stability during launch and the F15 ignition spike**, after which (t ≥ 0.5 s) the TVC loop
 engages on the smooth portion of the thrust curve to stabilize and execute a commanded maneuver. The
-two candidate TVC actuators — a tri-solenoid *magnetic* gimbal and a *servo* gimbal — are compared
+two candidate TVC actuators, a tri-solenoid *magnetic* gimbal and a *servo* gimbal, are compared
 quantitatively on a purpose-built **3-axis thrust-vector balance** that resolves both thrust
 magnitude and vector direction; the flight vehicle carries the servo system. The program retains the
 static motor/materials test regimen; the aerofoil wind-tunnel campaign was removed in 2026-08 and its
@@ -19,7 +19,7 @@ Class-1 (no waiver, no certification). Predicted apogee ≈ 324 ft; project cost
 ## 1. Background & Motivation
 ### 1.1 Thrust vector control
 Thrust vectoring steers a rocket by gimbaling the exhaust, producing a control moment without
-aerodynamic surfaces — the method used by every orbital launch vehicle. A small, low-cost, fully
+aerodynamic surfaces, the method used by every orbital launch vehicle. A small, low-cost, fully
 printed TVC vehicle makes the control problem tangible while producing real flight data.
 
 ### 1.2 WYVERN lineage
@@ -31,7 +31,7 @@ balance.
 
 ### 1.3 The 4.0 thesis
 *A small finned rocket can use passive stability to survive launch and the ignition transient, then
-hand authority to a closed-loop TVC system on the smooth thrust curve — and the relative merit of
+hand authority to a closed-loop TVC system on the smooth thrust curve, and the relative merit of
 magnetic vs servo gimbals can be measured directly on the ground before flight.*
 
 ## 2. Research Questions
@@ -62,11 +62,11 @@ by RQ3 below, which is answered analytically and validated in flight.
 | **Liftoff** | | **792 g** |
 
 ### 3.2 Materials
-- **PETG-CF** (ρ ≈ 1.30 g/cm³, HDT ≈ 80 °C): both bulkheads, the ejection bypass tube, and the engine assembly (engine/TVC bay + motor mount + gimbal) — i.e. the whole ejection-gas path plus the TVC structures.
-- **PLA** (ρ ≈ 1.24 g/cm³, HDT ≈ 55 °C): nose, both body tubes, fins — everything with no motor heat and no gas contact. Walls run 1.2 mm (3 perimeters) rather than 1.6 mm; the airframe is print/handling-limited at ~340× safety factor, so the thicker wall was carrying margin it never needed, and dropping it recovers 45.6 g.
+- **PETG-CF** (ρ ≈ 1.30 g/cm³, HDT ≈ 80 °C): both bulkheads, the ejection bypass tube, and the engine assembly (engine/TVC bay + motor mount + gimbal), i.e. the whole ejection-gas path plus the TVC structures.
+- **PLA** (ρ ≈ 1.24 g/cm³, HDT ≈ 55 °C): nose, both body tubes, fins, everything with no motor heat and no gas contact. Walls run 1.2 mm (3 perimeters) rather than 1.6 mm; the airframe is print/handling-limited at ~340× safety factor, so the thicker wall was carrying margin it never needed, and dropping it recovers 45.6 g.
 - **Zoning rationale is thermal, not mass.** PLA at 55 °C HDT cannot be trusted in contact with ejection gas; PETG-CF at 80 °C is the minimum defensible material for that path.
 
-### 3.3 Stability — fins + ballast + the 0.5 s rule
+### 3.3 Stability, fins + ballast + the 0.5 s rule
 An apogee sweep shows ballast lowers altitude, so we use **no ballast** and size fins to the minimum stable 1.0 cal: 4 × 72 mm fins → CP 56.8 cm, CG 48.4 cm = **+1.20 cal**
 static margin (stable). This passive margin holds the vehicle through launch and the F15 ignition
 spike; the TVC controller is **inhibited until t = 0.5 s**, then engages on the smooth curve. A
@@ -98,7 +98,7 @@ BNO085 + two baros (BME688 + BMP388) and closes the TVC loop driving 2 servos vi
 core 1 handles microSD logging and Wi-Fi bench telemetry. No Linux, no scheduler jitter. Recovery is
 the motor's own ejection charge (the FC only logs/observes).
 
-### 5.2 IMUs — Game Rotation Vector
+### 5.2 IMUs, Game Rotation Vector
 All three BNO085 run in **Game Rotation Vector** (accel + gyro, magnetometer disabled) to reject the
 magnetic interference of the adjacent servos. Gimbal deflection = $q_{body}^{-1}\otimes q_{gimbal}$,
 giving true nozzle attitude relative to the body (catches linkage backlash/flex). The recovery-bay
@@ -106,18 +106,18 @@ unit votes against the FC unit for fault detection.
 
 ### 5.3 Control law
 Per-axis PID ($K_p{=}0.10,\ K_i{=}0.40,\ K_d{=}0.18$; margin- and auto-tune-validated), output clamped to ±8°, servo lag τ ≈ 0.04 s. **TVC
-inhibited for the first 0.5 s** (ignition spike) — fins hold attitude — then engages: stabilize to
+inhibited for the first 0.5 s** (ignition spike), fins hold attitude, then engages: stabilize to
 vertical, then a 4° commanded maneuver. Required gimbal torque 0.56 kg·cm (micro-servo class);
 control authority positive throughout the powered phase.
 
 ### 5.4 Power & data
-A light 2S LiPo (7.4 V, ~450 mAh) feeds a single 5 V/6 V UBEC (set 5 V) whose one rail powers Pico 2 W VSYS, the camera, and both servos (EMAX ES08MA II, running at 5 V ≈ 1.8 kg·cm). Shared-rail decoupling (1000 µF bulk at the servos, 100 µF + an SS34 hold-up Schottky at VSYS) keeps servo-stall transients from browning-out the Pico. No recovery battery — recovery is the motor's own ejection charge.
+A light 2S LiPo (7.4 V, ~450 mAh) feeds a single 5 V/6 V UBEC (set 5 V) whose one rail powers Pico 2 W VSYS, the camera, and both servos (EMAX ES08MA II, running at 5 V ≈ 1.8 kg·cm). Shared-rail decoupling (1000 µF bulk at the servos, 100 µF + an SS34 hold-up Schottky at VSYS) keeps servo-stall transients from browning-out the Pico. No recovery battery, recovery is the motor's own ejection charge.
 Pack voltage is monitored on GP26/ADC0 (100k/62k divider; warn 6.4 V, arm-inhibit 6.0 V). Onboard log: full-rate IMU/baro/control + i3 4K Thumb Action Camera 1080p60 video. The power+camera group (LiPo ~30 g + UBEC ~10 g + i3 4K Thumb Action Camera ~36 g ≈ 76 g) sits inside the 122 g FC-bay budget.
 
 ## 6. Recovery
 Recovery uses the **F15-4 motor's own ejection charge** (4 s delay → fires t ≈ 7.45 s, ~0.66 s past
 apogee), routed through a solid-walled 12 mm PETG-CF bypass tube past the *sealed* FC bay into the
-recovery bay to release a friction-fit nose — **no RRC3+, no 9 V, no e-match/BP, no CO2, no FC
+recovery bay to release a friction-fit nose, **no RRC3+, no 9 V, no e-match/BP, no CO2, no FC
 involvement**. Feasibility (`we4_ejection_feasibility.py`): tube loss ≈ 0.06 kPa; bay pressurizes to
 ~140 kPa vs a 14–41 kPa nose-release threshold = **3.4× margin**. F15-4 is the closest Estes delay
 to the ~3.5 s coast optimum (F15-6/-8 eject 2.5 s/4.5 s late, too fast/low). Single passive event,
@@ -127,10 +127,10 @@ chute → ~6 m/s.
 ## 7. Ground Test Program
 ### 7.1 3-axis thrust-vector balance
 Motor + gimbal on a thrust block restrained by one axial (5 kg) + two lateral (1 kg) strain-gauge
-load cells → $T,\ \theta,\ \phi$. Actuator-agnostic — both magnetic and servo systems tested
+load cells → $T,\ \theta,\ \phi$. Actuator-agnostic, both magnetic and servo systems tested
 identically. RQ3 metrics logged vs commanded.
 ### 7.2 Static thrust + materials stand
-Axial cell + steel deflector: validates the F15-0 thrust curve and carries the engine-bay wall thermocouple for RQ2 (plugged 0-delay on the ground — no ejection into the fixture). Jetvane screening is out of scope as of 2026-08.
+Axial cell + steel deflector: validates the F15-0 thrust curve and carries the engine-bay wall thermocouple for RQ2 (plugged 0-delay on the ground, no ejection into the fixture). Jetvane screening is out of scope as of 2026-08.
 ### 7.3 Motor & calibration plan
 Load cells dead-weight calibrated, then commissioned with **6 × E16-4** (3 per stand). Counts: F15-4 ×4 (flight), F15-0 ×13 (ground), E16-4 ×6.
 

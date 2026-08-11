@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""WYVERN-E — fully-routed flight wiring schematic (KiCad-7 .kicad_sch).
+"""WYVERN-E, fully-routed flight wiring schematic (KiCad-7 .kicad_sch).
 Unlike the flat-netlist harness, every component is DRAWN and PHYSICALLY WIRED pin-to-pin with
 orthogonal wire segments, junctions, power rails (2S LiPo -> 5V UBEC / 3V3 / GND) and net labels.
-No symbol library required — components are documentation rectangles with real pin stubs + wires."""
+No symbol library required, components are documentation rectangles with real pin stubs + wires."""
 import os
 HERE=os.path.dirname(os.path.abspath(__file__))
-S=[]  # s-expr item accumulator
+S=[] # s-expr item accumulator
 def esc(x): return str(x).replace('"','\\"')
 def rect(x,y,w,h):
     S.append(f'(rectangle (start {x} {y}) (end {x+w} {y+h}) (stroke (width 0.25)(type solid)) (fill (type none)))')
@@ -140,13 +140,13 @@ chan(pico.p("GP17 SCL0"),mux.p("SCL"),230,"SCL0")
 chan(pico.p("GP18 SDA1"),gim.p("SDA"),233,"SDA1")
 chan(pico.p("GP19 SCL1"),gim.p("SCL"),236,"SCL1")
 
-# GPIO: GP7 IRQ <- body INT ; GP8 CAM -> cam V5_EN ; GP6/GP1 spare (RRC3 removed — motor ejection)
+# GPIO: GP7 IRQ <- body INT ; GP8 CAM -> cam V5_EN ; GP6/GP1 spare (RRC3 removed, motor ejection)
 # GP7 IRQ from body INT (body is far right; route along y of GP7)
 poly([pico.p("GP7 IRQ"),(244,pico.p("GP7 IRQ")[1]),(244,82),(body.p("INT")[0],82),body.p("INT")])
 label(pico.p("GP7 IRQ")[0]+4,pico.p("GP7 IRQ")[1]-0.6,"LAUNCH_IRQ")
 # GP8 CAM -> camera V5_EN (camera top-left). route up-left over Pico
-poly([pico.p("GP8 CAM"),(246,pico.p("GP8 CAM")[1]),(246,300)])  # placeholder removed below
-S.pop()  # drop stray
+poly([pico.p("GP8 CAM"),(246,pico.p("GP8 CAM")[1]),(246,300)]) # placeholder removed below
+S.pop() # drop stray
 poly([pico.p("GP8 CAM"),(248,pico.p("GP8 CAM")[1]),(248,33),(cam.p("V5_EN")[0]+8,33),(cam.p("V5_EN")[0]+8,cam.p("V5_EN")[1]),cam.p("V5_EN")])
 label(pico.p("GP8 CAM")[0]+4,pico.p("GP8 CAM")[1]-0.6,"CAM_EN")
 # GP9 LED, GP10 BUZ, GP22 RBF -> short labeled stubs (local I/O)
@@ -194,12 +194,12 @@ for sv in [sv1,sv2]:
 g=cam.p("GND"); poly([g,(g[0]+12,g[1]),(g[0]+12,RAIL_GND)]); junc(g[0]+12,RAIL_GND)
 
 # title + notes
-text(40,8,"WYVERN-E — Flight Wiring (fully routed, all components connected)",2.4)
+text(40,8,"WYVERN-E, Flight Wiring (fully routed, all components connected)",2.4)
 text(40,300,"All sensors GRV (mag off). 3 BNO085 @0x4A: gimbal on dedicated I2C1; body/recovery isolated on PCA9548A ch0/ch1. RP2350 is 3.3V logic; all STEMMA-QT sensors (incl. BMP388) run at 3.3V.",1.1)
 
-body_s="\n  ".join(S)
+body_s="\n ".join(S)
 out=f'''(kicad_sch (version 20230121) (generator "wyvern4_connected") (paper "A1")
-  (title_block (title "WYVERN-E Flight Wiring — fully routed") (company "Skylight Rocketry") (rev "4.0"))
+  (title_block (title "WYVERN-E Flight Wiring, fully routed") (company "Skylight Rocketry") (rev "4.0"))
   (lib_symbols)
   {body_s}
   (sheet_instances (path "/" (page "1"))))'''

@@ -1,30 +1,31 @@
 #!/usr/bin/env python3
-"""WYVERN-E — unified RK4 + Barrowman flight engine (single-stage F15-4, FINNED TVC, fly-light).
+"""WYVERN-E, unified RK4 + Barrowman flight engine (single-stage F15-4, FINNED TVC, fly-light).
 RK4 (4th-order) integration of [altitude, velocity] with Barrowman drag buildup and CP/CN reporting."""
 import os,json,numpy as np
-_TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None))  # NumPy 2.x renamed trapz
+_TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None)) # NumPy 2.x renamed trapz
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 OUT=os.path.join(os.path.dirname(os.path.abspath(__file__)),"plots4"+os.environ.get("WYVERN_RUN_TAG","")); os.makedirs(OUT,exist_ok=True)
 g=9.80665; rho0=1.225; D=0.070; Rb=D/2; A=np.pi*Rb**2; Lnose=0.12; Ltot=0.74
-m_lift=0.792; m_dry=0.690; PROP=0.060; tb=3.45; CG=0.484  # finned 72mm ASA, NO ballast (i3 cam fwd of CG -> 1.09 cal)
-# --- Barrowman aero (nose + 4x 72 mm fins; the "finless" label here was stale) ---
+m_lift=0.7292; m_dry=0.6272; PROP=0.060; tb=3.45; CG=0.5083 # finned 87mm, zoned ASA-Aero/PETG-CF/PC-FR, NO ballast
+# --- Barrowman aero (nose + 4x 87 mm fins, PETG-CF; span increased 72->87mm 2026-08-10 to hold margin ---
+# --- after the ASA-Aero/PETG-CF/PC-FR material re-zoning shifted CG aft) ---
 def barrowman_cp():
-    CNn=2.0; Xn=0.333*Lnose; cr,ct,sw,sp=0.070,0.035,0.025,0.072; Rb_=0.035  # ellipsoid nose, 72mm fins
+    CNn=2.0; Xn=0.333*Lnose; cr,ct,sw,sp=0.070,0.035,0.025,0.087; Rb_=0.035 # ellipsoid nose, 87mm fins
     Lf=np.sqrt(sp**2+(sw+(ct-cr)/2)**2); k=1+Rb_/(sp+Rb_)
     CNf=k*(4*4*(sp/D)**2)/(1+np.sqrt(1+(2*Lf/(cr+ct))**2)); xr=Ltot-cr
     Xf=xr+(sw/3)*(cr+2*ct)/(cr+ct)+(1/6)*((cr+ct)-cr*ct/(cr+ct))
-    return (CNn*Xn+CNf*Xf)/(CNn+CNf), CNn+CNf   # FINNED: CP aft -> +1.5 cal (stable; TVC after t=0.5s)
-Xcp,CN=barrowman_cp(); margin=(Xcp-CG)/D    # negative -> unstable -> active TVC
+    return (CNn*Xn+CNf*Xf)/(CNn+CNf), CNn+CNf # FINNED: CP aft -> +1.5 cal (stable; TVC after t=0.5s)
+Xcp,CN=barrowman_cp(); margin=(Xcp-CG)/D # negative -> unstable -> active TVC
 # --- Barrowman-style Cd buildup ---
 def Cd(M):
-    Cf=0.0040                                # turbulent skin-friction coeff (low Re)
-    Swet=np.pi*D*Ltot; Cd_fric=Cf*Swet/A     # friction
-    Cd_base=0.12; Cd_press=0.10; Cd_fins=0.150  # + 4x 72mm fins (ellipsoid nose)
+    Cf=0.0040 # turbulent skin-friction coeff (low Re)
+    Swet=np.pi*D*Ltot; Cd_fric=Cf*Swet/A # friction
+    Cd_base=0.12; Cd_press=0.10; Cd_fins=0.150 # + 4x 72mm fins (ellipsoid nose)
     return Cd_fric+Cd_base+Cd_press+Cd_fins
 # --- F15-4 thrust curve (49.6 Ns / 3.45 s) ---
 # F15 thrust curve CORRECTED 2026-08. The digitized shape integrated to 41.97 N.s, so the
 # 49.6 N.s renormalization below scaled the whole curve by 1.1817 and pushed peak thrust to
-# 29.9 N -- against Estes' published 25.3 N peak, and against the 3.66 peak T/W quoted
+# 29.9 N -- against Estes' published 25.3 N peak, and against the 3.26 peak T/W quoted
 # throughout this repo (29.9 N gives 4.32). The sustain block (t >= 0.3 s) has been lifted by
 # +2.4408 N so the curve now matches ALL THREE published values simultaneously:
 # total impulse 49.6 N.s, peak 25.3 N, average 14.4 N. The renormalization is retained as a
@@ -47,13 +48,13 @@ dt=2e-4; t=0.0; s=np.array([0.0,0.0]); T=[];H=[];V=[];Acc=[]
 while True:
     k1=deriv(s,t);k2=deriv(s+0.5*dt*k1,t+0.5*dt);k3=deriv(s+0.5*dt*k2,t+0.5*dt);k4=deriv(s+dt*k3,t+dt)
     s=s+dt/6*(k1+2*k2+2*k3+k4); t+=dt; T.append(t);H.append(s[0]);V.append(s[1]);Acc.append(k1[1]/g)
-    if s[0]<0 and t>tb: break        # back on the ground
-    if t>=T_DEPLOY: break            # integrate THROUGH apogee to the ejection event
+    if s[0]<0 and t>tb: break # back on the ground
+    if t>=T_DEPLOY: break # integrate THROUGH apogee to the ejection event
 T,H,V,Acc=map(np.array,(T,H,V,Acc))
 bo=np.argmin(np.abs(T-tb)); ap=np.argmax(H); dep=np.argmin(np.abs(T-T_DEPLOY))
 res=dict(engine="RK4(2e-4) + Barrowman drag buildup", Cd_nominal=round(float(Cd(0.05)),3), dt_s=2e-4,
  cp_from_nose_cm=round(Xcp*100,1), CN_total=CN, static_margin_cal=round(margin,2),
- note="Ellipsoid nose, FINNED 72mm, no ballast: passively stable (+1.0 cal) for launch + first 0.5s spike; TVC engages at t=0.5s on the smooth curve",
+ note="Ellipsoid nose, FINNED 87mm, no ballast: passively stable (+1.0 cal) for launch + first 0.5s spike; TVC engages at t=0.5s on the smooth curve",
  burnout_t=tb, burnout_alt_m=round(H[bo],1), burnout_v=round(V[bo],1),
  apogee_m=round(H[ap],1), apogee_ft=round(H[ap]*3.281,0), apogee_t=round(T[ap],2),
  max_accel_g=round(float(np.max(Acc)),2), deploy_t=round(T_DEPLOY,2), deploy_alt_m=round(H[dep],1), deploy_v=round(V[dep],1),

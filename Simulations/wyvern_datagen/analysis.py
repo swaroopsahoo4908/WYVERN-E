@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-WYVERN-E — dataset loading + plot building (backend-agnostic, no Tk).
+WYVERN-E, dataset loading + plot building (backend-agnostic, no Tk).
 
 These are pure functions so they can be unit-tested headless; the GUI embeds the returned
 matplotlib Figure with FigureCanvasTkAgg. Reads Parquet (pyarrow) or (gzip-)CSV, samples large
@@ -29,11 +29,11 @@ def load_dataset(path, max_load_rows=2_000_000, seed=0):
             idx = np.linspace(0, n_total - 1, max_load_rows).astype(np.int64)
             t = t.take(idx)
         data = {c: np.asarray(t.column(c).to_numpy(zero_copy_only=False), dtype=float) for c in cols}
-    else:  # csv / csv.gz
+    else: # csv / csv.gz
         opener = gzip.open if path.endswith(".gz") else open
         with opener(path, "rt") as fh:
             cols = fh.readline().strip().split(",")
-        raw = np.loadtxt(path, delimiter=",", skiprows=1)          # numpy auto-handles .gz
+        raw = np.loadtxt(path, delimiter=",", skiprows=1) # numpy auto-handles .gz
         if raw.ndim == 1:
             raw = raw.reshape(1, -1)
         n_total = raw.shape[0]
@@ -54,7 +54,7 @@ def _fmt_cell(v):
     if v is None:
         return ""
     if isinstance(v, float):
-        if v != v:            # NaN
+        if v != v: # NaN
             return ""
         return f"{v:.6g}"
     if isinstance(v, (int, np.integer)):
@@ -62,7 +62,7 @@ def _fmt_cell(v):
     if isinstance(v, (np.floating,)):
         return f"{float(v):.6g}"
     s = str(v)
-    # CSV values arrive as strings — prettify if they're numeric
+    # CSV values arrive as strings, prettify if they're numeric
     try:
         f = float(s)
         return f"{f:.6g}" if ("." in s or "e" in s.lower()) else s
@@ -95,7 +95,7 @@ def load_table(path, start=0, limit=1000):
             n += bn
             if n >= end:
                 break
-    else:  # csv / csv.gz
+    else: # csv / csv.gz
         import csv
         opener = gzip.open if path.endswith(".gz") else open
         with opener(path, "rt", newline="") as fh:
@@ -108,7 +108,7 @@ def load_table(path, start=0, limit=1000):
                 if i >= end:
                     break
                 rows.append(tuple(_fmt_cell(v) for v in row))
-        total = None                                  # unknown without a full scan
+        total = None # unknown without a full scan
         # infer numeric columns from the sampled window
         numeric = set()
         for j, c in enumerate(cols):
@@ -134,10 +134,10 @@ def column_stats(data, col):
         return f"{col}: (no finite values)"
     p = np.percentile(v, [1, 5, 25, 50, 75, 95, 99])
     return (f"{col}\n"
-            f"  n={v.size:,}   mean={v.mean():.4g}   std={v.std():.4g}\n"
-            f"  min={v.min():.4g}   max={v.max():.4g}\n"
-            f"  p1={p[0]:.4g}  p5={p[1]:.4g}  p25={p[2]:.4g}  median={p[3]:.4g}"
-            f"  p75={p[4]:.4g}  p95={p[5]:.4g}  p99={p[6]:.4g}")
+            f" n={v.size:,} mean={v.mean():.4g} std={v.std():.4g}\n"
+            f" min={v.min():.4g} max={v.max():.4g}\n"
+            f" p1={p[0]:.4g} p5={p[1]:.4g} p25={p[2]:.4g} median={p[3]:.4g}"
+            f" p75={p[4]:.4g} p95={p[5]:.4g} p99={p[6]:.4g}")
 
 
 # ------------------------------------------------------------------ figures
@@ -165,7 +165,7 @@ def make_figure(kind, data, xcol=None, ycol=None, bins=60, sample=120_000, seed=
             return _msg_fig("Pick a column for the histogram.")
         v = col(xcol); v = v[np.isfinite(v)]
         ax.hist(v, bins=bins, color="#2a6f97", edgecolor="white", linewidth=0.3)
-        ax.set_xlabel(xcol); ax.set_ylabel("count"); ax.set_title(f"Distribution of {xcol}  (n={v.size:,})")
+        ax.set_xlabel(xcol); ax.set_ylabel("count"); ax.set_title(f"Distribution of {xcol} (n={v.size:,})")
         ax.grid(alpha=0.3)
 
     elif kind == "Scatter":
@@ -176,7 +176,7 @@ def make_figure(kind, data, xcol=None, ycol=None, bins=60, sample=120_000, seed=
         ax.scatter(x, y, s=4, alpha=0.25, color="#bc4749", linewidths=0)
         ax.set_xlabel(xcol); ax.set_ylabel(ycol)
         shown = min(sample, n)
-        ax.set_title(f"{ycol} vs {xcol}  ({shown:,} of {n:,} pts)")
+        ax.set_title(f"{ycol} vs {xcol} ({shown:,} of {n:,} pts)")
         ax.grid(alpha=0.3)
 
     elif kind == "Density (hexbin)":
@@ -185,7 +185,7 @@ def make_figure(kind, data, xcol=None, ycol=None, bins=60, sample=120_000, seed=
         x, y = col(xcol), col(ycol); m = np.isfinite(x) & np.isfinite(y)
         hb = ax.hexbin(x[m], y[m], gridsize=60, cmap="viridis", mincnt=1)
         fig.colorbar(hb, ax=ax, label="count")
-        ax.set_xlabel(xcol); ax.set_ylabel(ycol); ax.set_title(f"Density: {ycol} vs {xcol}  (n={m.sum():,})")
+        ax.set_xlabel(xcol); ax.set_ylabel(ycol); ax.set_title(f"Density: {ycol} vs {xcol} (n={m.sum():,})")
 
     elif kind == "Trajectories":
         need = {"flight_id", "t", "z"}
@@ -199,7 +199,7 @@ def make_figure(kind, data, xcol=None, ycol=None, bins=60, sample=120_000, seed=
             m = fid == u
             ax.plot(t[m], z[m], lw=0.7, alpha=0.6)
         ax.set_xlabel("t (s)"); ax.set_ylabel("altitude z (m)")
-        ax.set_title(f"Altitude traces — {len(pick)} of {uids.size:,} flights")
+        ax.set_title(f"Altitude traces, {len(pick)} of {uids.size:,} flights")
         ax.grid(alpha=0.3)
 
     elif kind == "Correlation heatmap":
@@ -240,5 +240,5 @@ if __name__ == "__main__":
             fig = make_figure(kind, data, xcol=x, ycol=y)
             fig.savefig(os.path.join(here, "datasets", "_plots_selftest",
                                      f"{base}_{kind.split()[0]}.png"), dpi=90)
-        print("   plotted:", ", ".join(k for k, _, _ in tests))
+        print(" plotted:", ", ".join(k for k, _, _ in tests))
     print("analysis self-test OK")

@@ -1,85 +1,91 @@
 # WYVERN-E
 
-A single-stage, 70 mm, **finned active-TVC sustainer** demonstrating closed-loop thrust-vector
-control on a **Raspberry Pi Pico 2 W (RP2350)** flight computer, powered by the **Estes F15-4**. The two TVC actuation
-methods (magnetic-solenoid vs servo) are compared **on the ground** on a 3-axis thrust-vector
-balance; the vehicle flies the servo system. Ground support is the 3-axis TVC balance plus the
-static thrust stand (motor thrust-curve verification).
+A single-stage, 70 mm, finned active-TVC sustainer built around a **Raspberry Pi Pico 2 W (RP2350)**
+flight computer, powered by an **Estes F15-4**. A Skylight Rocketry venture.
 
-> **Scope change (2026-08):** the wind tunnel and the airfoil-CFD work that fed it are **removed
-> from the program.** Aerodynamic characterization now rests on the Barrowman/drag-buildup model
-> inside the flight-sim suite, cross-validated against flight telemetry and the instrumented
-> ground stands. See `Documentation/CONFLICTS.md` §7.
+The vehicle answers five research questions, run across computational simulation, ground-based
+instrumented testing, and powered flight:
 
-A Skylight Rocketry venture. *Supersedes 3.0 (two-stage Pi-5 vehicle).* Completely off-the-shelf,
-no custom PCBs — a single Raspberry Pi Pico 2 W (RP2350) runs everything bare-metal.
+- **RQ1, actuator class.** Magnetic-solenoid vs. servo thrust-vector control, compared on two
+  physically separate, instrumentally identical three-axis load balances. The vehicle flies servo.
+- **RQ2, zoned materials.** ASA-Aero, PETG-CF, and PC-FR allocated by section (upper body, lower
+  body/fins, TVC assembly), justified by three-point-bend and thermal data, plus a jetvane
+  blast-shield materials screen on the static-fire stand.
+- **RQ3, fin aerofoil selection.** Bench wind-tunnel measurement of candidate fin sections,
+  cross-checked against a 2D vortex-panel CFD solver.
+- **RQ4, wind-tunnel-vs-flight calibration.** Barrowman-predicted stability checked against both
+  tunnel measurement and reconstructed flight telemetry.
+- **RQ5, control-gain sensitivity.** Closed-loop PID gain sets compared across repeated flights on
+  the single-controller avionics architecture.
 
-## Why this is simpler than 3.0
-- **Single stage, single Raspberry Pi Pico 2 W (RP2350)** = flight computer *and* real-time
-  controller. Dual-core (one core dedicated to the 500 Hz control loop), no Linux, native hardware
-  PWM, deterministic control, far lighter and lower power.
-- **A/B TVC comparison moved to the ground** (3-axis balance, repeatable, measures the thrust vector
-  directly) — a better experiment than flying both. The vehicle flies servo-only.
-- **Materials:** PETG-CF only where there's motor heat (nose, engine/TVC bay, Bulkhead A); **PLA**
-  everywhere else (body tube, FC & recovery sections, Bulkhead B) — saves ~100 g.
+## Vehicle summary
 
-## Key recalculated numbers (see `Simulations/we4_sim.py` → `plots4/`)
+Single stage, single Pico 2 W as flight computer and real-time controller: dual-core, one core
+dedicated to the 500 Hz TVC loop, no Linux, native hardware PWM. The magnetic-vs-servo comparison
+runs on the ground (two matched three-axis load balances) rather than in flight, since that gives a
+repeatable, directly-measured thrust vector instead of a single noisy flight-to-flight data point.
+
+**Materials.** ASA-Aero forms the upper body that houses avionics (nose, recovery bay tube, FC bay
+tube); PETG-CF forms the lower body and fins; PC-FR forms the TVC assembly (motor mount, gimbal).
+Zoning follows thermal exposure and structural role, not a single blanket material.
+
+## Key numbers (see `Simulations/we4_sim.py` → `plots4/`)
+
 | | value |
 |---|---|
-| Liftoff mass | **792 g** (finned 72 mm, no ballast) | PLA main airframe; PETG-CF only at bulkheads/tube/engine (was 812 g all-PETG-CF) |
-| T/W | **1.85 avg / 3.26 peak** |
-| CG / gimbal pivot / control arm | 48.4 cm / 62 cm / **13.6 cm** from nose |
+| Liftoff / dry mass | **729 g / 627 g** (finned 87 mm, no ballast) |
+| T/W | 2.01 avg / 3.54 peak |
+| CG / gimbal pivot / control arm | 50.8 cm / 62 cm / 11.2 cm from nose |
 | Pitch inertia Iyy | 0.0257 kg·m² |
-| Burnout | 3.45 s · 59.1 m · 28.9 m/s |
-| Apogee | **~324 ft / 98.9 m** (RK4+Barrowman, stable +1.20 cal) @ 6.27 s |
-| Recovery | F15-4 motor ejection via bypass tube; ejects t≈7.45 s (+1.18 s past apogee) @ ~11.5 m/s; 24″ chute → 5.0 m/s descent |
+| Burnout | 3.45 s · 68.7 m · 33.7 m/s |
+| Apogee | ~397 ft / 121.1 m, +1.20 cal margin, @ 6.67 s (RK4+Barrowman) |
+| Recovery | F15-4 motor ejection; deploys t≈7.45 s (+0.78 s past apogee) @ ~7.7 m/s; 24″ chute → 4.8 m/s descent |
 | TVC | gimbal stays within ±8°; control authority positive throughout the burn |
-
-> **Apogee/deploy note:** the PLA airframe (PETG-CF only at bulkheads/tube/engine) drops liftoff to
-> 792 g and lifts apogee to ~324 ft. Recovery is the F15-4 motor ejection charge (fixed 4 s delay),
-> firing +1.18 s past apogee at a gentle ~11.5 m/s — no timer to retune. The lighter ASA nose moved the
-> CG aft, so fins were grown 58→72 mm to hold the 1.0-cal margin without ballast.
+| FAA class | Class 1, no waiver (729 g < 1500 g, F-class motor) |
 
 ## Repository structure
 
 ```
 WYVERN Project/
-├── README.md                        ← this file
+├── README.md ← this file
 ├── .gitignore
-├── Documentation/                   ← all engineering docs, BOM, and build readiness
-│   ├── README.md                    ← documentation index
-│   ├── WYVERN_E4_BUILD_READINESS.md ← GO/NO-GO reconciliation report
-│   ├── WYVERN_E4_Mathematics.md     ← mass/CG/inertia, T/W, trajectory, TVC, recovery
-│   ├── WYVERN_E4_Stability_FinSizing.md
-│   ├── WYVERN_E4_FEA_Structural.md
-│   ├── WYVERN_E4_Recovery.md
-│   ├── WYVERN_E4_Camera_Solution.md
-│   ├── WYVERN_E4_GSE_TestStands.md
-│   ├── WYVERN_E4_PID_AUTOTUNE_REPORT.md
-│   ├── WYVERN_E4_BOM.xlsx           ← master BOM (8 sections) + purchase links
-│   ├── WYVERN_E4_Timeline_14Day.md  ← day-by-day build-to-flight schedule
-│   ├── WYVERN_E4_Build_Guide.md     ← print/bench/assembly/ground-test/range procedures
-│   ├── FLIGHT_READINESS.md
-│   ├── COMPATIBILITY.md
-│   └── CONFLICTS.md
-├── Flight Computer/                 ← Pico 2 W spec, firmware, wiring, GSE test rigs
-│   └── README.md
-├── Simulations/                     ← Python RK4 suite, OpenRocket, dataset generator
-│   ├── we4_flight_reduce.py         ← post-flight SD log → RQ3/RQ4 results (--selftest first)
-│   ├── README.md
-│   └── wyvern_datagen/              ← Monte Carlo atmospheric dataset generator + GUI
-│       └── README.md
-├── 3D parts/                        ← 70 mm 3-bay airframe + gimbal STL/STEP
-├── Motor Test Stand/                ← static thrust stand + 3-axis TVC balance
-├── Senior Research/                 ← proposal documents (DOCX / MD / PDF)
-├── Data/                            ← flight and motor data (populated during testing)
-└── Paper/                           ← final research paper
+├── Documentation/ ← all engineering docs, BOM, and build readiness
+│ ├── README.md ← documentation index
+│ ├── WYVERN_E4_BUILD_READINESS.md ← GO/NO-GO reconciliation report
+│ ├── WYVERN_E4_Mathematics.md ← mass/CG/inertia, T/W, trajectory, TVC, recovery
+│ ├── WYVERN_E4_Stability_FinSizing.md
+│ ├── WYVERN_E4_FEA_Structural.md
+│ ├── WYVERN_E4_Recovery.md
+│ ├── WYVERN_E4_Camera_Solution.md
+│ ├── WYVERN_E4_GSE_TestStands.md
+│ ├── WYVERN_E4_PID_AUTOTUNE_REPORT.md
+│ ├── WYVERN_E4_BOM.xlsx ← master BOM + purchase links
+│ ├── WYVERN_E4_Timeline_3Month.md ← build-to-flight schedule
+│ ├── WYVERN_E4_Build_Guide.md ← print/bench/assembly/ground-test/range procedures
+│ ├── FLIGHT_READINESS.md
+│ ├── COMPATIBILITY.md
+│ └── CONFLICTS.md ← defect log and design-decision record
+├── Flight Computer/ ← Pico 2 W spec, firmware, wiring, GSE test rigs
+│ └── README.md
+├── Simulations/ ← Python RK4 suite, OpenRocket, dataset generator
+│ ├── we4_flight_reduce.py ← post-flight SD log → RQ3/RQ4 results (--selftest first)
+│ ├── README.md
+│ └── wyvern_datagen/ ← Monte Carlo atmospheric dataset generator + GUI
+│ └── README.md
+├── 3D parts/ ← airframe + gimbal STL/STEP
+├── Motor Test Stand/ ← static thrust stand + 3-axis TVC balances
+├── Wind Tunnel/ ← bench aerofoil rig
+├── Senior Research/ ← proposal documents (DOCX / MD / PDF)
+├── Data/ ← flight and motor data (populated during testing)
+└── Paper/ ← final research paper
 ```
 
+## Ground test program
 
-## Fin finding (2026-06-21)
-35 mm fins are **unstable** (−0.99 cal) on this aft-CG vehicle; 1.0 cal needs ≥68.8 mm and 1.5 cal would need ~91.8 mm fins (or nose ballast, which costs apogee). **Finned TVC at 72 mm / +1.20 cal is the flown config** — see `Documentation/WYVERN_E4_Stability_FinSizing.md`. Motor prices corrected: F15-4 $17/ea, E16-4 $15/ea.
+Four purpose-built stands: a static-fire stand (thrust-curve calibration, engine-bay thermal
+verification, and the RQ2 jetvane blast-shield screen), a servo TVC stand, a physically separate
+magnetic TVC stand, and a bench wind tunnel for RQ3/RQ4 aerofoil work. See
+`Documentation/WYVERN_E4_GSE_TestStands.md` for the full build-out and instrumentation.
 
-
-## Latest spec deltas (2026-07)
-Light 2S LiPo → one 5 V UBEC (Zeee 2S 450 mAh + Hobbywing UBEC; ~76 g power+cam group, keeps the 792 g budget) · EMAX ES08MA II servos @ 5 V · i3 4K Thumb Action Camera cam (~36 g) · Picos from Amazon · No ArduCam · phenolic motor liner + Nomex bore sleeve · motor-ejection recovery (no pyro of our own) · printed 1010 rail buttons · BOM reconciled to actual Amazon/Adafruit/Estes/Bambu carts · trajectory via unified RK4+Barrowman (`we4_flightsim.py`).
+Design and decision history, including why specific numbers or scope changed, lives in
+`Documentation/CONFLICTS.md` rather than here.

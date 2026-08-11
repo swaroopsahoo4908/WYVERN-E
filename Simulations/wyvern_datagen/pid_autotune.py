@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-WYVERN-E — PID auto-tune (robust, multi-wind, time-domain).
+WYVERN-E, PID auto-tune (robust, multi-wind, time-domain).
 
 Complements the frequency-domain margin analysis in PID_TUNING_REPORT.md: searches Kp/Ki/Kd over a
 coarse→fine grid and scores each gain set by a robustness cost averaged over several wind speeds,
 using the same closed-loop pitch plant as the flight TVC model (core.simulate_tvc_trace).
 
 Cost (lower = better), averaged over winds:
-    peak pitch°  + 2·steady-error°  + 0.3·settle_s  + 0.5·RMS gimbal°  + 0.05·gimbal-saturation%
+    peak pitch° + 2·steady-error° + 0.3·settle_s + 0.5·RMS gimbal° + 0.05·gimbal-saturation%
 i.e. reward tight, low-steady-error tracking without over-driving / saturating the ±8° gimbal.
 """
 import numpy as np
@@ -65,16 +65,16 @@ if __name__ == "__main__":
     t0 = time.time()
     best, ranked, fw = autotune()
     print(f"searched {len(ranked)} gain sets in {time.time()-t0:.1f}s\n")
-    print("rank  cost    Kp     Ki     Kd")
+    print("rank cost Kp Ki Kd")
     seen = set()
     for c, kp, ki, kd in ranked:
         key = (round(kp, 3), round(ki, 3), round(kd, 3))
         if key in seen:
             continue
         seen.add(key)
-        print(f"      {c:6.2f}  {kp:.3f}  {ki:.3f}  {kd:.3f}")
+        print(f" {c:6.2f} {kp:.3f} {ki:.3f} {kd:.3f}")
         if len(seen) >= 8:
             break
-    print(f"\nBEST     cost {best[0]:.2f}  ->  Kp={best[1]:.3f} Ki={best[2]:.3f} Kd={best[3]:.3f}")
-    print(f"FIRMWARE cost {fw[0]:.2f}  ->  Kp={fw[1]:.3f} Ki={fw[2]:.3f} Kd={fw[3]:.3f}")
+    print(f"\nBEST cost {best[0]:.2f} -> Kp={best[1]:.3f} Ki={best[2]:.3f} Kd={best[3]:.3f}")
+    print(f"FIRMWARE cost {fw[0]:.2f} -> Kp={fw[1]:.3f} Ki={fw[2]:.3f} Kd={fw[3]:.3f}")
     print(f"improvement over firmware: {100*(fw[0]-best[0])/fw[0]:.1f}%")

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E wiring — KiCad-7 .kicad_sch (flat netlist via global labels). Raspberry Pi Pico 2 W
+"""WYVERN-E wiring, KiCad-7 .kicad_sch (flat netlist via global labels). Raspberry Pi Pico 2 W
 flight harness + 3-axis TVC-balance harness. No symbol library required (documentation schematic)."""
 import os
 HERE=os.path.dirname(os.path.abspath(__file__))
@@ -18,7 +18,7 @@ def sch(title,mods):
     for m in mods:
         t,h=box(x,y,m[0],m[1],m[2] if len(m)>2 else 48); items+=t; y+=h+8
         if y>250: y=20; x+=72
-    body="\n  ".join(items)
+    body="\n ".join(items)
     return f'''(kicad_sch (version 20230121) (generator "wyvern4_wiring") (paper "A2")
   (title_block (title "{esc(title)}") (company "Skylight Rocketry") (rev "4.0"))
   (lib_symbols)
@@ -35,10 +35,10 @@ FLIGHT=[
    "warn 6.4V (3.2V/cell) / arm-inhibit 6.0V (3.0V/cell)","GP28: ADC2 spare (unwired)"],60),
  ("RPi PICO 2 W (RP2350, FC + real-time TVC)",["VSYS: 5V in","3V3: sensor rail","GND",
    "GP16/GP17: I2C0 -> PCA9548A mux","GP18/GP19: I2C1 -> gimbal BNO085","GP2/3/4/5: SPI0 microSD (SCK/MOSI/MISO/CS)",
-   "GP14: PWM servo1 (pitch)","GP15: PWM servo2 (yaw)","GP8: CAM_EN gate","GP7: LAUNCH_IRQ","GP22: RBF sense","GP26: ADC0 battery divider (100k/62k)","GP6/GP1: spare (RRC3 removed — motor ejection)","GP9: LED  GP10: buzzer","CYW43: WiFi/BLE bench telemetry"],68),
+   "GP14: PWM servo1 (pitch)","GP15: PWM servo2 (yaw)","GP8: CAM_EN gate","GP7: LAUNCH_IRQ","GP22: RBF sense","GP26: ADC0 battery divider (100k/62k)","GP6/GP1: spare (RRC3 removed, motor ejection)","GP9: LED GP10: buzzer","CYW43: WiFi/BLE bench telemetry"],68),
  ("PCA9548A I2C MUX (0x70, on I2C0)",["ch0: body BNO085 0x4A","ch1: recovery BNO085 0x4A (vote)","ch2: BME688 0x76","ch3: BMP388 0x77 (Adafruit 3966, 3V3)","ch4: spare (unpopulated)"],58),
  ("IMUs x3 (BNO085, Game Rotation Vector)",["gimbal: 0x4A I2C1 (dedicated)","body(FC): 0x4A mux ch0","recovery: 0x4A mux ch1 (vote)"],56),
- ("STORAGE — microSD (SPI0 breakout)",["SCK GP2 / MOSI GP3 / MISO GP4 / CS GP5","3V3 / GND: full-rate flight log"],52),
+ ("STORAGE, microSD (SPI0 breakout)",["SCK GP2 / MOSI GP3 / MISO GP4 / CS GP5","3V3 / GND: full-rate flight log"],52),
  ("Action camera (self-contained)",["V5: gated by CAM_EN (GP8)","GND: records to own microSD"],54),
  ("TVC SERVOS (2-axis gimbal)",["S1_SIG: GP14","S2_SIG: GP15","+5V (UBEC rail)","GND"],50),
 ]
@@ -47,7 +47,7 @@ FLIGHT=[
 # See CONFLICTS.md item 3 for the record of that supersession. Pin numbers below are pulled directly
 # from each sketch's header PIN MAP comment -- keep in sync if the sketches' pin maps ever change.
 BAL_SERVO=[
- ("RPi PICO / PICO 2 W — servo-rig DAQ",["3V3: HX711 + BNO085 power","GND","USB: CSV log to host",
+ ("RPi PICO / PICO 2 W, servo-rig DAQ",["3V3: HX711 + BNO085 power","GND","USB: CSV log to host",
    "GP4/GP5: I2C0 -> gimbal BNO085 (0x4A)","GP14: PWM servo1 (pitch)","GP15: PWM servo2 (yaw)",
    "LED_BUILTIN: tare-complete blink"],64),
  ("LOAD CELLS + HX711 x3 (bit-banged)",["Z (axial, 5kg): DT GP10 / SCK GP11","X (lateral, 1kg): DT GP6 / SCK GP7","Y (lateral, 1kg): DT GP8 / SCK GP9"],56),
@@ -55,14 +55,14 @@ BAL_SERVO=[
  ("SERVO GIMBAL UNDER TEST",["S1_SIG: GP14 (pitch)","S2_SIG: GP15 (yaw)","VSERVO","GND"],50),
 ]
 BAL_SOLENOID=[
- ("RPi PICO / PICO 2 W — solenoid-rig DAQ",["3V3: HX711 + BNO085 power","GND","USB: CSV log to host",
+ ("RPi PICO / PICO 2 W, solenoid-rig DAQ",["3V3: HX711 + BNO085 power","GND","USB: CSV log to host",
    "GP4/GP5: I2C0 -> BNO085 (gimbal attitude)","GP16-19: solenoid PWM -> 4x IRF520 gate"],64),
  ("LOAD CELLS + HX711 x3 (bit-banged)",["Z (axial, 5kg): DT GP10 / SCK GP11","X (lateral, 1kg): DT GP12 / SCK GP13","Y (lateral, 1kg): DT GP14 / SCK GP15"],56),
  ("GIMBAL BNO085 (I2C0 0x4A)",["Game Rotation Vector + gyro rate -> deflection from 3-axis load balance"],48),
  ("SOLENOIDS x4 via IRF520 (+ 1N4007 flyback EACH)",["PITCH+: GP16","PITCH-: GP17","YAW+: GP18","YAW-: GP19","V12: coil supply"],62),
 ]
-open("WYVERN_E4_flight_harness.kicad_sch","w").write(sch("WYVERN-E — RPi Pico 2 W flight harness",FLIGHT))
-open("WYVERN_E4_tvc_balance_servo_harness.kicad_sch","w").write(sch("WYVERN-E — TVC balance harness (servo rig, Pico)",BAL_SERVO))
-open("WYVERN_E4_tvc_balance_solenoid_harness.kicad_sch","w").write(sch("WYVERN-E — TVC balance harness (solenoid rig, Pico)",BAL_SOLENOID))
+open("WYVERN_E4_flight_harness.kicad_sch","w").write(sch("WYVERN-E, RPi Pico 2 W flight harness",FLIGHT))
+open("WYVERN_E4_tvc_balance_servo_harness.kicad_sch","w").write(sch("WYVERN-E, TVC balance harness (servo rig, Pico)",BAL_SERVO))
+open("WYVERN_E4_tvc_balance_solenoid_harness.kicad_sch","w").write(sch("WYVERN-E, TVC balance harness (solenoid rig, Pico)",BAL_SOLENOID))
 for f in ("WYVERN_E4_flight_harness.kicad_sch","WYVERN_E4_tvc_balance_servo_harness.kicad_sch","WYVERN_E4_tvc_balance_solenoid_harness.kicad_sch"):
     s=open(f).read(); print(f,"parens",s.count("("),"==",s.count(")"),"OK" if s.count("(")==s.count(")") else "BAD")

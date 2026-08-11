@@ -1,149 +1,354 @@
 #!/usr/bin/env python3
-"""WYVERN-E — 70 mm single-stage FINNED TVC sustainer (F15-4, motor-ejection recovery via bypass tube) + 3-axis TVC balance + static deflector.
-Material zoning as of the 2026-08 change:
-  PETG-CF: both bulkheads (A+B), bypass tube, and the engine assembly (engine/TVC bay + motor mount
-           + gimbal) -- i.e. the whole ejection-gas path and the main TVC assemblies (HDT ~80 C).
-  PLA:     nose, body tube, FC/recovery bays, fins (everything outside the gas path).
-This supersedes the earlier ASA-Aero / PC-FR zoning; part suffixes are _PLA and _PETGCF."""
+"""WYVERN-E, 70 mm single-stage FINNED TVC sustainer (F15-4, motor-ejection recovery via
+two-body-tube separation at a single bulkhead joint, NO bypass tube) + 3-axis TVC balance
+(servo test stand) + static thrust stand + static deflector.
+
+Architecture as of 2026-08-10 (`Documentation/WYVERN_E4_Recovery.md`, `CONFLICTS.md` §7/§9,
+`Documentation/WYVERN_E4_Mathematics.md`):
+
+  Upper BT (ASA-Aero, foamed 0.65 g/cm3): nose + recovery wadding/FC bay (avionics housing,
+            no motor heat, no ejection-gas load -- lightest zone in the stack).
+  Lower BT (PETG-CF, 1.30 g/cm3): chute+cord+wadding zone + TVC bay, ONE continuous tube.
+  TVC assembly (PC-FR, 1.20 g/cm3): motor mount + gimbal only.
+  Bulkhead joint (PETG-CF): the ONE bulkhead between Upper BT and Lower BT, a friction-fit/
+            shear-pin RELEASE joint, NOT gas-sealed.
+  Fins (PETG-CF): 87 mm span, root 70 / tip 35 / LE-sweep 25 / thickness 3, all mm.
+
+--------------------------------------------------------------------------------------------
+DFM PASS, 2026-08-11: this file went from proof-of-concept blocks (zero fastener holes, zero
+insert bosses, zero fit tolerances -- mating surfaces were often modeled at EXACTLY the same
+radius, which does not fit in real life) to print-ready geometry. What changed:
+  - Every mating tube/disk/ring interface now carries an explicit slip-fit or press-fit
+    tolerance (FIT_SLIP / FIT_PRESS below), named, not accidental.
+  - Every bolted joint uses an M3 heat-set-insert boss (pilot hole sized for the standard
+    knurled brass insert) instead of a bare hole into raw plastic.
+  - The gimbal's pivot "pins" were solid bosses fused onto both halves of a joint that's
+    supposed to rotate, which cannot print as a working hinge. Replaced with through-holes for
+    a real metal pivot pin/screw.
+  - Hardware interface dimensions (servo mounting flange, load-cell body/hole spacing, HX711
+    board) are TYPICAL-CLASS figures for the specific purchased parts (EMAX ES08MA II, Adafruit
+    5kg/1kg strain-gauge cells, Adafruit HX711), not measured off the actual bench hardware.
+    Every such block is tagged VERIFY-WITH-CALIPERS in a comment; treat as "will assemble",
+    confirm against the real part before the final print run, same epistemic standard the rest
+    of this repo holds unverified numbers to (see CONFLICTS.md #9).
+--------------------------------------------------------------------------------------------
+"""
 import os, json
 import math
-from wcad import S, cyl, tube, cone, box, sphere, ogive_nose, fin, _revolve, export_step, export_stl
-def ellipsoid_nose(R,L,wall=None,z=0):
-    n=60; pts=[(max(R*math.sqrt(max(1-(L*i/n/L)**2,0.0)),0.0), L*i/n) for i in range(n+1)]
-    return _revolve(pts,z,wall)
-ROOT=os.path.abspath(os.path.join(os.path.dirname(__file__),"..",".."))
-DROCK=os.path.join(ROOT,"3D parts"); DSTAND=os.path.join(ROOT,"Motor Test Stand","TVC Thrust-Vector Balance")
-DSTATIC=os.path.join(ROOT,"Motor Test Stand","Static Stand (thrust + deflector)")
-for d in (DROCK,DSTAND,DSTATIC): os.makedirs(d,exist_ok=True)
+from wcad import (S, cyl, tube, cone, box, sphere, ogive_nose, fin, _revolve,
+                   export_step, export_stl, hole_cutter, boss, insert_boss, bolt_circle)
+
+def ellipsoid_nose(R, L, wall=None, z=0):
+    n = 60; pts = [(max(R*math.sqrt(max(1-(L*i/n/L)**2, 0.0)), 0.0), L*i/n) for i in range(n+1)]
+    return _revolve(pts, z, wall)
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+DROCK = os.path.join(ROOT, "3D parts")
+DSTAND = os.path.join(ROOT, "Motor Test Stand", "TVC Thrust-Vector Balance")
+DSTATIC = os.path.join(ROOT, "Motor Test Stand", "Static Stand (thrust + deflector)")
+for d in (DROCK, DSTAND, DSTATIC): os.makedirs(d, exist_ok=True)
+
 # ================================================================================================
-# MATERIAL CHANGE 2026-08 — ASA-Aero / PC-FR  ->  PLA / PETG-CF
+# GLOBAL DFM CONSTANTS -- named once, used everywhere. Change here, not per-part.
 # ================================================================================================
-# The thermally-zoned foamed-ASA + flame-rated-PC scheme is retired. New allocation:
-#
-#   PLA      nose, both PLA bay tubes (recovery + FC), fins, rail buttons
-#            -- everything that sees no motor heat and no ejection gas.
-#   PETG-CF  the whole EJECTION-GAS PATH and the TVC assemblies: both bulkheads, the bypass tube,
-#            the engine/TVC bay, motor mount and gimbal.
-#
-# Why the gas path is PETG-CF and not PLA: PLA's heat-deflection temperature is ~55-60 C. Bulkhead A,
-# Bulkhead B and the bypass tube are in direct contact with the F15-4's ejection gas. PETG-CF (~80 C)
-# is the minimum defensible material there. This is a safety call, not a preference.
-#
-# WALL THICKNESS: the PLA parts drop 1.6 -> 1.2 mm (3 perimeters at a 0.4 mm nozzle). The structural
-# FEA puts minimum safety factor at ~340x, i.e. the airframe is print/handling-limited, not
-# load-limited, so the wall was always carrying margin it did not need. At PLA's density this
-# recovers 45.6 g -- worth ~46 ft of apogee. PETG-CF parts stay at 1.6 mm: they take the ejection
-# pressure pulse and the motor loads.
-P=dict(OD=70.0,R=35.0, WALL=1.6, WALL_PLA=1.2, RI=33.4, RI_PLA=33.8,
-       MOT=29.6,MMT=33.0, NOSE_L=120.0, REC_L=180.0, FC_L=160.0, ENG_L=160.0)
-DENS=dict(PETGCF=1.30, PLA=1.24); report=[]
-def save(shape,folder,name,mat):
-    vol=shape.volume_cm3(); m=vol*DENS.get(mat,1.0); export_stl(shape,os.path.join(folder,name+".stl")); export_step(shape,os.path.join(folder,name+".step"))
-    report.append((name,round(vol,1),round(m,1),mat)); print(f"  {name:28} {vol:7.1f} cm3  ~{m:6.1f} g ({mat})"); return shape
-def ring(zc): return tube(P["R"],P["RI"],3.0).translate(0,0,zc)
+FIT_SLIP = 0.20   # radial clearance for parts that slide together (tube-in-tube, disk-in-bore), mm
+FIT_PRESS = -0.10  # radial interference for parts meant to friction-hold (ring onto motor tube), mm
+WALL = 1.6         # airframe wall, all materials, FEA-verified ~340x min SF (FEA_Structural.md #1-2)
+
+M3 = dict(PILOT=4.2, BOSS_OD=8.0, BOSS_H=6.0, CLR=3.4, HEAD_CB_D=6.4, HEAD_CB_H=3.2)
+# ^ M3 heat-set brass insert (standard 4.0-4.2mm pilot per typical knurled-insert vendor specs),
+#   M3_CLR is a clearance-fit through-hole for a bare M3 bolt shank, HEAD_CB is a socket-cap
+#   counterbore. These are catalog-standard, not part-specific -- safe to trust as-is.
+
+# TYPICAL-CLASS, VERIFY-WITH-CALIPERS before the final print (see module docstring):
+SERVO = dict(SPAN=28.0, PITCH=10.0, HOLE_D=2.2, BODY_W=12.4, BODY_L=23.0, BODY_H=29.4)
+# EMAX ES08MA II metal-gear micro servo (BOM), standard "micro/9g-class" mounting flange:
+# SPAN = tab-to-tab hole center distance, PITCH = front/back hole spacing on one tab.
+LC5 = dict(W=12.7, L=76.0, MT_HOLE_D=5.5, MT_PITCH=10.0, SENSE_HOLE_D=5.5)
+# Adafruit 5kg straight-bar strain-gauge load cell (TAL221-class), fixed (mounting) end 2 holes,
+# free (sensing) end 1 hole.
+LC1 = dict(W=12.7, L=55.0, MT_HOLE_D=4.2, MT_PITCH=8.0, SENSE_HOLE_D=4.2)
+# Adafruit 1kg strain-gauge load cell, same family, shorter body.
+HX711 = dict(W=20.5, L=27.0, HOLE_D=2.7, HOLE_INSET=2.5)
+# Adafruit HX711 24-bit ADC breakout, 2 diagonal mounting holes near the board corners.
+
+_OLD_FC_L, _OLD_REC_L, _OLD_ENG_L = 160.0, 180.0, 160.0
+_SCALE = 620.0 / (_OLD_FC_L + _OLD_REC_L + _OLD_ENG_L)
+P = dict(
+    OD=70.0, R=35.0, WALL=WALL, RI=33.4,
+    MOT=29.6, MMT=33.0,
+    NOSE_L=120.0,
+    UPPER_L=round(_OLD_FC_L * _SCALE, 1),
+    LOWER_L=round((_OLD_REC_L + _OLD_ENG_L) * _SCALE, 1),
+    BULKHEAD_T=4.0,
+)
+DENS = dict(ASAAERO=0.65, PETGCF=1.30, PCFR=1.20)
+report = []
+def save(shape, folder, name, mat):
+    vol = shape.volume_cm3(); m = vol * DENS.get(mat, 1.0)
+    export_stl(shape, os.path.join(folder, name + ".stl")); export_step(shape, os.path.join(folder, name + ".step"))
+    report.append((name, round(vol, 1), round(m, 1), mat))
+    print(f" {name:34} {vol:7.1f} cm3 ~{m:6.1f} g ({mat})")
+    return shape
+
+def retention_screws(tube_or, tube_ir, z, n=3, hole_d=M3["CLR"]):
+    """n radial M3 clearance holes through a tube wall at height z, for self-tapping retention
+    screws into whatever's inside (bulkhead rim, motor-mount ring). Cuts from just inside the
+    bore (tube_ir) out through the wall to just past the OD, so it's a clean through-cut of the
+    NEAR wall only. Returns a cutter shape."""
+    cutter = None
+    for i in range(n):
+        ang = 360.0 * i / n
+        c = hole_cutter(hole_d, tube_or - tube_ir + 4, tube_ir - 2, 0, z, axis="x", margin=0.5)
+        c = c.rotate("z", ang, origin=(0, 0, z))
+        cutter = c if cutter is None else cutter.fuse(c)
+    return cutter
+
 # ---- airframe ----
-def nose(): n=ellipsoid_nose(P["R"],P["NOSE_L"],wall=P["WALL_PLA"]); save(n,DROCK,"01_nose_cone_ellipsoid_PLA","PLA")
-def bay(name,L,mat):
-    ri = P["RI_PLA"] if mat=="PLA" else P["RI"]     # PLA bays run the thinner 1.2 mm wall
-    b=tube(P["R"],ri,L); save(b,DROCK,name,mat)
-def bulkhead(name,mat,slots):
-    d=cyl(P["RI"]-0.5,4.0)
-    for i in range(slots): d=d.cut(box(9,4,6,True,0).translate(P["RI"]-9,0,2).rotate("z",360/slots*i+20))
-    save(d,DROCK,name,mat)
-def sealed_bulkhead(name,mat):
-    # SEALED bulkhead (no wiring slots) — the FC bay is gas-tight between two of these; the motor
-    # ejection gas is routed PAST the bay through the bypass tube. One tube pass-through + one sealed
-    # wiring gland (epoxied/grommeted on assembly).
-    off=18.0
-    d=cyl(P["RI"]-0.5,4.0)
-    d=d.cut(cyl(7.6,6.0).translate(off,0,-1))     # bypass-tube pass-through (OD15 + clearance)
-    d=d.cut(cyl(3.0,6.0).translate(-20,0,-1))     # sealed wiring gland
-    save(d,DROCK,name,mat)
-def bypass_tube():
-    # solid-walled OD15 / ID12 tube that carries the F15-4 ejection gas from the engine-side bulkhead,
-    # past the sealed FC bay, to the recovery bay (see Documentation/WYVERN_E4_Recovery.md).
-    off=18.0
-    t=tube(7.5,6.0,P["FC_L"]+20.0).translate(off,0,0)
-    save(t,DROCK,"09_bypass_tube_PETGCF","PETGCF")
+def nose():
+    n = ellipsoid_nose(P["R"], P["NOSE_L"], wall=P["WALL"])
+    save(n, DROCK, "01_nose_cone_ellipsoid_ASAAero", "ASAAERO")
+
+def upper_bt():
+    # Upper BT: recovery wadding + FC bay (custom PCB, camera, battery), ASA-Aero.
+    # Aft end (z=0) mates to the bulkhead joint -- 3x M3 radial retention screws into the
+    # bulkhead's rim, 8mm in from the aft face (clear of the bulkhead's own edge chamfer).
+    b = tube(P["R"], P["RI"], P["UPPER_L"])
+    b = b.cut(retention_screws(P["R"], P["RI"], 8.0, n=3))
+    save(b, DROCK, "02_upper_bt_avionics_ASAAero", "ASAAERO")
+
+def lower_bt():
+    # Lower BT: chute+cord+wadding zone AND the TVC bay, ONE continuous PETG-CF tube. Fwd end
+    # (z=LOWER_L, mates to bulkhead) gets the matching 3x M3 retention screws; aft end gets 2x
+    # M3 retention screws into the motor mount's aft centering ring (see motor_mount()).
+    L = P["LOWER_L"]
+    b = tube(P["R"], P["RI"], L)
+    b = b.cut(retention_screws(P["R"], P["RI"], L - 8.0, n=3))
+    b = b.cut(retention_screws(P["R"], P["RI"], 8.0, n=2))
+    save(b, DROCK, "03_lower_bt_chute_tvc_PETGCF", "PETGCF")
+
+def bulkhead_joint():
+    # The ONE bulkhead between Upper BT and Lower BT. NOT gas-sealed -- pass-throughs are wiring
+    # holes only (servo bundle + STEMMA-QT). Disk OD is FIT_SLIP under the tube bore so it can
+    # actually be inserted; 3x M3 pilot holes on its rim (matching upper_bt()'s retention screws)
+    # let it be pinned in place from outside rather than relying on friction alone to survive
+    # handling before the ejection event is meant to release it.
+    #
+    # NOT MODELED: the actual friction-fit/shear-pin RELEASE geometry (target 50-150 N release
+    # force, `WYVERN_E4_Recovery.md` #4 / `WYVERN_E4_FEA_Structural.md` #4.1) is an open
+    # engineering decision per that doc, not invented here. The 3 retention screws below hold
+    # the bulkhead captive in the Upper BT only; the actual BT-to-BT release mechanism (how the
+    # two body tubes themselves let go of each other under ejection pressure) still needs a real
+    # sizing pass -- this part alone does not resolve that.
+    off = 18.0
+    r = P["RI"] - FIT_SLIP
+    d = cyl(r, P["BULKHEAD_T"])
+    d = d.cut(cyl(5.0, P["BULKHEAD_T"] + 2, -1).translate(off, 0, 0))    # servo signal/power bundle
+    d = d.cut(cyl(3.0, P["BULKHEAD_T"] + 2, -1).translate(-off, 0, 0))  # STEMMA-QT cable
+    for (x, y) in bolt_circle(r - M3["BOSS_OD"]/2, 3):
+        d = d.cut(hole_cutter(M3["PILOT"], P["BULKHEAD_T"] + 1, x, y, -0.5, axis="z", margin=0.5))
+    save(d, DROCK, "04_bulkhead_joint_PETGCF", "PETGCF")
+
 def motor_mount():
-    mt=tube(P["MMT"]/2,P["MOT"]/2,140.0)
-    for z in (10,70,130): mt=mt.fuse(tube(P["RI"],P["MMT"]/2,3.0).translate(0,0,z))
-    save(mt,DROCK,"06_motor_mount_29mm_PETGCF","PETGCF")
-def fins():
-    # UNIT BUG FIXED 2026-08. This was called as fin(0.070,0.035,0.072,0.025,0.003) -- metres --
-    # inside a file whose every other dimension is millimetres (P["OD"]=70.0 etc.), so the fin was
-    # built at 1/1000 scale and the exported 08b_fin_single_ASA.stl/.step had a volume of
-    # 0.0 cm3 / 0.0 g. Anyone slicing that STL would have got a speck, and the printed-airframe
-    # mass roll-up below silently omitted all four fins.
-    # Canonical geometry (we4_stability.py / we4_flightsim.py / the .ork): root 70, tip 35,
-    # semispan 72, LE sweep 25, thickness 3 -- all mm.
-    fi=fin(70.0,35.0,72.0,25.0,3.0)
-    save(fi,DROCK,"08b_fin_single_PLA","PLA")
+    # 29mm motor mount tube, PC-FR. 3 centering rings: inner bore is a PRESS fit onto the motor
+    # tube (rings glued/pressed on), outer OD is a SLIP fit into the Lower BT bore (was modeled
+    # at exactly the bore radius before, which does not go together in practice). Aft ring gets
+    # 2x M3 pilot holes matching lower_bt()'s aft retention screws.
+    mt = tube(P["MMT"]/2, P["MOT"]/2 + FIT_PRESS, 140.0)
+    ring_or = P["RI"] - FIT_SLIP
+    for z in (10, 70, 130):
+        mt = mt.fuse(tube(ring_or, P["MMT"]/2 + FIT_PRESS, 3.0).translate(0, 0, z))
+    for (x, y) in bolt_circle(ring_or - 4.0, 2):
+        mt = mt.cut(hole_cutter(M3["PILOT"], 6.0, x, y, 10.0, axis="z", margin=0.5))
+    save(mt, DROCK, "05_motor_mount_29mm_PCFR", "PCFR")
+
 def gimbal():
-    # 2-axis gimbal: outer ring (pitch) + inner ring (yaw) holding the 29mm motor mount
-    outer=tube(31,28,40); 
-    for ax in (0,90):
-        outer=outer.fuse(cyl(4,8).rotate("y",90).translate(28,0,20).rotate("z",ax)).fuse(cyl(4,8).rotate("y",90).translate(-36,0,20).rotate("z",ax))
-    inner=tube(27,P["MOT"]/2+1,44).translate(0,0,-2)
-    g=outer.fuse(inner)
-    # 2 servo horn bosses at 90 deg
-    for ax in (0,90): g=g.fuse(box(8,6,10,True,0).translate(30,0,6).rotate("z",ax))
-    save(g,DROCK,"07_tvc_gimbal_2axis_PETGCF","PETGCF")
-def assembly():
-    z=0; parts=[]
-    parts.append(("eng",tube(P["R"],P["RI"],P["ENG_L"],z))); z+=P["ENG_L"]
-    parts.append(("fc",tube(P["R"],P["RI"],P["FC_L"],z))); z+=P["FC_L"]
-    parts.append(("rec",tube(P["R"],P["RI"],P["REC_L"],z))); z+=P["REC_L"]
-    parts.append(("nose",ellipsoid_nose(P["R"],P["NOSE_L"],wall=P["WALL"]).translate(0,0,z)))
-    asm=parts[0][1]
-    for _,p in parts[1:]: asm=asm.fuse(p)
-    print(f"  [assembly length {z+P['NOSE_L']:.0f} mm]"); save(asm,DROCK,"00_full_assembly","PLA")
-# ---- 3-axis TVC balance ----
-def tvc_balance():
-    base=box(220,220,8,True,0)
-    # 3 load-cell pedestals: axial(Z) under, +X and +Y lateral
-    base=base.fuse(box(20,40,40,True,0).translate(0,0,24))      # axial cell column
-    base=base.fuse(box(40,20,30,True,0).translate(90,0,19))     # X lateral
-    base=base.fuse(box(20,40,30,True,0).translate(0,90,19))     # Y lateral
-    save(base,DSTAND,"TVC_balance_base","PETGCF")
-    block=box(80,80,30,True,0)                                  # thrust block (motor+gimbal mounts on top)
-    block=block.cut(cyl(P["MOT"]/2,40).translate(0,0,0))
-    for sx,sy in ((60,0),(0,60)): block=block.fuse(box(16,16,14,True,0).translate(sx,sy,8))  # flexure tabs to lateral cells
-    save(block,DSTAND,"TVC_balance_thrust_block","PETGCF")
-    flex=box(30,8,1.0,True,0)                                   # spring-steel flexure pattern (print as guide)
-    save(flex,DSTAND,"TVC_balance_flexure_template","PETGCF")
-# ---- static-stand deflector ----
+    # 2-axis gimbal: outer ring (pitch) + inner ring (yaw) holding the 29mm motor mount, PC-FR.
+    # PIVOT FIX: the old version fused SOLID pin bosses onto the outer ring, meant to mate into
+    # a bracket that doesn't exist and, more basically, cannot print as a working hinge (both
+    # sides of a rotating joint can't be one fused part). Replaced with clearance-fit THROUGH-
+    # HOLES (3.2mm, slip fit for a 3mm steel dowel or M3 shoulder screw used as the actual pivot
+    # pin) on both axes.
+    # NOT MODELED: where the outer ring's pitch-axis holes anchor into the airframe (a trunnion
+    # mount into the Lower BT wall) is an open mechanism-design decision, same category as the
+    # bulkhead release joint -- not invented here for the flight vehicle. The ground-test thrust
+    # block (tvc_balance()) DOES model a matching mount, since that geometry is actually pinned
+    # down for the bench rig.
+    PIVOT_D = 3.2  # slip fit for 3mm dowel / M3 shoulder screw
+    outer = tube(31, 28, 40)
+    for ax in (0, 90):
+        # one clean diametral through-hole per axis (spans both walls of the ring), rather than
+        # two separate stub cuts -- a real pivot pin is a single rod through the whole ring.
+        outer = outer.cut(hole_cutter(PIVOT_D, 66, -33, 0, 20, axis="x", margin=1.0).rotate("z", ax, origin=(0, 0, 20)))
+    inner = tube(27, P["MOT"]/2 + 1 + FIT_SLIP, 44).translate(0, 0, -2)
+    g = outer.fuse(inner)
+    # 2 servo horn bosses at 90 deg -- now real M2.2 clearance holes for the horn screw, plus the
+    # servo body itself mounts to the thrust block/airframe via its own flange (see SERVO consts),
+    # not this boss (the boss is just the linkage attachment point).
+    for ax in (0, 90):
+        b = box(8, 6, 10, True, 0).translate(30, 0, 6).rotate("z", ax)
+        b = b.cut(hole_cutter(2.2, 12, 30, 0, 8, axis="z").rotate("z", ax))
+        g = g.fuse(b)
+    save(g, DROCK, "06_tvc_gimbal_2axis_PCFR", "PCFR")
+
+def fins():
+    # 87 mm span, root 70 / tip 35 / LE-sweep 25 / thickness 3, PETG-CF. Bonded joint (epoxy
+    # fillet at the root per Build_Guide.md), not mechanically fastened, so no screw holes here
+    # -- but root corners are chamfered so the glue fillet has somewhere to key into instead of
+    # sitting on a sharp printed edge.
+    fi = fin(70.0, 35.0, 87.0, 25.0, 3.0)
+    fi = fi.cut(box(6, 5, 6, True, 0).rotate("y", 45).translate(0, 0, 0))
+    fi = fi.cut(box(6, 5, 6, True, 0).rotate("y", 45).translate(70, 0, 0))
+    save(fi, DROCK, "07_fin_single_PETGCF", "PETGCF")
+
 def rail_buttons():
-    # 3D-printed 1010 rail buttons (printed as part of the rocket) — 2x
-    btn=cyl(5.0,4.0).fuse(cyl(8.0,2.0).translate(0,0,4)).fuse(cyl(8.0,1.5).translate(0,0,-1.5))
-    save(btn,DROCK,"08_rail_button_1010_x2","PLA")
+    # 3D-printed 1010 rail buttons, PETG-CF (mounts to the lower/PETG-CF body). Center through-
+    # hole for an M3 mounting screw into the airframe wall (was solid before -- unmountable).
+    btn = cyl(5.0, 4.0).fuse(cyl(8.0, 2.0).translate(0, 0, 4)).fuse(cyl(8.0, 1.5).translate(0, 0, -1.5))
+    btn = btn.cut(hole_cutter(M3["CLR"], 10, 0, 0, 0, axis="z", margin=1.0))
+    save(btn, DROCK, "08_rail_button_1010_x2", "PETGCF")
+
+def assembly():
+    z = 0; parts = []
+    parts.append(("lower", tube(P["R"], P["RI"], P["LOWER_L"], z))); z += P["LOWER_L"]
+    parts.append(("bulkhead", cyl(P["R"], P["BULKHEAD_T"], z))); z += P["BULKHEAD_T"]
+    parts.append(("upper", tube(P["R"], P["RI"], P["UPPER_L"], z))); z += P["UPPER_L"]
+    parts.append(("nose", ellipsoid_nose(P["R"], P["NOSE_L"], wall=P["WALL"]).translate(0, 0, z)))
+    asm = parts[0][1]
+    for _, p in parts[1:]: asm = asm.fuse(p)
+    total_len = z + P["NOSE_L"]
+    print(f" [assembly length {total_len:.0f} mm, vs core.py LTOT=740 mm target]")
+    save(asm, DROCK, "00_full_assembly", "PETGCF")
+
+# ---- 3-axis TVC balance (servo ground-test stand) ----
+def tvc_balance():
+    # Base: 3 load-cell pedestals (axial Z under, lateral X/Y), M3 insert bosses at each pedestal
+    # face for the load-cell mounting bracket, plus 4 corner insert bosses to bolt the whole base
+    # to a bench/plate.
+    base = box(220, 220, 8, True, 0)
+    base = base.fuse(box(20, 40, 40, True, 0).translate(0, 0, 24))
+    base = base.fuse(box(40, 20, 30, True, 0).translate(90, 0, 19))
+    base = base.fuse(box(20, 40, 30, True, 0).translate(0, 90, 19))
+    for (x, y) in ((95, 95), (-95, 95), (95, -95), (-95, -95)):
+        base = base.fuse(insert_boss(M3["BOSS_OD"], M3["BOSS_H"], M3["PILOT"], x, y, 8))
+    # axial (Z) load-cell mount face (top of the Z column, facing up)
+    for (x, y) in ((0, LC5["MT_PITCH"]/2), (0, -LC5["MT_PITCH"]/2)):
+        base = base.cut(hole_cutter(LC5["MT_HOLE_D"], 10, x, y, 44, axis="z"))
+    # lateral X cell mount face (inboard face of the X pedestal)
+    for (y, zz) in ((LC1["MT_PITCH"]/2, 34), (-LC1["MT_PITCH"]/2, 34)):
+        base = base.cut(hole_cutter(LC1["MT_HOLE_D"], 10, 70, y, zz, axis="x"))
+    # lateral Y cell mount face (inboard face of the Y pedestal)
+    for (x, zz) in ((LC1["MT_PITCH"]/2, 34), (-LC1["MT_PITCH"]/2, 34)):
+        base = base.cut(hole_cutter(LC1["MT_HOLE_D"], 10, x, 70, zz, axis="y"))
+    save(base, DSTAND, "TVC_balance_base", "PETGCF")
+
+    # Thrust block: motor+gimbal mount on top, flexure tabs to the lateral cells. This IS the
+    # gimbal's pitch-axis trunnion mount for the ground rig (unlike the flight airframe, this
+    # geometry is pinned down, so it's modeled for real): 2x through-holes on the block's
+    # vertical face pair match the gimbal outer ring's PIVOT_D=3.2mm holes at the same 56mm
+    # span (28mm off-center each side) and 40mm height used in gimbal().
+    block = box(80, 80, 30, True, 0)
+    block = block.cut(cyl(P["MOT"]/2 + FIT_SLIP, 40).translate(0, 0, 0))
+    for sx, sy in ((60, 0), (0, 60)):
+        block = block.fuse(box(16, 16, 14, True, 0).translate(sx, sy, 8))
+    for side in (1, -1):
+        block = block.cut(hole_cutter(3.2, 80, side*28, 0, 8, axis="y"))  # gimbal pitch pivot
+    save(block, DSTAND, "TVC_balance_thrust_block", "PETGCF")
+
+    # Flexure template: unchanged (spring-steel flexure profile, printed as a cutting/bending
+    # guide only, not a functional plastic part -- no fasteners apply).
+    flex = box(30, 8, 1.0, True, 0)
+    save(flex, DSTAND, "TVC_balance_flexure_template", "PETGCF")
+
+    # HX711 mount plate, bolts to the base's side face near the load-cell pedestals.
+    hx = box(HX711["W"] + 6, HX711["L"] + 6, 3, True, 0)
+    for sx in (1, -1):
+        for sy in (1, -1):
+            hx = hx.cut(hole_cutter(HX711["HOLE_D"], 6, sx*(HX711["W"]/2 - HX711["HOLE_INSET"]),
+                                     sy*(HX711["L"]/2 - HX711["HOLE_INSET"]), 0, axis="z"))
+    for (x, y) in ((-30, 0), (30, 0)):
+        hx = hx.fuse(insert_boss(6.0, 4.0, M3["PILOT"], x, y, -1.5))
+    save(hx, DSTAND, "TVC_balance_hx711_mount", "PETGCF")
+
+# ---- static thrust stand (static fire test) ----
+def static_stand():
+    # 5 kg axial load cell + HX711 -> RP2350B custom PCB (GSE_TestStands.md #1, confirmed current
+    # 2026-08-11, see CONFLICTS.md #9 / Static Stand README fix). Steel blast deflector is bought
+    # hardware, not printed; TS_base_plate/TS_motor_tower/TS_loadcell_bracket are the printed set.
+    base = box(220, 140, 8, True, 0)
+    for (x, y) in ((100, 60), (-100, 60), (100, -60), (-100, -60)):
+        base = base.fuse(insert_boss(M3["BOSS_OD"], M3["BOSS_H"], M3["PILOT"], x, y, 8))
+    # motor-tower mounting pattern (bolt circle, tower bolts to the base)
+    for (x, y) in bolt_circle(30, 4, start_deg=45):
+        base = base.cut(hole_cutter(M3["CLR"], 12, x + 60, y, 8, axis="z"))
+    # load-cell bracket mounting pattern
+    for (x, y) in bolt_circle(20, 2):
+        base = base.cut(hole_cutter(M3["CLR"], 12, x - 70, y, 8, axis="z"))
+    save(base, DSTATIC, "TS_base_plate", "PETGCF")
+
+    # Motor tower: vertical cradle holding the F15 case (29mm-class Estes motor OD ~29.5mm,
+    # FIT_SLIP clearance so the motor drops in and is retained by its own hook/clip, standard
+    # Estes practice, not glued). Bolts to the base plate via the matching 4-hole pattern above.
+    tower = tube(20, P["MOT"]/2 + FIT_SLIP, 100).translate(0, 0, 8)
+    tower = tower.fuse(box(60, 60, 8, True, 0))
+    for (x, y) in bolt_circle(30, 4, start_deg=45):
+        tower = tower.cut(hole_cutter(M3["CLR"], 12, x, y, 0, axis="z"))
+    save(tower, DSTATIC, "TS_motor_tower", "PETGCF")
+
+    # Load-cell bracket: mounting (fixed) end takes 2x M5-class clearance holes at LC5["MT_PITCH"]
+    # per Adafruit 5kg cell TYPICAL dims, sensing end takes 1x M5-class hole for the interface rod
+    # to the motor tower's thrust-transfer tab.
+    br = box(LC5["W"] + 10, LC5["L"] + 20, 8, True, 0)
+    for (x, y) in ((0, LC5["MT_PITCH"]/2 + 20), (0, -LC5["MT_PITCH"]/2 + 20)):
+        br = br.cut(hole_cutter(LC5["MT_HOLE_D"], 10, x, y, 0, axis="z"))
+    br = br.cut(hole_cutter(LC5["SENSE_HOLE_D"], 10, 0, -LC5["L"]/2, 0, axis="z"))
+    for (x, y) in bolt_circle(20, 2):
+        br = br.fuse(insert_boss(M3["BOSS_OD"], M3["BOSS_H"], M3["PILOT"], x, y + 20, -4))
+    save(br, DSTATIC, "TS_loadcell_bracket", "PETGCF")
+
+# ---- static-stand deflector ----
 def deflector():
-    d=box(160,160,6,True,0).rotate("x",45).translate(0,40,40)
-    d=d.fuse(box(160,10,80,True,0).translate(0,-40,40))
-    save(d,DSTATIC,"static_blast_deflector","PETGCF")
-if __name__=="__main__":
-    print("== AIRFRAME =="); nose(); bay("02_recovery_bay_PLA",P["REC_L"],"PLA"); bay("03_fc_bay_PLA",P["FC_L"],"PLA"); bay("04_engine_tvc_bay_PETGCF",P["ENG_L"],"PETGCF")
-    sealed_bulkhead("05a_bulkhead_A_PETGCF","PETGCF"); sealed_bulkhead("05b_bulkhead_B_PETGCF","PETGCF"); bypass_tube(); motor_mount(); gimbal(); fins()
-    print("== TVC BALANCE =="); tvc_balance()
+    d = box(160, 160, 6, True, 0).rotate("x", 45).translate(0, 40, 40)
+    d = d.fuse(box(160, 10, 80, True, 0).translate(0, -40, 40))
+    for x in (70, -70):
+        d = d.cut(hole_cutter(M3["CLR"], 20, x, -40, 40, axis="y"))  # mounts to the base plate
+    save(d, DSTATIC, "static_blast_deflector", "PETGCF")
+
+if __name__ == "__main__":
+    _RETIRED = [
+        "01_nose_cone_ellipsoid_PLA", "02_recovery_bay_PLA", "03_fc_bay_PLA",
+        "04_engine_tvc_bay_PETGCF", "05a_bulkhead_A_PETGCF", "05b_bulkhead_B_PETGCF",
+        "06_motor_mount_29mm_PETGCF", "07_tvc_gimbal_2axis_PETGCF", "08b_fin_single_PLA",
+        "09_bypass_tube_PETGCF",
+    ]
+    for stem in _RETIRED:
+        for ext in (".stl", ".step"):
+            p = os.path.join(DROCK, stem + ext)
+            if os.path.exists(p):
+                try:
+                    os.remove(p); print(f" removed stale {stem}{ext}")
+                except PermissionError:
+                    print(f" could not remove stale {stem}{ext} (needs manual cleanup)")
+
+    print("== AIRFRAME =="); nose(); upper_bt(); lower_bt(); bulkhead_joint(); motor_mount(); gimbal(); fins()
+    print("== SERVO TEST STAND (TVC balance) =="); tvc_balance()
+    print("== STATIC TEST STAND =="); static_stand()
     print("== RAIL BUTTONS =="); rail_buttons()
     print("== STATIC DEFLECTOR =="); deflector()
     print("== ASSEMBLY =="); assembly()
-    json.dump(report,open(os.path.join(os.path.dirname(__file__),"mass_report.json"),"w"),indent=1)
-    # Roll-up of the printed FLIGHT airframe. The prefix filter previously stopped at "07", which
-    # silently excluded 08b (the 4 fins) and 09 (the PC-FR bypass tube) -- so the printed mass this
-    # script reported could never be reconciled against the 603 g dry stack in we4_sim.py.
-    QTY = {"08b_fin_single_PLA": 4}          # one STL, printed four times
-    flight = [x for x in report if x[0][:2] in ("01","02","03","04","05","06","07","08","09")
+    json.dump(report, open(os.path.join(os.path.dirname(__file__), "mass_report.json"), "w"), indent=1)
+
+    QTY = {"07_fin_single_PETGCF": 4}
+    flight = [x for x in report if x[0][:2] in ("01", "02", "03", "04", "05", "06", "07", "08")
               and not x[0].startswith("08_rail")]
     tot = sum(x[2] * QTY.get(x[0], 1) for x in flight)
     rails = sum(x[2] for x in report if x[0].startswith("08_rail"))
-    print(f"\nprinted flight-airframe mass ~{tot:.1f} g  (+{rails:.1f} g rail buttons)"
-          f"  ->  {tot + rails:.1f} g printed total; {len(report)} exported parts")
-    print("  breakdown:")
+    print(f"\nprinted flight-airframe mass ~{tot:.1f} g (+{rails:.1f} g rail buttons)"
+          f" -> {tot + rails:.1f} g printed total; {len(report)} exported parts")
+    print(" breakdown:")
     for x in flight:
         q = QTY.get(x[0], 1)
-        print(f"    {x[0]:30} {x[2]:6.1f} g x{q} = {x[2]*q:6.1f} g  ({x[3]})")
-    print("  NOTE: this is PRINTED STRUCTURE ONLY. The 603 g dry mass in we4_sim.py additionally")
-    print("        carries avionics, battery, camera, servos, chute, harness and the ejection")
-    print("        plenum; and the gimbal/mount masses there are as-built allowances, not raw")
-    print("        solid volumes. Compare like for like before calling a discrepancy.")
+        print(f" {x[0]:34} {x[2]:6.1f} g x{q} = {x[2]*q:6.1f} g ({x[3]})")
+    print(" NOTE: printed structure only, see module docstring + CONFLICTS.md #9 for what's")
+    print(" scaled/estimated vs. verified, and what open mechanism decisions (bulkhead release")
+    print(" geometry, gimbal-to-airframe trunnion mount) are deliberately not modeled here.")

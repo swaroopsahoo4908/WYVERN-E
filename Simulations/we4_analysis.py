@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E — engineering analysis suite (drag, structural/FEA, thermal, power, sensitivity,
+"""WYVERN-E, engineering analysis suite (drag, structural/FEA, thermal, power, sensitivity,
 servo sizing) -> plots4/. Mirrors the 2.0/3.0 analysis set for the single-stage F15-4 TVC vehicle."""
 import os,json,numpy as np
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
@@ -11,7 +11,7 @@ def sv(fig,n): fig.tight_layout(); fig.savefig(f"{OUT}/{n}.png",dpi=130); plt.cl
 add={}
 # 07 drag buildup (component Cd vs Mach, low speed)
 Ma=np.linspace(0.02,0.18,40)
-Cf=0.42/np.sqrt(np.maximum(Ma*343*OD/1.5e-5,1e3))*8   # skin friction ~Re^-0.5 scaled
+Cf=0.42/np.sqrt(np.maximum(Ma*343*OD/1.5e-5,1e3))*8 # skin friction ~Re^-0.5 scaled
 Cd_sf=0.10+0*Ma+ Cf*0; Cd_skin=0.22+0.0*Ma; Cd_base=0.12+0.05*Ma; Cd_press=0.10+0.1*Ma
 Cd=Cd_skin+Cd_base+Cd_press
 fig,ax=plt.subplots(figsize=(8.5,5))
@@ -19,12 +19,12 @@ ax.stackplot(Ma,Cd_skin,Cd_base,Cd_press,labels=["skin friction","base drag","pr
 ax.axhline(0.539,ls='--',c='k',label="design Cd=0.539"); ax.set_xlabel("Mach"); ax.set_ylabel("Cd"); ax.legend(loc='upper left')
 ax.set_title("WYVERN-E · drag buildup (finned 70 mm airframe, 4x 72 mm fins)",fontweight='bold'); ax.grid(alpha=.3); sv(fig,"07_drag_buildup")
 # 08 structural / first-order FEA margins
-Awall=np.pi*OD*wall                          # tube wall area
-sig_axial=Fpk/Awall/1e6                       # MPa axial compression at peak thrust
-side=Fpk*np.sin(np.radians(5))               # TVC side force
-Mbend=side*0.16                               # bending moment at bulkhead A (~arm)
+Awall=np.pi*OD*wall # tube wall area
+sig_axial=Fpk/Awall/1e6 # MPa axial compression at peak thrust
+side=Fpk*np.sin(np.radians(5)) # TVC side force
+Mbend=side*0.16 # bending moment at bulkhead A (~arm)
 I_tube=np.pi/64*(OD**4-(OD-2*wall)**4); sig_bend=Mbend*(OD/2)/I_tube/1e6
-sig_pivot=side/((np.pi*0.002**2))/1e6        # 2mm pivot pin shear-ish
+sig_pivot=side/((np.pi*0.002**2))/1e6 # 2mm pivot pin shear-ish
 YIELD={"PLA body":50,"PETG-CF engine":45,"PETG-CF pivot":45}
 comp={"Tube axial (PLA)":(sig_axial,50),"Tube bending (PLA)":(sig_bend,50),"Gimbal pivot (PC-FR)":(sig_pivot,60),"Bulkhead A (PC-FR)":(side/ (np.pi*0.030**2)/1e6 *6,60)}
 names=list(comp); SF=[comp[n][1]/max(comp[n][0],1e-3) for n in names]; add["min_SF"]=round(min(SF),1)
@@ -35,7 +35,7 @@ ax.set_title(f"WYVERN-E · first-order structural margins (min SF {min(SF):.0f}�
 # 09 thermal soak (engine-bay PETG-CF wall, transient)
 t=np.linspace(0,8,200); Tinf=900; h=120; k=0.2; cp=1100; rhoP=1250; th=0.0016
 # lumped wall with phenolic liner barrier -> effective driving temp reduced
-Tdrive=180  # liner-reduced inner-surface driving temp
+Tdrive=180 # liner-reduced inner-surface driving temp
 tau=rhoP*cp*th/h; burn=3.45
 Twall=20+(Tdrive-20)*(1-np.exp(-np.minimum(t,burn)/ (tau)))
 Twall=np.where(t>burn,Twall[np.argmin(np.abs(t-burn))]*np.exp(-(t-burn)/30)+20*(1-np.exp(-(t-burn)/30)),Twall)
@@ -45,14 +45,14 @@ ax.axvline(burn,ls=':',c='g',label="burnout"); ax.set_xlabel("t (s)"); ax.set_yl
 ax.set_title(f"WYVERN-E · engine-bay thermal soak (peak ~{Twall.max():.0f} °C, with phenolic liner)",fontweight='bold'); ax.grid(alpha=.3); sv(fig,"09_thermal")
 # 10 power budget
 loads={"Pico 2 W":0.15,"2× servo (active avg)":3.0,"3× BNO085":0.25,"BME688+BMP388":0.05,"camera":1.5,"BEC loss":0.4}
-Ptot=sum(loads.values()); E=2*3.7*0.45*0.9   # 2S 450mAh usable Wh
+Ptot=sum(loads.values()); E=2*3.7*0.45*0.9 # 2S 450mAh usable Wh
 add["power_active_W"]=round(Ptot,2); add["batt_Wh"]=round(E,2); add["endurance_min"]=round(E/Ptot*60,0)
 fig,ax=plt.subplots(figsize=(8.5,5)); ax.bar(loads.keys(),loads.values(),color="#2a6f97"); ax.set_ylabel("W")
 ax.set_title(f"WYVERN-E · power {Ptot:.1f} W active · 2S 450 mAh = {E:.1f} Wh → {E/Ptot*60:.0f} min ({E/Ptot/0.1:.0f}× the 7 s flight)",fontweight='bold')
 plt.setp(ax.get_xticklabels(),rotation=20,ha='right'); ax.grid(alpha=.3,axis='y'); sv(fig,"10_power_budget")
 # 11 sensitivity tornado (apogee)
 base_ap=R["apogee_ft"]
-def ap(dm=0,dcd=0,dimp=0):  # crude scaling: apogee ~ Itot^? / (m*Cd); use energy scaling
+def ap(dm=0,dcd=0,dimp=0): # crude scaling: apogee ~ Itot^? / (m*Cd); use energy scaling
     return base_ap*(1+dimp)**1.0*(1-0.0)/((1+dm)**0.9*(1+dcd)**0.45)
 vars=[("mass ±10%",ap(dm=0.1),ap(dm=-0.1)),("Cd ±20%",ap(dcd=0.2),ap(dcd=-0.2)),("total impulse ±5%",ap(dimp=-0.05),ap(dimp=0.05))]
 fig,ax=plt.subplots(figsize=(8.5,4.5)); y=range(len(vars))
@@ -60,7 +60,7 @@ for i,(nm,lo,hi) in enumerate(vars): ax.barh(i,hi-lo,left=min(lo,hi),color="#a7c
 ax.axvline(base_ap,c='r',label=f"nominal {base_ap:.0f} ft"); ax.set_yticks(list(y)); ax.set_yticklabels([v[0] for v in vars]); ax.set_xlabel("apogee (ft)"); ax.legend()
 ax.set_title("WYVERN-E · apogee sensitivity tornado",fontweight='bold'); sv(fig,"11_sensitivity")
 # 12 servo / gimbal sizing
-Treq=Fpk*np.sin(np.radians(5))*0.025      # torque about gimbal pivot, 25mm nozzle offset arm
+Treq=Fpk*np.sin(np.radians(5))*0.025 # torque about gimbal pivot, 25mm nozzle offset arm
 Treq_kgcm=Treq/9.81*100
 add["gimbal_torque_Ncm"]=round(Treq*100,2); add["gimbal_torque_kgcm"]=round(Treq_kgcm,2)
 servos={"req @±8° (SF 2)":Treq_kgcm*2,"ES08MA II":2.0,"MG90D":2.2,"DS3225 micro":3.0}

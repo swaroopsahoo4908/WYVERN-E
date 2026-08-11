@@ -1,23 +1,25 @@
-# WYVERN-E — Documentation
+# WYVERN-E, Documentation
 
-**2026-08-10: full project spec restored.** All five research questions are back in force —
-RQ1 magnetic-vs-servo TVC (now two separate physical test stands), RQ2 zoned materials + jetvane
-testing (restored, was dropped 2026-08), RQ3 fin aerofoil + RQ4 wind-tunnel-vs-flight (restored,
-was consolidated away 2026-08), RQ5 PID gain sensitivity. See `CONFLICTS.md` §7 and
-`WYVERN_E4_GSE_TestStands.md` for the reversal details, and `WYVERN_E4_Timeline_3Month.md` for the
-schedule this now runs on (two launch weekends around Thanksgiving, all data by Dec 1).
+Five research questions, each addressed by at least two independent methods: RQ1 magnetic-vs-servo
+TVC (two separate physical test stands), RQ2 zoned materials and jetvane blast-shield screen, RQ3
+fin aerofoil selection (wind tunnel + CFD), RQ4 wind-tunnel-vs-flight stability calibration, RQ5 PID
+gain sensitivity. `WYVERN_E4_Timeline_3Month.md` has the build-to-flight schedule, two launch
+weekends around Thanksgiving, all data collected by Dec 1.
 
-- `WYVERN_E4_Mathematics.md` — mass/CG/inertia, T/W, trajectory, TVC, recovery, no-waiver.
-- `WYVERN_E4_Stability_FinSizing.md` — Barrowman fin sizing: 35 mm UNSTABLE (−0.99 cal); flown 72 mm gives +1.20 cal, no ballast.
-- `WYVERN_E4_FEA_Structural.md` — first-order structural + thermal margins.
-- `WYVERN_E4_Camera_Solution.md` — i3 4K Thumb Action Camera offload solution (OV2640 SPI can't do 720p30).
-- `WYVERN_E4_Recovery.md` — F15-4 motor-ejection recovery via two-body-tube separation at the bulkhead joint (finned vehicle, PCB in the upper BT).
-- `WYVERN_E4_GSE_TestStands.md` — **four ground-test rigs** (2026-08-10, restored full scope): static-fire stand (calibration + thrust curves + jetvane/material coupon testing, jetvane restored), servo TVC stand, magnetic TVC stand (separate physical rig from servo), wind tunnel (aerofoil testing, restored — see `CONFLICTS.md` §7).
-- `WYVERN_E4_Timeline_3Month.md` — **3-month project timeline** (2026-08-10), 3 man-hrs/week, excludes print time but includes CAD/post-processing. Two launch weekends: the weekend before Thanksgiving and the weekend after. All data collected by Dec 1 with buffer built in.
-- `WYVERN_E4_Timeline_14Day.md` — original day-by-day build-to-flight schedule (order-first gate, parallel tracks, slip triggers) — superseded in pacing by the 3-month timeline above, kept as the detailed procedure-level reference for what happens inside each work session.
-- `WYVERN_E4_Build_Guide.md` — **print / bench / assembly / ground-test / range procedures** with go-no-go cards.
-- `WYVERN_E4_BOM.xlsx` — master BOM, 10 sections + Summary. 2026-08-09: reconciled against 3 live carts (Amazon $252.93, Adafruit $95.10, Estes $325.01) + $175 custom PCB, quantities corrected per follow-up, then **to-buy cost restricted to only what's actually in those carts** (everything else zeroed from cost and flagged "NOT IN CURRENT CART," kept visible for traceability). ⚠ This includes the **F15-4 flight motor and E16-4 commissioning motors**, neither of which is in the given carts — zeroed from cost, not from the design; still need separate purchase. Airframe filament (Section 6) reconciled against the real Bambu Lab cart (PC-FR/PC/ABS/ASA-Aero, $164.96) — ⚠ **none of these four match the current design's PLA+PETG-CF-only material scope** (PC-FR/PC/ABS/ASA-Aero were struck from the design in 2026-08b when the RQ2 coupon-testing program was dropped); flagged for confirmation, not assumed as flight-part material. The 2kg "buy more PLA" line was dropped — ~8kg PLA/PETG-CF already acquired covers it. 2026-08-09e: reconciled against the real, current Amazon cart ($600.95, 28 items) — Pico 2 W restored to qty1/$16.31 (was zeroed as "superseded," but it's genuinely in cart; role unconfirmed), EMAX servo pack reduced qty2→1 (cart only has 1), HX711 increased qty2→3 (cart has 3), and Section 10 rebuilt to match cart exactly: TRYMAG 6x2mm magnets dropped in favor of the actual cart item (Caturledas 6x2mm-250pack), VSKIZ 10x3mm and COLBOR CF3 unchanged, plus newly-added OXLasers green line laser module ($39), Loc-Line hose kit ($25), SmallRig P96L video light ($35.99), and two stainless mesh packs (80-mesh $7.99, 40-mesh $15.99) — none of which map to any WYVERN-E subsystem; flagged for confirmation these are intentional non-flight purchases. 2026-08-09f: HANGLIFE heat-set insert assortment (M2-M6, 345pc, $19.99, Section 7) un-zeroed — confirmed in cart. Total program spend **$1,641.25** (net out-of-pocket $1,161.98 + $479.27 already acquired).
-- `WYVERN_E4_Cart_Gap_Analysis.md` — **what the current cart is missing** vs the BOM and the design. ⚠ Snapshot dated 2026-08-01, checked against the jetvane-dropped scope — stale vs. the 2026-08-10 restoration (see file header note); dollar figures are historical.
+- `WYVERN_E4_Mathematics.md`, mass/CG/inertia, T/W, trajectory, TVC, recovery, no-waiver.
+- `WYVERN_E4_Stability_FinSizing.md`, Barrowman fin sizing: flown 87 mm fins give +1.20 cal, no ballast.
+- `WYVERN_E4_FEA_Structural.md`, first-order structural + thermal margins.
+- `WYVERN_E4_Camera_Solution.md`, i3 4K Thumb Action Camera offload solution (OV2640 SPI can't do 720p30).
+- `WYVERN_E4_Recovery.md`, F15-4 motor-ejection recovery via two-body-tube separation at the bulkhead joint (finned vehicle, custom PCB in the upper BT).
+- `WYVERN_E4_GSE_TestStands.md`, the four ground-test rigs: static-fire stand (calibration, thrust curves, jetvane blast-shield screen), servo TVC stand, magnetic TVC stand, wind tunnel (RQ3/RQ4 aerofoil testing).
+- `WYVERN_E4_Timeline_3Month.md`, build-to-flight schedule at 3 man-hrs/week (excludes print time, includes CAD/post-processing), two launch weekends bracketing Thanksgiving, all data by Dec 1.
+- `WYVERN_E4_Timeline_14Day.md`, day-by-day procedure-level reference for what happens inside each build session.
+- `WYVERN_E4_Build_Guide.md`, print / bench / assembly / ground-test / range procedures with go-no-go cards.
+- `WYVERN_E4_BOM.xlsx`, master BOM with purchase links, reconciled against the live Amazon/Adafruit/Estes/Bambu carts plus custom PCB fab. Total program spend **$1,646.25** (net out-of-pocket $1,166.98 + $479.27 already acquired). Line-by-line reconciliation notes live in the sheet itself.
+- `WYVERN_E4_Cart_Gap_Analysis.md`, what the current cart is missing vs. the BOM and the design.
 - Flight computer: `../Flight Computer/01_FlightComputer_Spec.md`, `firmware/`, `wiring/`, `flowcharts/`.
 - Sims/plots: `../Simulations/we4_sim.py` + `we4_analysis.py` → `../Simulations/plots4/`.
 - Datasets: `../Simulations/wyvern_datagen/` (Monte-Carlo + SIL generator, sharded ≤80 MB/file).
+
+Design-decision history and defect records, why specific numbers changed and when, live in
+`CONFLICTS.md`, not in this index.
