@@ -7,7 +7,7 @@ core** (earlephilhower), board *"Raspberry Pi Pico 2 W"*. Flash each, watch USB 
 | `t1_i2c_scan.ino` | PCA9548A mux + behind every channel + I²C1 gimbal bus, every sensor enumerates |
 | `t2_imu_grv_deflection.ino` | BNO085 **Game Rotation Vector** + nozzle deflection q_body⁻¹⊗q_gimbal (gimbal I²C1, body via mux ch0) |
 | `t3_servo_sweep.ino` | RP2350 hardware-PWM ±8° gimbal sweep (GP14/GP15) |
-| `t4_sensors_sdlog.ino` | BMP388 + BME688 (behind mux) → SPI microSD CSV @100 Hz |
+| `t4_sensors_sdlog.ino` | BMP388 + BME680 (behind mux) → SPI microSD CSV @100 Hz |
 | `host_monitor.py` | reads Pico serial, tabulates preflight PASS/FAIL |
 | `selftest.py` | preflight checklist |
 

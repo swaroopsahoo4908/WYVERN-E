@@ -14,7 +14,7 @@ ITEMS=[
  # ASA-Aero (foamed, 0.65 g/cm3) upper body -- nose, recovery bay tube, FC bay tube -- the section
  # that houses avionics. Lightest zone, no motor heat or gas load.
  # PETG-CF (1.30 g/cm3) lower body and fins -- engine/TVC bay tube, 4 fins, both bulkheads,
- # bypass gas tube, ejection plenum/nose retention.
+ # ejection plenum/nose retention.
  # PC-FR (1.20 g/cm3) TVC assembly proper -- motor mount/retention and the gimbal assembly.
  # Fin span increased 72 -> 87 mm in the same pass: the lighter ASA-Aero upper body plus the heavier
  # PETG-CF fins moved CG aft to 50.4 cm against an unchanged 56.8 cm CP, dropping margin to 0.92 cal,
@@ -28,7 +28,6 @@ ITEMS=[
  ("4 fins (PETG-CF, 87 mm)",0.0713,0.70),
  ("Bulkhead A (PETG-CF, sealed)",0.017,0.50),
  ("Bulkhead B (PETG-CF, sealed)",0.017,0.30),
- ("Bypass gas tube (PETG-CF)",0.015,0.40),
  ("Motor mount/retention (PC-FR)",0.0434,0.64),
  ("TVC gimbal assy (PC-FR)",0.1006,0.60),
  ("Ejection plenum + nose retention (PETG-CF)",0.008,0.31),

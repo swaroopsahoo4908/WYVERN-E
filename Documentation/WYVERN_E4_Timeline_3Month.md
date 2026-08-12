@@ -69,7 +69,7 @@ already collecting data, for instance. The week ranges are outer bounds, not a r
 
 ## Cross-reference
 - Ground-rig build/test detail: `WYVERN_E4_GSE_TestStands.md` (four stands, RQ mapping, motor counts).
-- Scope restoration context: `CONFLICTS.md` §7 (wind tunnel + RQ3/RQ4 back in scope), and the
+- Scope context: `CONFLICTS.md` §6 (wind tunnel + RQ3/RQ4), and the
   jetvane restoration note in `WYVERN_E4_GSE_TestStands.md` §1 / `WYVERN_E4_Build_Guide.md`.
 - Procedure-level detail for any given work session: `WYVERN_E4_Timeline_14Day.md` (the original
   day-by-day plan, use it for *what to actually do* in a session; use this doc for *when*).

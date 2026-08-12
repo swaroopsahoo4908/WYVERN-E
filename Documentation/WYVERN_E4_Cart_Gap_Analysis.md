@@ -50,7 +50,7 @@ Confirmed against the *Already Acquired* sheet:
 | 100 kΩ / 62 kΩ resistors | ✅ you have them |
 | **PETG-CF filament** | ✅ **4 kg owned** (Bambu Black, 2 × 2 kg). Needs ~300 g. Comfortable. |
 | PCA9548A I2C mux | ✅ owned |
-| BME688 ×2 | ✅ owned |
+| BME680 ×2 | ✅ owned |
 | microSD cards ×2 | ✅ owned |
 | **Full magnetic-solenoid actuator (MTVC)** | ✅ owned, 3 × 12 V electromagnets, 3 × AIRTAK 100 N, IRF520 pack, 1N4007 pack, 12 V 2 A supply. **The MTVC half of RQ1 is fully covered.** |
 | STEMMA QT cables ×6 | ✅ owned |

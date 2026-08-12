@@ -2,14 +2,14 @@
   "A_flutter": {
     "AR": 1.37,
     "t_over_c": 0.057,
-    "v_max_ms": 29.7,
+    "v_max_ms": 34.5,
     "Vflutter_PLA_ms": 606.0,
     "Vflutter_PETGCF_ms": 651.0,
-    "flutter_margin_PLA": 20.4,
+    "flutter_margin_PLA": 17.6,
     "pass": true
   },
   "B_heating": {
-    "Tstag_max_C": 15.2,
+    "Tstag_max_C": 15.4,
     "Tskin_max_C": 14.9,
     "PLA_HDT_C": 55,
     "PETGCF_HDT_C": 80,
@@ -30,20 +30,20 @@
     "pass": true
   },
   "E_dispersion": {
-    "apogee_vertical_m": 98.9,
-    "apogee_15deg_m": 95.5,
-    "max_drift_m": 201.0,
+    "apogee_vertical_m": 121.1,
+    "apogee_15deg_m": 117.0,
+    "max_drift_m": 246.0,
     "pass": true
   },
   "F_step": {
-    "rise_time_s": 0.355,
+    "rise_time_s": 0.361,
     "overshoot_pct": -0.0,
-    "settle_2pct_s": 0.447,
+    "settle_2pct_s": 0.454,
     "pass": true
   },
   "G_drag": {
-    "apogee_lowdrag_m": 101.4,
-    "apogee_highdrag_m": 96.5,
+    "apogee_lowdrag_m": 125.3,
+    "apogee_highdrag_m": 117.3,
     "stays_under_305m": true,
     "pass": true
   },

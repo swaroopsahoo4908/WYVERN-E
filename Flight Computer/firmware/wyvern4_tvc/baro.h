@@ -1,26 +1,34 @@
-// WYVERN-E — barometric altitude driver: BME688 (mux ch2, 0x76) + BMP388 (mux ch3, 0x77).
+// WYVERN-E — barometric altitude driver: BME680 (0x76) on the shared I2C bus, BMP388 optional.
 // =================================================================================================
-// Two independent baro sources behind the PCA9548A mux on I2C0, matching t4_sensors_sdlog.ino's
-// wiring exactly. Both are read every cycle on core 1 (baro is not control-loop-critical at 500 Hz;
-// it's used for: ground datum at BOOT, launch-detect cross-check, apogee/landing detection during
-// DESCENT, and the on-board altitude of record for post-flight reconstruction). With no RRC3+ in the
-// vehicle anymore, these two baros ARE the altitude record — hence the two-source redundancy.
+// RECONCILED 2026-08-11 against the real PCB1 netlist/BOM: there is no PCA9548A mux and no second
+// I2C bus on this board. BME680 (U3) shares the single GP0/GP1 bus with everything else (see
+// imu_grv.h's file header for the full trace). The BOM has NO BMP388 -- only BME680 is physically
+// populated on this board rev. The BMP388 code path is left in place rather than deleted: it fails
+// closed (begin_I2C() returns false, bmp_ok_ stays false) and every accessor below already
+// degrades gracefully to "use whichever sensor is healthy," so this class works correctly whether
+// or not a BMP388 is ever added on a future rev or plugged in externally via the STEMMA-QT port.
 //
-// The two sensors are simply averaged when both are healthy (cheap two-source redundancy, same
-// spirit as the IMU vote but without a disagreement fault flag -- baro disagreement of a few hPa is
-// normal sensor-to-sensor variation, not a fault worth latching).
+// Address 0x76 is CONFIRMED, not a datasheet-default guess: tracing U3's pins against
+// Netlist_PCB1_2026-08-11.tel shows CSB (pin2) tied to the 3V3 net (selects I2C mode over SPI) and
+// SDO (pin5) tied to the GND net (the SDO level sets the low address bit -- GND gives 0x76, VDDIO
+// would give 0x77). SDI/SCK (pins 3/4) carry SDA0/SCL0, the same shared bus as everything else.
+//
+// Both are read every cycle on core 1 (baro is not control-loop-critical at 500 Hz; it's used for:
+// ground datum at BOOT, launch-detect cross-check, apogee/landing detection during DESCENT, and the
+// on-board altitude of record for post-flight reconstruction). Recovery is fully passive motor
+// ejection with no altimeter-triggered deploy hardware on the vehicle, so BME680 alone is the
+// altitude record on this board rev -- there is no second-sensor redundancy unless a BMP388 is
+// added externally.
 #pragma once
 #include <Wire.h>
-#include <Adafruit_BMP3XX.h>     // BMP388 (Adafruit 3966) — replaces the BMP280
+#include <Adafruit_BMP3XX.h>     // BMP388 (Adafruit 3966) -- not populated on this board rev, see above
 #include <Adafruit_BME680.h>
-#include "i2c_mux.h"
 
 class BaroPair {
 public:
-  BaroPair(TwoWire& wire, I2CMux& mux) : wire_(wire), mux_(mux), bmp_(), bme_() {}
+  explicit BaroPair(TwoWire& wire) : wire_(wire), bmp_(), bme_(&wire) {}
 
   bool begin() {
-    mux_.select(I2CMux::CH_BMP388);
     bmp_ok_ = bmp_.begin_I2C(0x77, &wire_);
     if (bmp_ok_) {                                   // BMP388 needs oversampling/filter/ODR set up
       bmp_.setTemperatureOversampling(BMP3_OVERSAMPLING_2X);
@@ -28,7 +36,6 @@ public:
       bmp_.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_3);
       bmp_.setOutputDataRate(BMP3_ODR_50_HZ);
     }
-    mux_.select(I2CMux::CH_BME688);
     bme_ok_ = bme_.begin(0x76);
     if (bmp_ok_ || bme_ok_) {
       // Take the ground-level pressure datum now (called once at BOOT, vehicle stationary on the
@@ -61,11 +68,11 @@ public:
     if (bme_ok_) return bme_t_;
     return NAN;
   }
-  float gas_resistance_ohm() const { return bme_ok_ ? bme_gas_ : NAN; }  // BME688 only
+  float gas_resistance_ohm() const { return bme_ok_ ? bme_gas_ : NAN; }  // BME680 only
 
   // Barometric altitude above the BOOT-time pad datum, meters. Standard hypsometric approximation
-  // (ISA, valid for the few-hundred-meter altitudes this vehicle flies -- see Stability_FinSizing.md
-  // apogee ~324 ft / 98.9 m).
+  // (ISA, valid for the few-hundred-meter altitudes this vehicle flies -- see we4_flightsim.py,
+  // apogee ~397 ft / 121.1 m).
   float altitude_agl_m() const {
     float p = pressure_hpa();
     if (!isfinite(p) || !isfinite(datum_hpa_) || datum_hpa_ <= 0.0f) return NAN;
@@ -79,14 +86,12 @@ public:
 private:
   void read_() {
     if (bmp_ok_) {
-      mux_.select(I2CMux::CH_BMP388);
       if (bmp_.performReading()) {          // BMP3XX populates .pressure (Pa) and .temperature (C)
         bmp_p_ = bmp_.pressure / 100.0f;
         bmp_t_ = bmp_.temperature;
       }
     }
     if (bme_ok_) {
-      mux_.select(I2CMux::CH_BME688);
       if (bme_.performReading()) {
         bme_p_ = bme_.pressure / 100.0f;
         bme_t_ = bme_.temperature;
@@ -96,7 +101,6 @@ private:
   }
 
   TwoWire& wire_;
-  I2CMux& mux_;
   Adafruit_BMP3XX bmp_;
   Adafruit_BME680 bme_;
   bool bmp_ok_ = false, bme_ok_ = false;

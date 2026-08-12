@@ -40,7 +40,7 @@ trapz = np.trapezoid if hasattr(np, "trapezoid") else _TRAPZ
 
 # ---------------- vehicle params (mirrors we4_atmos_tvc.py / we4_flightsim.py) ----------------
 g = 9.80665; D = 0.070; A = np.pi*(D/2)**2; Ltot = 0.74
-m_lift, m_dry, PROP, tb = 0.792, 0.690, 0.060, 3.45
+m_lift, m_dry, PROP, tb = 0.7292, 0.6272, 0.060, 3.45  # canonical mass 2026-08-11, was 0.792/0.690
 # CANONICAL stability constants (we4_flightsim.py / we4_stability.py / wyvern_datagen/core.py).
 # These were CG=0.467 / Xcp=0.537 / x_gimbal=0.72 -- the pre-ASA-Aero, pre-i3-camera vehicle --
 # so the aero restoring stiffness k = q*A*CN*(Xcp-CG) and the control moment arm (x_gimbal-CG)

@@ -53,7 +53,7 @@ by RQ3 below, which is answered analytically and validated in flight.
 | Section | Key mass | Subtotal |
 |---|---|---|
 | Nose (PLA) | ellipsoid nose 21 g | 21 g |
-| Recovery bay (PLA) | bay tube, chute+Kevlar cord, Nomex, BNO085 (vote), **PETG-CF** bypass tube, **PETG-CF** sealed Bulkhead B, ejection plenum | 137 g |
+| Recovery bay (PLA) | bay tube, chute+Kevlar cord, Nomex, BNO085 (vote), **PETG-CF** sealed Bulkhead B, ejection plenum | 137 g |
 | FC bay (PLA) | bay tube, Pico 2 W, BNO085, baro, µSD, i3 4K Thumb Action Camera, 2S LiPo + 5 V UBEC | 122 g |
 | Engine/TVC bay (PETG-CF) | bay tube, Bulkhead A, gimbal, 2 servos, BNO085, mount | 268 g |
 | Structure | **4 PLA fins (72 mm)** + wiring | 50 g |
@@ -62,7 +62,7 @@ by RQ3 below, which is answered analytically and validated in flight.
 | **Liftoff** | | **792 g** |
 
 ### 3.2 Materials
-- **PETG-CF** (ρ ≈ 1.30 g/cm³, HDT ≈ 80 °C): both bulkheads, the ejection bypass tube, and the engine assembly (engine/TVC bay + motor mount + gimbal), i.e. the whole ejection-gas path plus the TVC structures.
+- **PETG-CF** (ρ ≈ 1.30 g/cm³, HDT ≈ 80 °C): both bulkheads and the engine assembly (engine/TVC bay + motor mount + gimbal), i.e. the whole ejection-gas path plus the TVC structures.
 - **PLA** (ρ ≈ 1.24 g/cm³, HDT ≈ 55 °C): nose, both body tubes, fins, everything with no motor heat and no gas contact. Walls run 1.2 mm (3 perimeters) rather than 1.6 mm; the airframe is print/handling-limited at ~340× safety factor, so the thicker wall was carrying margin it never needed, and dropping it recovers 45.6 g.
 - **Zoning rationale is thermal, not mass.** PLA at 55 °C HDT cannot be trusted in contact with ejection gas; PETG-CF at 80 °C is the minimum defensible material for that path.
 
@@ -94,7 +94,7 @@ ejection at t = 7.45 s (+1.18 s past apogee) @ 11.5 m/s; 24″ chute → 5.0 m/s
 ## 5. Flight Computer & Control
 ### 5.1 Raspberry Pi Pico 2 W (RP2350)
 A single dual-core 150 MHz RP2350 is flight computer *and* 500 Hz controller: core 0 reads three
-BNO085 + two baros (BME688 + BMP388) and closes the TVC loop driving 2 servos via hardware PWM;
+BNO085 + two baros (BME680 + BMP388) and closes the TVC loop driving 2 servos via hardware PWM;
 core 1 handles microSD logging and Wi-Fi bench telemetry. No Linux, no scheduler jitter. Recovery is
 the motor's own ejection charge (the FC only logs/observes).
 
@@ -116,10 +116,10 @@ Pack voltage is monitored on GP26/ADC0 (100k/62k divider; warn 6.4 V, arm-inhibi
 
 ## 6. Recovery
 Recovery uses the **F15-4 motor's own ejection charge** (4 s delay → fires t ≈ 7.45 s, ~0.66 s past
-apogee), routed through a solid-walled 12 mm PETG-CF bypass tube past the *sealed* FC bay into the
-recovery bay to release a friction-fit nose, **no RRC3+, no 9 V, no e-match/BP, no CO2, no FC
-involvement**. Feasibility (`we4_ejection_feasibility.py`): tube loss ≈ 0.06 kPa; bay pressurizes to
-~140 kPa vs a 14–41 kPa nose-release threshold = **3.4× margin**. F15-4 is the closest Estes delay
+apogee), pressurizing the recovery bay directly to release a friction-fit nose, **no RRC3+, no 9 V,
+no e-match/BP, no CO2, no FC involvement**. Feasibility (`we4_ejection_feasibility.py`): flow-path
+loss ≈ 0.06 kPa; bay pressurizes to ~140 kPa vs a 14–41 kPa nose-release threshold = **3.4×
+margin**. F15-4 is the closest Estes delay
 to the ~3.5 s coast optimum (F15-6/-8 eject 2.5 s/4.5 s late, too fast/low). Single passive event,
 no electronic backup. Opening at ~11.5 m/s; 1/8″ Kevlar cord (> 800× margin) + Nomex protector; 24″
 chute → ~6 m/s.

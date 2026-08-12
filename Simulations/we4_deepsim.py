@@ -24,7 +24,7 @@ BLU,RED,GRN,ORG,PUR,TEAL="#2a6f97","#bc4749","#386641","#e09f3e","#6d597a","#43a
 # ---------------- vehicle constants (mirror we4_flightsim.py) ----------------
 g,rho0,a0=9.80665,1.225,343.0
 D=0.070; Rb=D/2; A=np.pi*Rb**2; Ltot=0.74; Lnose=0.12
-m_lift,m_dry,PROP,tb=0.792,0.690,0.060,3.45
+m_lift,m_dry,PROP,tb=0.7292,0.6272,0.060,3.45 # canonical mass 2026-08-11, was 0.792/0.690
 # CANONICAL values (we4_flightsim.py / wyvern_datagen/core.py). This file previously carried
 # CG=0.467 / Xcp=0.537 -- the pre-ASA-Aero, pre-i3-camera numbers -- so every margin, flutter
 # and CG-tolerance result below was computed against a vehicle that no longer exists.

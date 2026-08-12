@@ -10,7 +10,7 @@ updated_at: 2026-08-01
 > ⚠ **Superseded pacing, 2026-08-10.** This 14-day order-to-flight sprint plan is dated and its
 > "Day 0" has already passed. The project now runs on `WYVERN_E4_Timeline_3Month.md`, a 15-week
 > schedule targeting the Nov 21–22 / Nov 28–29 launch weekends with the full five-research-question
-> scope (wind tunnel and jetvane testing restored, see `CONFLICTS.md` §7). Treat *this* document as
+> scope (wind tunnel and jetvane testing in scope, see `CONFLICTS.md` §6). Treat *this* document as
 > a reference for procedure-level detail within any given work session (what a static-fire day
 > actually involves, etc.), not as the governing schedule, and not as an accurate RQ count (it
 > still says "four research questions," reflecting the since-reversed 2026-08 consolidation).
@@ -187,4 +187,4 @@ the vehicle actually does:
 - [ ] Confirm launch site and RSO for Day 11, hold Day 12 as backup
 - [ ] Slice all prints, total the hours, identify the longest plate
 - [ ] Run `we4_flight_reduce.py --selftest` and confirm PASS
-- [ ] Read `CONFLICTS.md` §5 (frozen parameters) and §7 (scope change)
+- [ ] Read `CONFLICTS.md` §4 (frozen parameters) and §6 (wind tunnel scope)

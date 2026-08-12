@@ -1,13 +1,13 @@
-%% WYVERN-E — flight state machine (Pico 2 W, 4x 72 mm fins + active TVC)
-%% Regenerated 2026-08 against CONFLICTS.md 5 frozen parameters and the corrected trajectory.
+%% WYVERN-E — flight state machine (custom RP2350B PCB, 4x 87 mm fins + active TVC)
+%% Regenerated against CONFLICTS.md's frozen parameters and the corrected trajectory.
 stateDiagram-v2
     [*] --> BOOT
-    BOOT: BOOT — mount SD, mux + init 3x BNO085 (Game Rotation Vector), baro datum
+    BOOT: BOOT — mount SD, mux + init body/external BNO085 (Game Rotation Vector), baro datum
     ARMED: ARMED — RBF pulled; launch-detect primed; camera recording
     BOOST: BOOST — F15-4; 500 Hz TVC PID stabilize→maneuver; gimbal limit ±8°
     COAST: COAST(brief) — burnout t=3.45s; NO thrust ⇒ NO TVC authority
-    RECOVER: RECOVER — F15-4 motor ejection t=7.45 s via bypass tube (FC logs only)
-    DESCENT: DESCENT — 24 in chute ~5.0 m/s; log to apogee+landing
+    RECOVER: RECOVER — F15-4 motor ejection t=7.45 s, bulkhead joint separates (FC logs only)
+    DESCENT: DESCENT — 24 in chute ~4.8 m/s; log to apogee+landing
     LANDED: LANDED — flush log, safe outputs
     BOOT --> ARMED: self-test pass
     ARMED --> BOOST: |a|>2g sustained 50 ms

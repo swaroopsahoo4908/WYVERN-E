@@ -25,22 +25,39 @@ def sch(title,mods):
   {body}
   (sheet_instances (path "/" (page "1"))))'''
 FLIGHT=[
- ("POWER",["VBAT: 2S LiPo 7.4V +","GND","V5: 5V UBEC -> Pico VSYS/cam/servos","decouple: 1000uF@servos, 100uF+SS34->VSYS"],54),
- # Battery-sense divider. CONFLICTS.md item 4 and COMPATIBILITY.md item 4 both specify and verify
- # this net, and firmware/battery.h reads it every loop -- but it was never routed in either wiring
- # generator, so the schematic disagreed with the firmware and with both audit documents. Added
- # 2026-08. Tap is on the PACK side of the UBEC so the reading is true cell voltage, not rail.
- ("BATTERY SENSE (GP26 / ADC0)",["VBAT_TAP: pack + (before UBEC)","R_TOP: 100k -> ADC node",
-   "R_BOT: 62k -> GND","GP26: ADC0 node, ratio 0.3827 (8.4V -> 3.21V)",
-   "warn 6.4V (3.2V/cell) / arm-inhibit 6.0V (3.0V/cell)","GP28: ADC2 spare (unwired)"],60),
- ("RPi PICO 2 W (RP2350, FC + real-time TVC)",["VSYS: 5V in","3V3: sensor rail","GND",
-   "GP16/GP17: I2C0 -> PCA9548A mux","GP18/GP19: I2C1 -> gimbal BNO085","GP2/3/4/5: SPI0 microSD (SCK/MOSI/MISO/CS)",
-   "GP14: PWM servo1 (pitch)","GP15: PWM servo2 (yaw)","GP8: CAM_EN gate","GP7: LAUNCH_IRQ","GP22: RBF sense","GP26: ADC0 battery divider (100k/62k)","GP6/GP1: spare (RRC3 removed, motor ejection)","GP9: LED GP10: buzzer","CYW43: WiFi/BLE bench telemetry"],68),
- ("PCA9548A I2C MUX (0x70, on I2C0)",["ch0: body BNO085 0x4A","ch1: recovery BNO085 0x4A (vote)","ch2: BME688 0x76","ch3: BMP388 0x77 (Adafruit 3966, 3V3)","ch4: spare (unpopulated)"],58),
- ("IMUs x3 (BNO085, Game Rotation Vector)",["gimbal: 0x4A I2C1 (dedicated)","body(FC): 0x4A mux ch0","recovery: 0x4A mux ch1 (vote)"],56),
- ("STORAGE, microSD (SPI0 breakout)",["SCK GP2 / MOSI GP3 / MISO GP4 / CS GP5","3V3 / GND: full-rate flight log"],52),
- ("Action camera (self-contained)",["V5: gated by CAM_EN (GP8)","GND: records to own microSD"],54),
- ("TVC SERVOS (2-axis gimbal)",["S1_SIG: GP14","S2_SIG: GP15","+5V (UBEC rail)","GND"],50),
+ ("POWER",["VBAT: 2S LiPo 7.4V +","GND","TPS564201 buck -> intermediate rail","AP2112K-3.3 LDO -> 3V3 logic",
+   "servo/expansion connectors (U8-U11) off buck rail"],62),
+ # RECONCILED 2026-08-11, second pass, against the actual custom RP2350B PCB1 -- every pin traced
+ # through Netlist_PCB1_2026-08-11.tel and cross-checked against SCH_Schematic1_1-P1_2026-08-11.svg's
+ # labeled pin text (see CONFLICTS.md section 4 and firmware/wyvern4_tvc/imu_grv.h's file header).
+ # This board has NO PCA9548A mux, no second I2C bus, NO GP26 ADC battery divider (RP2350B's ADC
+ # pins are GPIO40-47, not 26-29), NO WiFi radio chip, and NO SWDIO/SWCLK on H1 (an earlier pass
+ # claimed that; it was a text-extraction-order artifact, not real). The INA226's own wiring has two
+ # real problems, not just an unverified address -- see the block below.
+ ("INA226 POWER MONITOR (U4, shared I2C bus) -- WIRING PROBLEM, SEE CONFLICTS.md",[
+   "VBUS/VIN-: trace to the ~5V BUCK OUTPUT rail, not pack voltage",
+   "VIN+: traces to GND -- no real shunt in this path, current/power not meaningful",
+   "A1 addr pin: traces to ~5V (R10/U13 node), not a valid GND/VS+/SDA/SCL strap",
+   "getBusVoltage() -> battery.h, rail-sag thresholds only (NOT LiPo pack protection)",
+   "address 0x40 is a bench-scan starting guess, not confirmed"],72),
+ ("RP2350B (U1, bare QFN-80, custom PCB1)",["3V3: logic + sensor rail","GND",
+   "GP0/GP1: shared I2C -> body BNO055, external BNO085 (STEMMA-QT), BME680, INA226, LIS3MDL",
+   "GP2: PWM servo1 (pitch, JST U8)","GP3: PWM servo2 (yaw, JST U9)","GP4/GP5: spare JST (U10/U11, function TBD)",
+   "GP8/GP9/GP10/GP11: microSD (MISO/CS/SCK/MOSI, all 4 pins confirmed)",
+   "GP12: reserved for RBF, NOT wired to any switch on this board rev",
+   "GP34: buzzer (H1 pin10, confirmed GPIO)","GP35: status LED (H1 pin9, confirmed GPIO)",
+   "GP36: CAM_EN gate (H1 pin8, confirmed GPIO)","GP37: LAUNCH_IRQ (H1 pin7, confirmed GPIO)",
+   "no WiFi/BLE chip on this board -- wifi_telemetry.h compiled only if WIFI_ENABLED"],86),
+ ("IMUs x2, shared bus (different chip families)",["body: BNO055 0x28 CONFIRMED (COM3/ADR -> GND)",
+   "external: BNO085 0x4A (SH2 protocol, STEMMA-QT, bulkhead-boundary mount, not on the gimbal)"],56),
+ ("BME680 (0x76 CONFIRMED, shared bus)",["SDO->GND, CSB->3V3 (I2C mode) -- pressure/temp/gas, no BMP388 populated"],48),
+ ("LIS3MDL (0x1C CONFIRMED, shared bus)",["SDO/SA1->GND -- magnetometer, present on PCB1, unused by firmware"],48),
+ ("STORAGE, microSD (CARD1, TF-01A) -- POSSIBLE DEFECT, SEE CONFLICTS.md",[
+   "MISO GP8 / CS GP9 / SCK GP10 / MOSI GP11 -- all confirmed (fixed a MOSI/CS swap from an earlier pass)",
+   "pin4 (expected VDD) traces to GND in the netlist, not 3V3 -- bench-check before trusting SD logging",
+   "3V3(?)/GND: full-rate flight log"],62),
+ ("Action camera (self-contained)",["V(buck): gated by CAM_EN (GP36)","GND: records to own microSD"],54),
+ ("TVC SERVOS (2-axis gimbal)",["S1_SIG: GP2 (JST U8)","S2_SIG: GP3 (JST U9)","+V (buck rail)","GND"],50),
 ]
 # Ground-rig DAQ MCU is a Raspberry Pi Pico / Pico 2 W (Arduino-Pico core) per wyvern4_gse_servo_rig.ino
 # and wyvern4_gse_solenoid_rig.ino, NOT the Arduino Nano/Teensy this file's older revisions specified.

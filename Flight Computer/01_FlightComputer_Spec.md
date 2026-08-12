@@ -9,9 +9,9 @@ Cortex-M33, 520 KB SRAM, 4 MB flash, on-board CYW43439 Wi-Fi/BLE) is the entire 
 reads the IMUs, closes the TVC loop at 500 Hz, drives the 2 servos with hardware PWM, logs to an
 SPI microSD breakout, and triggers recovery/camera. The dual cores are split for determinism:
 
-- **Core 0, real-time control.** The 500 Hz TVC loop *only*: read gimbal + body BNO085 (Game
-  Rotation Vector), compute nozzle deflection, run the PID, command the servos. Nothing on core 0
-  is allowed to block.
+- **Core 0, real-time control.** The 500 Hz TVC loop *only*: read external + body BNO085 (Game
+  Rotation Vector), vote attitude, run the PID, command the servos. Nothing on core 0 is allowed to
+  block.
 - **Core 1, logging + comms.** Drains an inter-core ring buffer to the microSD over SPI, services
   Wi-Fi/BLE bench telemetry, and handles housekeeping (camera gate, status LED). SD writes
   and Wi-Fi can stall here for milliseconds without ever jittering the control loop on core 0.
@@ -20,51 +20,48 @@ This core split is the headline upgrade over a single-threaded MCU: the blocking
 that used to threaten loop timing is physically on the other core. RP2350 also offers a hardware
 single-precision FPU on each M33, so the quaternion math runs natively.
 
-Three bays, two bulkheads:
+Two body tubes, one bulkhead joint:
 
-- **Engine/TVC bay**, F15-4 + 2-axis 2-servo gimbal + **gimbal BNO085** on a dedicated I²C bus
-  (reads true nozzle attitude inside the gimbal, catches linkage backlash/flex).
-- **Flight-computer bay**, Pico 2 W, **body BNO085** (primary attitude), BME688, BMP388 (Adafruit
-  3966), SPI microSD log, action camera (self-contained, see Camera Solution).
-- **Recovery bay**, **motor ejection** (F15-4 charge routed through a bypass tube past the sealed
-  FC bay), parachute + Nomex blanket, **3rd BNO085** (redundant body attitude for 2-of-3 voting). The
-  FC does not actuate recovery, the motor's own delayed ejection charge deploys the chute.
+- **Lower BT (TVC bay)**, F15-4 + 2-axis 2-servo gimbal + motor mount.
+- **Upper BT (FC bay)**, custom RP2350B PCB, **body BNO085** (onboard, primary attitude), BME680,
+  BMP388 (Adafruit 3966), SPI microSD log, action camera (self-contained, see Camera Solution).
+- **Bulkhead joint**, the separation point for **motor ejection** (F15-4 charge pressurizes the
+  Lower BT directly against the joint), wiring pass-throughs for the servo extensions and the
+  STEMMA-QT cable to the **external BNO085** mounted right at the joint. The FC does not actuate
+  recovery, the motor's own delayed ejection charge deploys the chute.
 
 ## 2. IMU configuration, Game Rotation Vector (critical)
 
-All three BNO085 run in **Game Rotation Vector** mode (accel + gyro fusion, **magnetometer
+Both BNO085 units run in **Game Rotation Vector** mode (accel + gyro fusion, **magnetometer
 disabled**). A mag-fused IMU inches from two servo motors reads corrupted heading; GRV gives full
 quaternion orientation referenced to power-on (relative, not magnetic-north), exactly what TVC
-needs. Gimbal deflection each loop:
+needs. The control loop consumes body-referenced pitch/yaw directly each tick, computed on core 0.
+Body and external share the same GRV reference frame and vote against each other for attitude
+fault detection. GRV yaw drifts slowly without a mag reference, negligible over the ~7 s flight.
 
-$$q_{\text{defl}} = q_{\text{body}}^{-1}\otimes q_{\text{gimbal}} \;\Rightarrow\; (\theta_{pitch},\theta_{yaw})$$
-
-computed on core 0. Body and gimbal share the same GRV reference frame; the recovery unit votes
-against the body unit. GRV yaw drifts slowly without a mag reference, negligible over the ~7 s flight.
-
-Because all three BNO085 share I²C address **0x4A**, the two on the shared bus (body, recovery) are
-separated by a **PCA9548A 8-channel mux**; the gimbal unit gets its own dedicated I²C controller
-(no mux latency, electrically isolated from the noisier shared bus).
+Because both BNO085 share I²C address **0x4A**, the external unit gets its own dedicated I²C
+controller (I2C1, no mux latency, electrically isolated from the noisier shared bus) while the
+body unit sits behind the **PCA9548A 8-channel mux** on I2C0 alongside the baros.
 
 ## 3. Bus map (Pico 2 W, RP2350)
 
 | Bus | Pins | Members |
 |---|---|---|
-| **I²C0** (mux trunk) | GP16 SDA / GP17 SCL | PCA9548A @0x70 → ch0 body BNO085 (0x4A), ch1 recovery BNO085 (0x4A), ch2 BME688 (0x76), ch3 BMP388 (0x77), ch4 spare (unpopulated) |
-| **I²C1** (dedicated) | GP18 SDA / GP19 SCL | gimbal BNO085 (0x4A), real-time TVC sensor, isolated |
+| **I²C0** (mux trunk) | GP16 SDA / GP17 SCL | PCA9548A @0x70 → ch0 body BNO085 (0x4A), ch1 unpopulated spare, ch2 BME680 (0x76), ch3 BMP388 (0x77), ch4 spare (unpopulated) |
+| **I²C1** (dedicated) | GP18 SDA / GP19 SCL | external BNO085 (0x4A, STEMMA-QT, bulkhead-boundary mount), real-time TVC sensor, isolated |
 | **SPI0** (microSD) | GP2 SCK / GP3 MOSI / GP4 MISO / GP5 CS | flight-data log (full-rate IMU/baro/control) |
 | **PWM** | GP14 (S1 pitch) / GP15 (S2 yaw) | 2× servo signal, hardware PWM slices |
 | **GPIO** | GP7 launch IRQ (BNO085 INT) · GP8 camera power gate · GP9 status LED · GP10 buzzer · GP22 RBF arm-pin sense · GP1/GP6 spare (freed, no deploy actuation) | discrete I/O |
 | **ADC** | GP26/ADC0 (2S LiPo pack monitor, 100k/62k divider) · GP28 (servo-current shunt, opt) | analog |
 | **Wi-Fi/BLE** | CYW43439 (internal) | bench/preflight telemetry (UDP), optional low-altitude link |
 
-The three BNO085 are all 0x4A: gimbal on its own controller (I²C1); body + recovery isolated on
-mux channels 0/1. The two baros have unique addresses (0x76/0x77) but ride their own mux channels
-for clean pull-up isolation.
+Both BNO085 are 0x4A: external on its own controller (I²C1); body isolated on mux channel 0. The
+two baros have unique addresses (0x76/0x77) but ride their own mux channels for clean pull-up
+isolation.
 
-> **3.3 V logic.** RP2350 GPIO is 3.3 V. All STEMMA-QT sensors (BNO085, BME688, **BMP388 Adafruit
-> 3966**) are 3.3 V-safe. Recovery is motor-driven (F15-4 ejection via bypass tube), there are no
-> deploy actuators, no recovery battery, and no pyro for the FC to drive.
+> **3.3 V logic.** RP2350 GPIO is 3.3 V. All STEMMA-QT sensors (BNO085, BME680, **BMP388 Adafruit
+> 3966**) are 3.3 V-safe. Recovery is motor-driven (F15-4 ejection at the bulkhead joint), there
+> are no deploy actuators, no recovery battery, and no pyro for the FC to drive.
 
 ## 4. Power
 
@@ -79,7 +76,7 @@ for clean pull-up isolation.
 - **Monitoring:** pack voltage (before the BEC) on GP26/ADC0 through the 100k/62k divider, which keeps
   2S full-charge (8.4 V) at ~3.21 V, just under the 3.3 V ADC ref; firmware `battery.h` warns at
   6.4 V (3.2 V/cell) and inhibits arming below 6.0 V (3.0 V/cell).
-- **Recovery:** none, the F15-4 motor's own ejection charge deploys the chute (via the bypass tube). No recovery battery or deploy electronics.
+- **Recovery:** none, the F15-4 motor's own ejection charge deploys the chute at the bulkhead joint. No recovery battery or deploy electronics.
 
 The Pico 2 W draws ~30–100 mA (Wi-Fi off/on); the avionics budget is dominated by the servos and
 camera. A 2S 450 mAh pack (~30 g) gives comfortable pad + flight endurance, and with the Hobbywing
@@ -93,10 +90,11 @@ at t = 0.5 s the loop engages on the smooth thrust curve. Each cycle: read gimba
 → `q_defl` → PID about the setpoint (stabilize-to-vertical, then commanded maneuver) → clip to ±8° →
 hardware PWM to the 2 servos → push a log frame to the core-1 ring buffer. Servo slew (~0.04 s lag
 modelled) keeps the gimbal inside ±8° with authority headroom (low-wind pitch dev <4°; halved saturation vs ±5°). At burnout thrust → 0 ⇒ no control
-authority ⇒ coast to the F15-4 ejection (~t = 7.5 s, 0.7 s past apogee) which deploys the chute via the bypass tube. The 2 ms cycle budget is comfortable at
+authority ⇒ coast to the F15-4 ejection (~t = 7.5 s, 0.7 s past apogee), which separates the two
+body tubes at the bulkhead joint and deploys the chute. The 2 ms cycle budget is comfortable at
 150 MHz with the hardware FPU. Firmware lives in the Arduino IDE sketch folder `firmware/wyvern4_tvc/`
 (sketch name = folder name, all `.h` files are tabs, see `Documentation/COMPATIBILITY.md` and
-`Documentation/CONFLICTS.md` §6 for the sketch-folder reorganization record).
+`Documentation/CONFLICTS.md`).
 
 ## 6. Logging + telemetry (core 1)
 

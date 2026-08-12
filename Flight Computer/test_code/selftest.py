@@ -15,7 +15,7 @@ table these depend on):
   IMU_RECOVERY BNO085 on I2C0 mux ch1 inits + GRV report enabled
   IMU_MINIMUM gimbal AND (body OR recovery) all initialized -- flight-critical minimum
   BARO_BMP BMP388 on mux ch3 (0x77) inits
-  BARO_BME BME688 on mux ch2 (0x76) inits
+  BARO_BME BME680 on mux ch2 (0x76) inits
   SERVO pitch/yaw sweep to the full +-8 deg limit completes without a hang
                  (visually confirm actual nozzle travel on the bench -- see test_code/t3)
   CORE0_READY core 0's own init sequence finished

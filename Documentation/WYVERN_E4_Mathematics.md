@@ -26,19 +26,19 @@ regroup and still needs a real sim re-run for the new bulkhead/joint hardware, e
 | Upper BT | Nose (ASA-Aero) | ellipsoid nose cone | 16 g |
 | Upper BT | Recovery wadding + FC bay (ASA-Aero) | wadding, custom PCB flight computer, BNO055/BME680/LIS3MDL, µSD, i3 4K Thumb Action Camera, 2S LiPo + 5 V UBEC | 79 g* |
 | Lower BT | Chute + shock cord + wadding | chute+cord, Nomex protector, wadding | 137 g* |
-| Lower BT | TVC bay (PETG-CF tube) + TVC assembly (PC-FR) | bay tube, gimbal assy, 2 servos, external BNO085 (gimbal-mounted), motor mount | 214 g |
+| Lower BT | TVC bay (PETG-CF tube) + TVC assembly (PC-FR) | bay tube, gimbal assy, 2 servos, motor mount | 214 g |
 | Both | Fins + wiring + bulkhead joint | 4x PETG-CF fins (87 mm), wiring/connectors, **bulkhead + separation-joint hardware (not yet in this total, new part)** | 93 g + TBD |
 | **Dry total** | | | **627 g + TBD (stale)** |
 | Motor | Estes F15-4 loaded (60 g propellant) | | 102 g |
 | **Liftoff** | | | **729 g + TBD (stale)** |
 
 \* These two rows carry over the old "Recovery bay" and "FC bay" line items, rescaled to ASA-Aero
-density from the single-tube stack. The old Recovery-bay row also included the bypass-gas-tube and
-sealed-Bulkhead-B hardware that no longer exists in this design (§6), so 137 g is very likely an
-overstatement now, and the FC-bay row still says **Pico 2 W**, which reflects the pre-custom-PCB
-electronics stack this project's other docs (CONFLICTS.md, COMPATIBILITY.md) describe. Flagging
-that mismatch for you to resolve separately, since it's an electronics-architecture question, not
-a bay-layout or materials-zoning one.
+density from the single-tube stack. The Recovery-bay row still includes hardware sized for the
+sealed-bulkhead architecture that no longer applies (§6), so 137 g is very likely an overstatement
+now, and the FC-bay row still says **Pico 2 W**, which reflects the pre-custom-PCB electronics
+stack this project's other docs (CONFLICTS.md, COMPATIBILITY.md) describe. Flagging that mismatch
+for you to resolve separately, since it's an electronics-architecture question, not a bay-layout or
+materials-zoning one.
 
 *Material strategy: ASA-Aero for the upper body (avionics housing, no motor heat or gas load);
 PETG-CF for the lower body and fins; PC-FR for the TVC assembly proper (motor mount, gimbal).*

@@ -16,5 +16,5 @@ void setup(){ Serial.begin(115200); while(!Serial&&millis()<3000);
   for(uint8_t ch=0;ch<5;ch++){ muxSel(ch); char b[40]; sprintf(b,"I2C0 mux ch%d",ch); scan(Wire,b); }
   muxSel(0xFF); // (no-op safety)
   scan(Wire1,"I2C1 gimbal (BNO085 0x4A, dedicated)");
-  Serial.println("\nexpect: ch0/ch1 BNO085 0x4A, ch2 BME688 0x76, ch3 BMP388 0x77, I2C1 0x4A\nscan done"); }
+  Serial.println("\nexpect: ch0/ch1 BNO085 0x4A, ch2 BME680 0x76, ch3 BMP388 0x77, I2C1 0x4A\nscan done"); }
 void loop(){}

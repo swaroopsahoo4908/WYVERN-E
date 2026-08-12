@@ -1,9 +1,8 @@
-# WYVERN-E, RRC3+ Telemetry Logging (DEPRECATED / REMOVED)
+# WYVERN-E, Recovery Telemetry
 
-The RRC3+ altimeter and all pyrotechnic recovery have been **removed from WYVERN-E**. Recovery is
-now the **F15-4 motor ejection charge**, routed through a solid-walled bypass tube past the sealed
-flight-computer bay into the recovery bay, see **`Documentation/WYVERN_E4_Recovery.md`**. There is no
-RRC3+, no e-match, no black-powder charge of our own, no CO2 system, and no RRC3+ serial tap; the flight
-computer does **not** actuate recovery at all (it only logs baro/IMU and streams WiFi telemetry).
+Recovery runs entirely on the F15-4 motor's own ejection charge, separating the two body tubes at
+the bulkhead joint — see `Documentation/WYVERN_E4_Recovery.md`. There is no altimeter, no e-match,
+no black-powder charge of our own, and no CO2 system. The flight computer does not actuate recovery
+at all; it only logs baro/IMU through the event and streams WiFi telemetry.
 
-*(This file is retained only as a redirect; the storage mount blocks deletion from the tool sandbox.)*
+*(This file is retained as a redirect; the storage mount blocks deletion from the tool sandbox.)*

@@ -7,7 +7,7 @@ updated_at: 2026-08-01
 ### A Skylight Rocketry Venture
 ##### Companion to `WYVERN_E4_Timeline_14Day.md`. Sections map to timeline days.
 
-Every parameter below is the frozen value from `CONFLICTS.md` §5. If this guide and that table ever
+Every parameter below is the frozen value from `CONFLICTS.md` §4. If this guide and that table ever
 disagree, **the table wins**, and the disagreement is a defect worth fixing before you build.
 
 ---
@@ -16,15 +16,14 @@ disagree, **the table wins**, and the disagreement is a defect worth fixing befo
 
 ### A1 Material zoning, get this right or the thermal margin is gone
 
-**⚠ Airframe is now two body tubes (Lower BT, Upper BT) joined at one bulkhead, not the old
-single-tube 3-bay layout, see `WYVERN_E4_Recovery.md` §1.** The old solid-walled bypass tube no
-longer exists; the single bulkhead is now the separation joint and takes the ejection gas directly.
+The airframe is two body tubes (Lower BT, Upper BT) joined at one bulkhead — see
+`WYVERN_E4_Recovery.md` §1. The bulkhead is the separation joint and takes the ejection gas directly.
 
 | Part | Material | Why |
 |---|---|---|
 | Nose cone, recovery bay tube, FC bay tube (upper body, avionics housing) | **ASA-Aero** (foamed, ~0.65 g/cm³) | No motor heat, no gas load. Lightest zone in the stack. |
 | Lower body tube, 4 fins (87 mm) | **PETG-CF** (~1.30 g/cm³) | Sees the ejection-gas path and takes the fin aerodynamic load; stiffer than ASA-Aero at the fin root. |
-| Bulkhead (single separation joint), bypass gas path | **PETG-CF** | Takes the ~140 kPa ejection pulse directly and is now sized to **release** at a target force, not just survive one, see `WYVERN_E4_FEA_Structural.md` §4 (open item). |
+| Bulkhead (single separation joint) | **PETG-CF** | Takes the ~140 kPa ejection pulse directly and is sized to **release** at a target force, not just survive one, see `WYVERN_E4_FEA_Structural.md` §4 (open item). |
 | TVC assembly, motor mount, gimbal | **PC-FR** (~1.20 g/cm³) | Sustained plume heating, fire-retardant grade for the zone closest to the motor. |
 
 ### A2 Print settings
@@ -63,26 +62,27 @@ python3 -m pip install pyserial
 
 ### B2 `t1_i2c_scan`, is anything on the bus?
 
-Expect: PCA9548A at **0x70** on I2C0, and the gimbal BNO085 at **0x4A** on I2C1.
+Expect: PCA9548A at **0x70** on I2C0, and the external BNO085 (STEMMA-QT, bulkhead-boundary mount)
+at **0x4A** on I2C1.
 
 | Symptom | Cause |
 |---|---|
 | Nothing on I2C0 | Mux unpowered, or SDA/SCL swapped (GP16 = SDA, GP17 = SCL) |
 | 0x70 but no channel devices | Mux channel not selected, or sensor 3V3 not connected |
-| Nothing on I2C1 | GP18/GP19 swapped, or the gimbal IMU is on the mux by mistake, it must be on its **own** bus |
+| Nothing on I2C1 | GP18/GP19 swapped, or the external IMU is on the mux by mistake, it must be on its **own** bus |
 
 ### B3 `t2_imu_grv_deflection`, do the IMUs agree?
 
-Enables Game Rotation Vector on all three. Hold the airframe still: all three quaternions should
-agree within ~1°. Rotate the gimbal by hand: the computed deflection should track it.
+Enables Game Rotation Vector on both. Hold the airframe still: body and external quaternions should
+agree within ~1°.
 
 > **Magnetometer must stay off.** GRV mode is accel+gyro only, deliberately, the servos' magnets
 > will corrupt any magnetically-referenced heading.
 
 ### B4 `t3_servo_sweep`, **calibrate the linkage. Do not skip this.**
 
-This is the step that catches the class of bug that made the firmware clamp to ±5° while every
-document claimed ±8°.
+Skipping this step is how the linkage ends up mechanically limited to less than the firmware's
+commanded ±8°, which quietly eats your control authority without throwing any error.
 
 1. Flash `t3_servo_sweep.ino`, open Serial Monitor at 115200.
 2. Send `c`. Adjust the linkage so the nozzle sits **mechanically centred** at 1500 µs.
@@ -100,7 +100,7 @@ document claimed ±8°.
 
 ### B5 `t4_sensors_sdlog`, does the card actually take data?
 
-Confirm BMP388 and BME688 both read, and that a file appears on the card with plausible rows.
+Confirm BMP388 and BME680 both read, and that a file appears on the card with plausible rows.
 Use a **class 10 or better** card. A slow card is the one thing that can still make the log ring
 back up (watch `peak=` in the heartbeat).
 
@@ -113,13 +113,13 @@ python3 selftest.py /dev/ttyACM0 # or /dev/tty.usbmodemXXXX on macOS
 Every row must be PASS (WIFI may be SKIP, RBF may be WAIT until you pull the pin):
 
 ```
-MUX · IMU_GIMBAL · IMU_BODY · IMU_RECOVERY · IMU_MINIMUM · BARO_BMP · BARO_BME
+MUX · IMU_EXTERNAL · IMU_BODY · IMU_MINIMUM · BARO_BMP · BARO_BME
 SERVO · CORE0_READY · BATTERY · SD · WIFI · RBF · LOG_RING
 ```
 
-**`LOG_RING` is new and it matters.** It verifies core 1 is actually draining core 0's log ring.
-Until this pass the transport dropped 100% of frames while reporting nothing wrong, a flight would
-have produced a CSV containing only a header. If `LOG_RING` fails, do not fly; you will get no data.
+**`LOG_RING` matters.** It verifies core 1 is actually draining core 0's log ring; without that, a
+flight produces a CSV containing only a header while reporting nothing wrong on the surface. If
+`LOG_RING` fails, do not fly — you will get no data.
 
 Watch the heartbeat: `HB:... drop=0 pend=<small> peak=<small>`. `peak` climbing toward 256 means the
 card can't keep up.
@@ -131,7 +131,7 @@ card can't keep up.
 | Symptom | Cause |
 |---|---|
 | Never leaves BOOT | Self-test failed, RBF still inserted, or battery below 6.0 V |
-| `BATTERY: FAIL` on a good pack | GP26 divider not wired, the ADC pin is floating. It is in the schematic now; check you built it. |
+| `BATTERY: FAIL` on a good pack | GP26 divider not wired, the ADC pin is floating. Check the schematic against the harness. |
 | Instant launch detect on the pad | GP7 LAUNCH_IRQ floating low. Wire the switch or remove the branch. |
 | `drop` climbing | Slow SD card. Raise `FLUSH_EVERY` or use a faster card. |
 
@@ -345,4 +345,4 @@ and **record which gain set is on the vehicle**, mixing this up loses RQ4 entire
 | Launch detect | \|a\| > 2 g sustained ≥ 50 ms |
 | Battery | 2S 450 mAh, warn 6.4 V, inhibit 6.0 V |
 
-Full pin map: `CONFLICTS.md` §5.
+Full pin map: `CONFLICTS.md` §4.

@@ -35,13 +35,9 @@ the air, and the go/no-go sequence.
 
 ## 2. Design conflicts resolved (full detail in `CONFLICTS.md`)
 
-1. **PID gains**, flowchart said Kp=8/Ki=1.5/Kd=1.2 (stale, flagged unstable against servo lag by
-   the original header comment); a prior audit round settled on Kp=2.0/Ki=0.4/Kd=0.5 from a
-   closed-loop atmosphere sweep, but that gain set was later found to be **unstable** under a
-   rigorous phase/gain-margin analysis across 24 operating points (worst case PM=−0.1°, GM=−0.0 dB
-   against a 30° target). **Firmware now uses the margin-verified retune: Kp=0.10/Ki=0.40/Kd=0.18**
-   (PM=44.7°, GM=12.6 dB worst case across all 24 points), see `PID_TUNING_REPORT.md` for the full
-   sweep and `CONFLICTS.md` §1 for the supersession record.
+1. **PID gains**: Kp=0.10/Ki=0.40/Kd=0.18, margin-verified across a 24-point phase/gain-margin sweep
+   (4 atmospheres × 6 burn-time slices), worst case PM=44.7°, GM=12.6 dB against a 30° target — see
+   `PID_TUNING_REPORT.md` for the full sweep and `CONFLICTS.md` §1 for the parameter table.
 2. **Recovery architecture**, recovery is now the F15-4 motor ejection charge separating the two
    body tubes at the bulkhead joint (no RRC3+, no pyro, no CO2). **Moot for the FC** since it never
    drives recovery, the flight computer only observes. Prior CO2/RRC3 deploy logic has been removed
@@ -51,18 +47,14 @@ the air, and the go/no-go sequence.
    addition, and the reading is now also carried across the core boundary into every flight-log row
    (`batt_v` in the schema-v2 `LogFrame`, see §5). Firmware warns at 6.4 V and inhibits arming below 6.0 V.
 
-## 3. Hardware conflicts flagged by `COMPATIBILITY.md`, NOT resolved by firmware, do not fly past these silently
+## 3. Hardware items flagged by `COMPATIBILITY.md`, do not fly past these silently
 
-1. **VL53L4CD ToF sensors, REMOVED (2026-07).** Deleted from the BOM and design entirely; gimbal
-   deflection is measured by the 3-axis load balance + gimbal BNO085, so no ToF driver, XSHUT plan,
-   or extra mux channel is needed. Mux ch4 is a spare. Not a flight-readiness item any longer.
+1. **Gimbal deflection is measured by the 3-axis load balance plus the gimbal BNO085.** There's no
+   ranging hardware anywhere on the vehicle or either ground rig; mux ch4 is a spare.
 2. **BSS138 level shifter is orphaned** in the BOM, not routed on any schematic or firmware net.
    Resolve by either removing it from the BOM or identifying and wiring the net that needs it.
-3. **Ground-rig DAQ MCU conflict: BOM/older wiring says Nano/Teensy, this deliverable targets Pico.**
-   Both ground-test sketches in this round (§ below) are written for the Raspberry Pi Pico per the
-   current task scope, and `GSE_TestStands.md`/`gen_wiring4.py` have been updated to match. If the
-   bench hardware is actually a Nano/Teensy, the bit-banged HX711 timing and pin numbers in those
-   sketches need porting before use, see `CONFLICTS.md` §6 for the full record.
+3. **Ground-rig DAQ is the Raspberry Pi Pico** on both `wyvern4_gse_servo_rig.ino` and
+   `wyvern4_gse_solenoid_rig.ino`, matching `GSE_TestStands.md` and `gen_wiring4.py`.
 
 ## 4. Action items before this flies, do not skip these
 
@@ -104,7 +96,7 @@ the same folder. Open `wyvern4_tvc/wyvern4_tvc.ino` in the IDE and every file be
 | `wyvern4_tvc/wyvern_pid.h` | Dual-axis PID: anti-windup, filtered derivative, slew limit, bumpless reset. Frozen gains: Kp=0.10/Ki=0.40/Kd=0.18 (margin-verified retune, §2 item 1) |
 | `wyvern4_tvc/i2c_mux.h` | PCA9548A driver: channel select/cache, bus recovery |
 | `wyvern4_tvc/imu_grv.h` | Tri-IMU GRV driver, quaternion math, 2-of-2 voting, body accelerometer |
-| `wyvern4_tvc/baro.h` | BME688 + BMP388 (Adafruit 3966) combined driver, ground-datum altitude |
+| `wyvern4_tvc/baro.h` | BME680 + BMP388 (Adafruit 3966) combined driver, ground-datum altitude |
 | `wyvern4_tvc/battery.h` | 2S LiPo ADC monitor (GP26 100k/62k divider; 6.4/6.0 V cutoffs); voltage now also snapshotted cross-core into every log row |
 | `wyvern4_tvc/launch_status.h` | Launch-detect, camera gate, status LED/buzzer patterns |
 | `wyvern4_tvc/sd_logger.h` | **Schema v2**: 37-field `LogFrame` (up from 19) + inter-core FIFO + microSD flight logger. Adds flight time, loop-timing jitter, IMU vote disagreement, commanded setpoint, per-axis P/I/D term breakdown, battery flags/voltage, and cumulative dropped-frame count, see the header's schema-v2 comment for the full rationale |

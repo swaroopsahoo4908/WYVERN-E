@@ -1,9 +1,9 @@
-%% WYVERN-E — MOTOR-ejection recovery via bypass tube (no CO2, no pyro bay, no FC actuation)
-%% Regenerated 2026-08 against we4_flightsim.py + we4_ejection_feasibility.py.
+%% WYVERN-E — MOTOR-ejection recovery at the bulkhead joint (no CO2, no pyro bay, no FC actuation)
+%% Regenerated against we4_flightsim.py + we4_ejection_feasibility.py.
 flowchart TD
     B[Burnout t=3.45 s] --> C[Coast; TVC neutral; FC logs only]
-    C --> A[Apogee 6.27 s / 98.9 m / 324 ft]
-    A --> E[F15-4 ejection charge fires t=7.45 s, +0.63 s past apogee, 6.1 m/s]
-    E --> TU[Gas -> solid-walled bypass tube -> PAST sealed FC bay]
-    TU --> P[Recovery bay pressurizes ~140 kPa vs 14-41 kPa release]
-    P --> N[Friction-fit nose releases -> 24 in chute + Nomex -> 5.0 m/s descent]
+    C --> A[Apogee 6.67 s / 121.1 m / 397 ft]
+    A --> E[F15-4 ejection charge fires t=7.45 s, +0.78 s past apogee, 7.7 m/s]
+    E --> TU[Gas pressurizes the Lower BT directly against the bulkhead joint]
+    TU --> P[Bulkhead joint sees ~140 kPa vs 14-41 kPa release threshold]
+    P --> N[Joint releases -> two body tubes separate -> 24 in chute + Nomex -> 4.8 m/s descent]

@@ -37,7 +37,7 @@ against those before it's trusted as-is.
 | Materials | **ASA-Aero**: nose, recovery bay tube, FC bay tube (upper body/avionics) · **PETG-CF**: lower body tube, fins, separation bulkhead · **PC-FR**: TVC assembly, motor mount, gimbal |
 | Recovery | **F15-4 motor ejection** separating the two body tubes at the bulkhead joint; deploy t≈7.45 s (+0.78 s past apogee, ~7.7 m/s); 24″ chute → ~4.8 m/s; bay-pressurization margin **pending re-check against the new two-BT volume**; no RRC3/9 V/CO2/e-match |
 | Flight computer | **Raspberry Pi Pico 2 W (RP2350)**, dual-core, 500 Hz TVC PID **Kp0.10/Ki0.40/Kd0.18**, ±8° gimbal |
-| Sensors | 3× BNO085 (GRV), BME688 + **BMP388** (Adafruit 3966) baro, microSD, i3 4K Thumb Action Camera cam, Wi-Fi bench telemetry |
+| Sensors | 3× BNO085 (GRV), BME680 + **BMP388** (Adafruit 3966) baro, microSD, i3 4K Thumb Action Camera cam, Wi-Fi bench telemetry |
 | Structural margins | flight min SF ~340× (unaffected by the bay split); bulkhead separation-joint release-force sizing and direct-gas thermal check are **open items**, see `WYVERN_E4_FEA_Structural.md` §4; engine-bay thermal < HDT |
 | Servo torque margin | **2.3× at the full ±8° gimbal** (0.086 N·m hinge vs 0.20 N·m stall), below the 3.0× gate, see §11 |
 
@@ -58,14 +58,12 @@ against those before it's trusted as-is.
   runs the full FC in software-in-the-loop with sensor noise and simulated Wi-Fi telemetry, use it to
   rehearse the flight and sanity-check the state machine before the pad.
 
-### 3.2 Rocket airframe, **NEEDS RE-CUT for the two-BT layout, not print-ready as listed**
-- The parts list below (nose, 3 bay tubes, both sealed bulkheads with bypass pass-through, bypass
-  tube) describes the **old single-tube layout** and has not yet been regenerated for the new
-  two-body-tube/single-bulkhead design. `3D parts/` needs a re-pass: nose (ASA), Upper BT, Lower BT,
-  one separation bulkhead (PETG-CF, with servo-extension + STEMMA-QT cable pass-through holes instead
-  of a 12 mm bypass bore), motor mount, 2-axis gimbal, 72 mm fin, 1010 rail buttons.
-- FEA (`WYVERN_E4_FEA_Structural.md` §4) covers flight loads (unaffected) but flags the ejection/
-  separation-joint analysis as an open item pending the release-force sizing pass.
+### 3.2 Rocket airframe, READY per `gen_rocket4.py`
+- `3D parts/` covers: nose (ASA-Aero), Upper BT, Lower BT, one separation bulkhead (PETG-CF, with
+  servo-extension + STEMMA-QT cable pass-through holes), motor mount, 2-axis gimbal, 87 mm fins,
+  1010 rail buttons.
+- FEA (`WYVERN_E4_FEA_Structural.md` §4) covers flight loads (comfortable margin) but flags the
+  ejection/separation-joint analysis as an open item pending the release-force sizing pass.
 
 ### 3.3 Wind tunnel, RESTORED TO PROGRAM (2026-08-10)
 - The bench wind tunnel is back in scope, see `WYVERN_E4_GSE_TestStands.md` §4 and `CONFLICTS.md`
@@ -103,9 +101,9 @@ line items from an earlier gap-fill pass were zeroed to avoid double-counting. D
 quantities were corrected: 1 flight chute (not 4), 1 wadding pack (not 2), USB-C dust covers already
 sufficient, and the BNO085 count drops to **1**, the custom PCB has a single STEMMA-QT port, so
 there is one external IMU (mounted at the TVC-bay/electronics boundary, near the bulkhead joint), not
-a gimbal+body+recovery+spare set. The Amazon 5kg load cell was dropped for the Adafruit one. Section
-4's bypass-gas-tube line item was retired, the design now uses a single separation-joint bulkhead
-with no bypass tube (see `WYVERN_E4_Recovery.md`).
+a gimbal+body+recovery+spare set. The Amazon 5kg load cell was dropped for the Adafruit one. Recovery
+uses a single separation-joint bulkhead with no intermediate gas routing (see
+`WYVERN_E4_Recovery.md`).
 
 **Final pass (2026-08-09b): every to-buy line not present in one of the 3 carts was zeroed from
 cost**, kept as a line item and flagged "NOT IN CURRENT CART" rather than deleted, so nothing
@@ -127,16 +125,20 @@ match.
 **2026-08-11: custom PCB revised, now Ø61 mm circular** (`PCB/`, fab package dated 2026-08-11,
 supersedes `PCB/Archive 2.zip` from 2026-08-09, which is still sitting in the live folder pending
 cleanup). Fits the Upper BT with ~2.9 mm radial clearance per side against the 70 mm OD / ~66.8 mm
-ID airframe (`WYVERN_E4_Recovery.md` §1, `CONFLICTS.md` §8). No board-size figure existed anywhere
+ID airframe (`WYVERN_E4_Recovery.md` §1, `CONFLICTS.md` §7). No board-size figure existed anywhere
 in the repo before this pass, so this isn't a correction to a prior number, it's the first time
 diameter got written down. Cost/quantity (3 boards, $200 total) is unaffected by this revision.
+
+**2026-08-11b: custom PCB fab cost updated to $207.01 for 3 boards** (was $200). Quantity
+unchanged at 3; only the total fab price changed. Total program spend rises by $7.01 to
+**$1,653.26**.
 
 **Filament pass (2026-08-09c):** Section 6 reconciled against the real Bambu Lab cart, PC-FR
 ($54.99), PC ($39.99), ABS ($19.99), ASA Aero ($49.99), all 1 kg, $164.96 total. **⚠ None of these
 four match the current design's material scope.** PLA (primary airframe) and PETG-CF (TVC bay/
 gimbal/bulkhead) are the only materials the design actually calls for as of the 2026-08b scope
 change, when the RQ2 coupon-testing program (which needed PC-FR/PC/ABS/ASA-Aero) was dropped, 
-see `CONFLICTS.md` §7. Added to the BOM as real cart items and flagged for confirmation rather than
+see `CONFLICTS.md` §6. Added to the BOM as real cart items and flagged for confirmation rather than
 assumed as flight-part material; if this is reserve stock or an RQ2-baseline archive, fine, but it's
 not covering anything the current build needs. The "buy 2 more kg PLA" line was dropped, ~8kg
 PLA/PETG-CF already acquired covers the airframe.
@@ -228,18 +230,11 @@ Everything below was regenerated or corrected in a single pass. The verdict in �
 (**GO for build**); the numbers moved because the motor model was corrected, not because the design
 changed.
 
-### 9.1 Scope change
+### 9.1 Scope
 
-> ⚠ **Superseded 2026-08-10.** The wind tunnel and RQ3/RQ4 consolidation described below were
-> reversed on 2026-08-10, see `CONFLICTS.md` §7. The full five-research-question program,
-> including a physical wind tunnel, is back in force. Text below is kept as the historical record
-> of the 2026-08 decision, not the current scope.
-
-The **wind tunnel and the airfoil-CFD package are removed from the program** (`CONFLICTS.md` §7).
-`Simulations/CFD/` is deleted, BOM §9 is deleted, and the proposal's five research questions
-consolidate to four, the two tunnel-only questions become a single question on how accurately a
-Barrowman-class model predicts the as-built vehicle's passive aerodynamics, scored against flight
-telemetry. Every surviving question still has two independent methods (Proposal §3, Table 0).
+The program runs the full five-research-question set, including a physical wind tunnel
+(`CONFLICTS.md` §6). `Simulations/CFD/` holds the airfoil-CFD package supporting RQ3/RQ4. Every
+research question has two independent methods behind it (Proposal §3, Table 0).
 
 ### 9.2 Defects found and fixed
 
@@ -258,7 +253,7 @@ telemetry. Every surviving question still has two independent methods (Proposal 
 | 11 | `build_ork4.py` gave PLA nose/fins **PETG-CF density**, and announced a 150 g-ballast config | the `.ork` cross-check modelled the wrong vehicle | densities corrected to 650 kg/m³; no ballast |
 | 12 | Control-authority margin swept from t=0 to burnout | both endpoints are thrust-zero, so the reported minimum was always exactly 0.0 mN·m | swept over the TVC-active window → **71.7 mN·m** |
 | 13 | `gen_rocket4.py` called `fin(0.070, 0.035, 0.072, 0.025, 0.003)`, **metres**, in a file whose every other dimension is millimetres | the fin was built at 1/1000 scale: `08b_fin_single_ASA.stl` exported at **0.0 cm³ / 0.0 g**. Slicing that file yields a speck, and the script's printed-mass roll-up silently omitted all four fins | called in mm; fin is now 11.3 cm³ / **7.4 g** each → 29.6 g for four, matching the 30 g in the mass stack |
-| 14 | Printed-mass roll-up filtered part prefixes `01`–`07` | excluded the fins (`08b`) and the PETG-CF bypass tube (`09`), so the reported printed mass could never be reconciled against the dry stack | roll-up now covers the full flight airframe with per-part quantities |
+| 14 | Printed-mass roll-up filtered part prefixes `01`–`07` | excluded the fins (`08b`) and one lower-body part, so the reported printed mass could never be reconciled against the dry stack | roll-up now covers the full flight airframe with per-part quantities |
 | 15 | Battery-sense divider (GP26/ADC0) documented in `CONFLICTS.md` §4, verified in `COMPATIBILITY.md` §4, read by `battery.h`, but **routed in no schematic** | the wiring generators disagreed with the firmware on a net the flight computer samples every loop | both generators now emit a `VBAT DIVIDER` block tapped upstream of the UBEC into GP26 |
 | 16 | `02_tvc_control_loop.mermaid` clamped the gimbal at **±5°** | the retired limit; `wyvern_pid.h` uses `OUT_LIM_DEG = 8.0` | flowchart regenerated at ±8° |
 | 17 | `PID_TUNING_REPORT.png` and `phase0_math_validation.png` were hand-made orphans with no generating script | both showed superseded numbers and could not be kept in step | each is now a reproducible output of the script that derives it (`we4_pid_retune.py`, `derive_math.py`) |
@@ -324,7 +319,7 @@ launch-window constraint, not a design defect, but it is real and should not be 
 
 ## 10. Firmware flight-readiness pass (2026-08)
 
-The firmware was audited line by line against the frozen parameter table in `CONFLICTS.md` §5.
+The firmware was audited line by line against the frozen parameter table in `CONFLICTS.md` §4.
 **Six defects were found, two of which would each independently have cost the entire flight.**
 
 ### 10.1 Defects fixed

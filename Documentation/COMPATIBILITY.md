@@ -1,6 +1,6 @@
 # WYVERN-E, Component Compatibility Audit
 
-**Scope:** Every I2C, SPI, PWM, ADC, and power pairing across the flight computer (Raspberry Pi Pico 2 W / RP2350, `wyvern4_tvc.ino` + headers) and the ground-test rig (3-axis TVC balance harness + static thrust stand), cross-checked against the BOM part list and the frozen pin map in `Documentation/CONFLICTS.md` §5.
+**Scope:** Every I2C, SPI, PWM, ADC, and power pairing across the flight computer (Raspberry Pi Pico 2 W / RP2350, `wyvern4_tvc.ino` + headers) and the ground-test rig (3-axis TVC balance harness + static thrust stand), cross-checked against the BOM part list and the frozen pin map in `Documentation/CONFLICTS.md` §4.
 
 **Sources examined:** `Flight Computer/firmware/*.{ino,h}`, `Flight Computer/wiring/gen_wiring4.py` + `gen_connected_sch.py` (+ resulting `.kicad_sch`), `Flight Computer/test_code/*`, `Flight Computer/flowcharts/*.mermaid`, `Flight Computer/01_FlightComputer_Spec.md`, `Flight Computer/02_RRC3_Telemetry_Logging.md`, and all ten files under `Documentation/`.
 
@@ -41,11 +41,11 @@ schematic.
 
 ### 1a. I2C0 mux trunk (Wire, GP16 SDA / GP17 SCL), PASS
 
-The frozen channel map in `i2c_mux.h` and confirmed in `CONFLICTS.md` §5:
+The frozen channel map in `i2c_mux.h` and confirmed in `CONFLICTS.md` §4:
 
 - ch0, body BNO085, `0x4A`
 - ch1, recovery BNO085, `0x4A`
-- ch2, BME688, `0x76`
+- ch2, BME680, `0x76`
 - ch3, BMP388 (Adafruit 3966), `0x77`
 - ch4, spare, unpopulated
 - ch5, ch6, ch7, **unassigned** (3 of 8 channels have no documented use anywhere in the repo)
@@ -60,7 +60,7 @@ The gimbal BNO085 sits alone at `0x4A` on a physically separate bus from the mux
 
 ### 1c. I2C bus clock speed, PASS (with a caveat)
 
-`wyvern4_tvc.ino` initializes both buses with `Wire.setSDA(SDA0); Wire.setSCL(SCL0); Wire.begin();` and the matching call for `Wire1`, **no explicit `setClock()` call is present in the firmware**, so both buses run at the Arduino-Pico core's default of 100 kHz (standard mode). All four device families on these buses (BNO085, BME688, BMP388, PCA9548A) support both 100 kHz and 400 kHz per their datasheets, so 100 kHz is safely within spec for all of them, **PASS**, but the mux-trunk bus is carrying four sensors' worth of traffic (dual IMU vote + dual baro read) at only 100 kHz, which is a design headroom choice, not a defect. If bench timing margin ever becomes tight at 500 Hz control-loop rate, an explicit `Wire.setClock(400000)` is the lever to pull, worth flagging as a tuning option, not a required fix.
+`wyvern4_tvc.ino` initializes both buses with `Wire.setSDA(SDA0); Wire.setSCL(SCL0); Wire.begin();` and the matching call for `Wire1`, **no explicit `setClock()` call is present in the firmware**, so both buses run at the Arduino-Pico core's default of 100 kHz (standard mode). All four device families on these buses (BNO085, BME680, BMP388, PCA9548A) support both 100 kHz and 400 kHz per their datasheets, so 100 kHz is safely within spec for all of them, **PASS**, but the mux-trunk bus is carrying four sensors' worth of traffic (dual IMU vote + dual baro read) at only 100 kHz, which is a design headroom choice, not a defect. If bench timing margin ever becomes tight at 500 Hz control-loop rate, an explicit `Wire.setClock(400000)` is the lever to pull, worth flagging as a tuning option, not a required fix.
 
 ### 1d. VL53L4CD ToF, RESOLVED, removed from the design (2026-07)
 
@@ -107,7 +107,7 @@ The BOM lists three NOYITO HX711 load-cell amplifiers on the balance rig (5 kg a
 
 ### 4. Battery voltage divider (GP26 / ADC0), PASS
 
-This channel monitors the 2S LiPo flight pack (tapped before the BEC); `CONFLICTS.md` §4 documents GP26 (ADC0) with R_top = 100 kOhm (VBAT -> ADC node) and R_bot = 62 kOhm (ADC node -> GND), giving a divider ratio of 62/(100+62) = 0.3827. At 2S full charge (8.4V) the ADC sees ~3.21V, just under the 3.3V reference; at the 6.0V cutoff (3.0 V/cell) it sees ~2.30V. `battery.h` implements the matching math exactly (`DIVIDER_RATIO = 62/(100+62)`, `ADC_VREF = 3.30`, 12-bit/4095 counts), un-does the divider in software, and flags low-battery at 6.4V (3.2 V/cell) with a 6.0V (3.0 V/cell) arm-inhibit, **verdict PASS** (~90 mV headroom at full charge). **Schematic gap closed 2026-08:** this audit previously verified a net that no wiring generator actually emitted; `gen_wiring4.py` and `gen_connected_sch.py` now route it, so the schematic, the firmware and this audit agree. `GP28 (ADC2)` is reserved as a second spare analog input but is unwired by default; no conflict, just documented headroom.
+This channel monitors the 2S LiPo flight pack (tapped before the BEC); `CONFLICTS.md` §3 documents GP26 (ADC0) with R_top = 100 kOhm (VBAT -> ADC node) and R_bot = 62 kOhm (ADC node -> GND), giving a divider ratio of 62/(100+62) = 0.3827. At 2S full charge (8.4V) the ADC sees ~3.21V, just under the 3.3V reference; at the 6.0V cutoff (3.0 V/cell) it sees ~2.30V. `battery.h` implements the matching math exactly (`DIVIDER_RATIO = 62/(100+62)`, `ADC_VREF = 3.30`, 12-bit/4095 counts), un-does the divider in software, and flags low-battery at 6.4V (3.2 V/cell) with a 6.0V (3.0 V/cell) arm-inhibit, **verdict PASS** (~90 mV headroom at full charge). **Schematic gap closed 2026-08:** this audit previously verified a net that no wiring generator actually emitted; `gen_wiring4.py` and `gen_connected_sch.py` now route it, so the schematic, the firmware and this audit agree. `GP28 (ADC2)` is reserved as a second spare analog input but is unwired by default; no conflict, just documented headroom.
 
 ### 4b. Ground-rig load cells vs. Pico ADC, PASS (non-issue, worth stating explicitly)
 
@@ -164,7 +164,7 @@ The following are vendor/datasheet-typical figures, not measurements on this har
 
 | Load on the 5 V rail | Detail | Typical draw (datasheet/vendor, estimated) |
 |---|---|---|
-| Logic + sensors + camera | Pico 2 W (WiFi active) + 3x BNO085 + BMP388/BME688 + PCA9548A + i3 4K Thumb Action Camera | Pico 2 W on the order of 80-130 mA active with WiFi; each BNO085 on the order of 10-15 mA typical fusion-mode; baro sensors low single-digit mA; camera vendor-quoted around 100-150 mA recording |
+| Logic + sensors + camera | Pico 2 W (WiFi active) + 3x BNO085 + BMP388/BME680 + PCA9548A + i3 4K Thumb Action Camera | Pico 2 W on the order of 80-130 mA active with WiFi; each BNO085 on the order of 10-15 mA typical fusion-mode; baro sensors low single-digit mA; camera vendor-quoted around 100-150 mA recording |
 | 2x servos (run at 5 V) | 2x EMAX ES08MA II (analog, as purchased) | Vendor-quoted no-load current in the tens of mA per servo, with stall current on the order of roughly 1 A per servo possible under load, two servos stalling simultaneously is the design corner case the bulk cap + Schottky hold-up is sized to ride out; the Hobbywing UBEC is 3 A-rated |
 
 A 2S 450 mAh pack covers this aggregate draw with comfortable pad + flight endurance, and the light-pack group (LiPo ~30 g + UBEC ~10 g + i3 4K Thumb Action Camera ~36 g ≈ 76 g) sits inside the 122 g FC-bay budget. **This audit cannot certify actual current draw or the brown-out margin**, that requires a bench multimeter/current-clamp session under worst-case simultaneous load (servos slewing + camera recording + WiFi telemetry active + SD burst write), watching VSYS on a scope during a servo stall to confirm the hold-up cap/diode holds it above the Pico's brown-out threshold.

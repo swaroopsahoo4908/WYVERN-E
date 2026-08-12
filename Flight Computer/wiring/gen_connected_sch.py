@@ -1,8 +1,15 @@
 #!/usr/bin/env python3
 """WYVERN-E, fully-routed flight wiring schematic (KiCad-7 .kicad_sch).
 Unlike the flat-netlist harness, every component is DRAWN and PHYSICALLY WIRED pin-to-pin with
-orthogonal wire segments, junctions, power rails (2S LiPo -> 5V UBEC / 3V3 / GND) and net labels.
-No symbol library required, components are documentation rectangles with real pin stubs + wires."""
+orthogonal wire segments, junctions, power rails (2S LiPo -> buck -> LDO / GND) and net labels.
+No symbol library required, components are documentation rectangles with real pin stubs + wires.
+
+RECONCILED 2026-08-11 against the actual custom RP2350B PCB1 (netlist/BOM/schematic in PCB/,
+traced pin-by-pin -- see CONFLICTS.md section 4 and firmware/wyvern4_tvc/imu_grv.h's file header).
+This full rewrite replaces the prior generator, which was built for a never-fabricated board
+(Pico 2 W module, PCA9548A mux + dual I2C bus, GP26 ADC battery divider). The real board has ONE
+bare RP2350B chip, ONE shared I2C bus carrying every sensor by address (no mux), and a real INA226
+power monitor in place of the ADC divider."""
 import os
 HERE=os.path.dirname(os.path.abspath(__file__))
 S=[] # s-expr item accumulator
@@ -46,160 +53,162 @@ class Comp:
     def p(self,nm): return self.an[nm]
 
 # ---------------- layout ----------------
-# Power rails (horizontal): single 5V UBEC rail top (feeds VSYS + servos), 3V3 below, GND at bottom.
-# 2S LiPo -> one 5V/6V UBEC (set 5V) -> single 5V rail (servos run at 5V).
-RAIL_5V=18; RAIL_3V3=26; RAIL_GND=286
+# Power rails (horizontal): buck rail (servos/expansion connectors), 3V3 logic rail, GND.
+# 2S LiPo -> TPS564201 buck -> intermediate rail -> AP2112K-3.3 LDO -> 3V3 logic rail.
+RAIL_VBUCK=18; RAIL_3V3=26; RAIL_GND=286
 RX0,RX1=40,395
-for ry,nm in [(RAIL_5V,"+5V"),(RAIL_3V3,"+3V3"),(RAIL_GND,"GND")]:
+for ry,nm in [(RAIL_VBUCK,"+VBUCK"),(RAIL_3V3,"+3V3"),(RAIL_GND,"GND")]:
     wire(RX0,ry,RX1,ry,0.3); label(RX0-8,ry-0.6,nm,1.3)
 
-def tap3v3(x): wire(x,RAIL_3V3,x,RAIL_3V3,0.15); junc(x,RAIL_3V3)
-def tapV(x,ry): junc(x,ry)
+# I2C bus rails (horizontal, like the power rails): SDA/SCL run the full width and every sensor on
+# the shared bus taps in with a junction -- there is no mux fanning channels out to each device.
+RAIL_SDA=125; RAIL_SCL=131
+for ry,nm in [(RAIL_SDA,"SDA0 (GP0)"),(RAIL_SCL,"SCL0 (GP1)")]:
+    wire(RX0,ry,RX1,ry,0.3); label(RX0-8,ry-0.6,nm,1.3)
 
-# ----- power source (far left): 2S LiPo -> 5V UBEC -----
-batt=Comp("2S LiPo 7.4V",42,55,46,22,"~450mAh flight pack")
+# ----- power source (far left): 2S LiPo -> TPS564201 buck -> AP2112K-3.3 LDO -----
+batt=Comp("2S LiPo 7.4V",42,45,46,22,"~450mAh flight pack")
 batt.pins("T",["+"] ,); batt.pins("B",["GND"])
-# 2S -> arming switch/fuse -> 5V/6V UBEC (set 5V); 1000uF bulk @ servos, 100uF + SS34 Schottky @ VSYS
-bec=Comp("SW+fuse / 5V UBEC",42,100,46,22,"5V -> Pico+cam+servos")
-bec.pins("L",["VIN","G"]); bec.pins("T",["+5V"]); bec.pins("B",["GND"])
+buck=Comp("TPS564201 BUCK (U15)",42,88,46,20,"7.4V -> VBUCK")
+buck.pins("L",["VIN","G"]); buck.pins("T",["VBUCK"]); buck.pins("B",["GND"])
+ldo=Comp("AP2112K-3.3 LDO (U7)",42,128,46,20,"VBUCK -> 3.3V")
+ldo.pins("L",["VIN","G"]); ldo.pins("T",["3V3"]); ldo.pins("B",["GND"])
 
-# battery -> UBEC input
-poly([batt.p("+"),(batt.p("+")[0],48),(34,48),(34,bec.p("VIN")[1]),bec.p("VIN")])
-poly([batt.p("GND"),(batt.p("GND")[0],88),(30,88),(30,bec.p("G")[1]),bec.p("G")])
-# UBEC +5V -> 5V rail ; pack/UBEC GND -> GND rail
-poly([bec.p("+5V"),(bec.p("+5V")[0],RAIL_5V)]); junc(bec.p("+5V")[0],RAIL_5V)
-poly([bec.p("GND"),(bec.p("GND")[0],RAIL_GND)]); junc(bec.p("GND")[0],RAIL_GND)
+# battery -> buck input
+poly([batt.p("+"),(batt.p("+")[0],38),(34,38),(34,buck.p("VIN")[1]),buck.p("VIN")])
 poly([batt.p("GND"),(batt.p("GND")[0],RAIL_GND)]); junc(batt.p("GND")[0],RAIL_GND)
+poly([buck.p("G"),(buck.p("G")[0],RAIL_GND)]); junc(buck.p("G")[0],RAIL_GND)
+# buck VBUCK -> VBUCK rail, also feeds the LDO input
+poly([buck.p("VBUCK"),(buck.p("VBUCK")[0],RAIL_VBUCK)]); junc(buck.p("VBUCK")[0],RAIL_VBUCK)
+poly([ldo.p("VIN"),(30,ldo.p("VIN")[1]),(30,RAIL_VBUCK)]); junc(30,RAIL_VBUCK)
+poly([ldo.p("G"),(ldo.p("G")[0],RAIL_GND)]); junc(ldo.p("G")[0],RAIL_GND)
+poly([ldo.p("3V3"),(ldo.p("3V3")[0],RAIL_3V3)]); junc(ldo.p("3V3")[0],RAIL_3V3)
 
-# ----- Pico 2 W (central hub) -----
-pico=Comp("RPi PICO 2 W",150,40,70,200,"RP2350 dual-M33 150MHz · WiFi/BLE")
-pico.pins("T",["VSYS","3V3OUT"])
-pico.pins("B",["GND"])
-pico.pins("R",["GP2 SCK","GP3 MOSI","GP4 MISO","GP5 CS","GP14 S1","GP15 S2",
-               "GP16 SDA0","GP17 SCL0","GP18 SDA1","GP19 SCL1",
-               "GP6 spare","GP7 IRQ","GP8 CAM","GP9 LED","GP10 BUZ","GP22 RBF",
-               "GP26 VBAT","GP1 spare"])
-# Pico power to rails
-poly([pico.p("VSYS"),(pico.p("VSYS")[0],RAIL_5V)]); junc(pico.p("VSYS")[0],RAIL_5V)
-poly([pico.p("3V3OUT"),(pico.p("3V3OUT")[0],RAIL_3V3)]); junc(pico.p("3V3OUT")[0],RAIL_3V3)
-poly([pico.p("GND"),(pico.p("GND")[0],RAIL_GND)]); junc(pico.p("GND")[0],RAIL_GND)
+# ----- RP2350B (central hub, custom PCB1 -- bare chip, not a Pico module) -----
+mcu=Comp("RP2350B (U1)",150,40,70,220,"QFN-80 · dual-M33 · no radio chip")
+mcu.pins("T",["3V3IN"])
+mcu.pins("B",["GND"])
+mcu.pins("R",["GP0 SDA0","GP1 SCL0","GP2 S1","GP3 S2","GP4 spare","GP5 spare",
+              "GP8 MISO","GP9 CS","GP10 SCK","GP11 MOSI",
+              "GP12 RBF","GP34 BUZ","GP35 LED","GP36 CAM","GP37 IRQ"])
+poly([mcu.p("3V3IN"),(mcu.p("3V3IN")[0],RAIL_3V3)]); junc(mcu.p("3V3IN")[0],RAIL_3V3)
+poly([mcu.p("GND"),(mcu.p("GND")[0],RAIL_GND)]); junc(mcu.p("GND")[0],RAIL_GND)
 
-# ----- microSD (SPI0) top-right -----
-sd=Comp("microSD (SPI0)",250,40,60,40,"flight log")
-sd.pins("L",["SCK","MOSI","MISO","CS"]); sd.pins("T",["3V3"]); sd.pins("B",["GND"])
-
-# ----- PCA9548A mux -----
-mux=Comp("PCA9548A MUX 0x70",250,95,60,70,"I2C0 trunk -> 5 ch")
-mux.pins("L",["SDA","SCL"]); mux.pins("T",["3V3"]); mux.pins("B",["GND"])
-mux.pins("R",["c0 SD","c0 SC","c1 SD","c1 SC","c2 SD","c2 SC","c3 SD","c3 SC"])
-
-# ----- gimbal BNO085 (dedicated I2C1) -----
-gim=Comp("BNO085 GIMBAL 0x4A",250,178,60,30,"I2C1 · GRV")
-gim.pins("L",["SDA","SCL"]); gim.pins("T",["3V3"]); gim.pins("B",["GND"])
+# ----- microSD (CARD1, TF-01A) -----
+sd=Comp("microSD (CARD1)",250,40,60,40,"flight log · pin4/VDD traces to GND, possible defect")
+sd.pins("L",["MISO","MOSI","SCK","CS"]); sd.pins("T",["3V3"]); sd.pins("B",["GND"])
 
 # ----- servos -----
-sv1=Comp("SERVO 1 (pitch)",250,214,58,18)
-sv1.pins("L",["SIG","+5V","GND"])
-sv2=Comp("SERVO 2 (yaw)",250,236,58,18)
-sv2.pins("L",["SIG","+5V","GND"])
+sv1=Comp("SERVO 1 (pitch, JST U8)",250,90,58,18)
+sv1.pins("L",["SIG","+V","GND"])
+sv2=Comp("SERVO 2 (yaw, JST U9)",250,112,58,18)
+sv2.pins("L",["SIG","+V","GND"])
 
-# ----- sensors behind mux (right) -----
-body=Comp("BNO085 BODY 0x4A",340,70,58,24,"mux c0 · GRV")
-body.pins("L",["SDA","SCL"]); body.pins("T",["3V3"]); body.pins("B",["GND"]); body.pins("R",["INT"])
-recov=Comp("BNO085 RECOVERY 0x4A",340,104,58,24,"mux c1 · vote")
-recov.pins("L",["SDA","SCL"]); recov.pins("T",["3V3"]); recov.pins("B",["GND"])
-bme=Comp("BME688 0x76",340,138,58,24,"mux c2")
+# ----- shared-bus sensors (all tap the same SDA0/SCL0 rails, differentiated by I2C address only) -----
+# RECONCILED 2026-08-11: no PCA9548A mux exists on the real PCB1 -- every onboard sensor plus the
+# external STEMMA-QT port shares ONE bus. body is now a BNO055 (different chip family/driver than
+# the external unit, see imu_grv.h); BMP388 is not populated on this board rev (baro.h keeps that
+# code path as a fails-closed no-op, so it's omitted from this wiring diagram, not drawn as present).
+body=Comp("BNO055 BODY 0x28",340,60,58,26,"onboard · addr CONFIRMED (COM3->GND)")
+body.pins("L",["SDA","SCL"]); body.pins("T",["3V3"]); body.pins("B",["GND"])
+ext=Comp("BNO085 EXTERNAL 0x4A",340,96,58,26,"STEMMA-QT · bulkhead-boundary mount, not gimbal")
+ext.pins("L",["SDA","SCL"]); ext.pins("T",["3V3"]); ext.pins("B",["GND"])
+bme=Comp("BME680 0x76",340,132,58,24,"onboard baro · addr CONFIRMED (SDO->GND)")
 bme.pins("L",["SDA","SCL"]); bme.pins("T",["3V3"]); bme.pins("B",["GND"])
-bmp=Comp("BMP388 0x77 (3966)",340,170,58,24,"mux c3 · 3V3")
-bmp.pins("L",["SDA","SCL"]); bmp.pins("T",["3V3"]); bmp.pins("B",["GND"])
+ina=Comp("INA226 (U4) -- WIRING PROBLEM",340,166,58,30,"reads VBUCK not pack V; addr strap invalid, see CONFLICTS.md")
+ina.pins("L",["SDA","SCL"]); ina.pins("T",["3V3"]); ina.pins("B",["GND"]); ina.pins("R",["VIN+","VIN-","VBUS","A1"])
+mag=Comp("LIS3MDL (U5) 0x1C",340,206,58,24,"addr CONFIRMED (SD0/SA1->GND) · unused by firmware")
+mag.pins("L",["SDA","SCL"]); mag.pins("T",["3V3"]); mag.pins("B",["GND"])
 
-# ----- camera -----
+# ----- R10 (in parallel with power switch U13, NOT a current shunt in series with pack current) -----
+# CORRECTED 2026-08-11 second pass: the first pass of this diagram drew R10 as a textbook shunt
+# feeding INA226's VIN+ from the battery -- that assumption turned out wrong once every pin was
+# actually traced. Real wiring: INA226 VIN+ -> GND directly, VIN- -> VBUCK directly, VBUS and the A1
+# address pin both -> the same node R10 bridges to VBUCK (in parallel with switch U13). None of this
+# spans real pack current. See battery.h and CONFLICTS.md section 3 for the full finding.
+shunt=Comp("R10 (10mOhm, 2512) -- parallel w/ SW U13, not a shunt",42,168,70,18)
+shunt.pins("R",["to VBUCK"])
+a=ina.p("VIN+"); poly([a,(a[0]+10,a[1]),(a[0]+10,RAIL_GND)]); junc(a[0]+10,RAIL_GND)
+label(a[0]+2,a[1]-0.6,"VIN+ -> GND (not pack-referenced)")
+b=ina.p("VIN-"); poly([b,(b[0]+10,b[1]),(b[0]+10,RAIL_VBUCK)]); junc(b[0]+10,RAIL_VBUCK)
+label(b[0]+2,b[1]-0.6,"VIN- -> VBUCK (buck OUTPUT, not pack)")
+c=ina.p("VBUS"); poly([c,(c[0]+14,c[1]),(c[0]+14,RAIL_VBUCK)]); junc(c[0]+14,RAIL_VBUCK)
+label(c[0]+2,c[1]-0.6,"VBUS -> VBUCK (reads ~5V rail)")
+d=ina.p("A1"); poly([d,(d[0]+18,d[1]),(d[0]+18,RAIL_VBUCK)]); junc(d[0]+18,RAIL_VBUCK)
+label(d[0]+2,d[1]-0.6,"A1 -> ~5V, NOT a valid addr strap")
+
+# camera
 cam=Comp("i3 4K thumb cam",96,40,46,30,"self-contained")
-cam.pins("R",["V5_EN","GND"])
+cam.pins("R",["V_EN","GND"])
 
 # ================= WIRING =================
-def chan(a,b,cx,lbl=None,lj=False):
-    # route a -> vertical channel cx -> b (orthogonal), optional net label near a
+def chan(a,b,cx,lbl=None):
     poly([a,(cx,a[1]),(cx,b[1]),b])
     if lbl: label(a[0]+ (4 if a[0]<cx else -4), a[1]-0.6, lbl)
 
-# SPI0 Pico -> microSD (4 nets), channels 226..234
-for pin,sdpin,cx,nm in [("GP2 SCK","SCK",226,"SCK"),("GP3 MOSI","MOSI",229,"MOSI"),
-                        ("GP4 MISO","MISO",232,"MISO"),("GP5 CS","CS",235,"CS")]:
-    chan(pico.p(pin),sd.p(sdpin),cx,nm)
+# SD interface, RP2350B -> microSD (4 nets) -- confirmed via netlist trace; an earlier pass had
+# MOSI/CS swapped (CARD1's CMD/DI pin, i.e. MOSI, actually traces to GP11, and DAT3/CS to GP9)
+for pin,sdpin,cx,nm in [("GP8 MISO","MISO",226,"MISO"),("GP9 CS","CS",229,"CS"),
+                        ("GP10 SCK","SCK",232,"SCK"),("GP11 MOSI","MOSI",235,"MOSI")]:
+    chan(mcu.p(pin),sd.p(sdpin),cx,nm)
 
-# servo signals Pico GP14/GP15 -> servo SIG (long run to right), channels 238..241
-chan(pico.p("GP14 S1"),sv1.p("SIG"),243,"SERVO1")
-chan(pico.p("GP15 S2"),sv2.p("SIG"),246,"SERVO2")
+# servo signals
+chan(mcu.p("GP2 S1"),sv1.p("SIG"),243,"SERVO1")
+chan(mcu.p("GP3 S2"),sv2.p("SIG"),246,"SERVO2")
 
-# I2C0 Pico GP16/GP17 -> mux SDA/SCL, channels 226..230 (lower)
-chan(pico.p("GP16 SDA0"),mux.p("SDA"),227,"SDA0")
-chan(pico.p("GP17 SCL0"),mux.p("SCL"),230,"SCL0")
+# RP2350B -> shared I2C bus rails
+poly([mcu.p("GP0 SDA0"),(mcu.p("GP0 SDA0")[0]+8,mcu.p("GP0 SDA0")[1]),(mcu.p("GP0 SDA0")[0]+8,RAIL_SDA)])
+junc(mcu.p("GP0 SDA0")[0]+8,RAIL_SDA)
+poly([mcu.p("GP1 SCL0"),(mcu.p("GP1 SCL0")[0]+8,mcu.p("GP1 SCL0")[1]),(mcu.p("GP1 SCL0")[0]+8,RAIL_SCL)])
+junc(mcu.p("GP1 SCL0")[0]+8,RAIL_SCL)
 
-# I2C1 Pico GP18/GP19 -> gimbal, channels 233..236
-chan(pico.p("GP18 SDA1"),gim.p("SDA"),233,"SDA1")
-chan(pico.p("GP19 SCL1"),gim.p("SCL"),236,"SCL1")
+# each shared-bus sensor taps SDA0/SCL0 directly -- no mux fan-out
+def tap_i2c(comp):
+    a=comp.p("SDA"); poly([a,(a[0]-4,a[1]),(a[0]-4,RAIL_SDA)]); junc(a[0]-4,RAIL_SDA)
+    b=comp.p("SCL"); poly([b,(b[0]-4,b[1]),(b[0]-4,RAIL_SCL)]); junc(b[0]-4,RAIL_SCL)
+for c in [body,ext,bme,ina,mag]: tap_i2c(c)
 
-# GPIO: GP7 IRQ <- body INT ; GP8 CAM -> cam V5_EN ; GP6/GP1 spare (RRC3 removed, motor ejection)
-# GP7 IRQ from body INT (body is far right; route along y of GP7)
-poly([pico.p("GP7 IRQ"),(244,pico.p("GP7 IRQ")[1]),(244,82),(body.p("INT")[0],82),body.p("INT")])
-label(pico.p("GP7 IRQ")[0]+4,pico.p("GP7 IRQ")[1]-0.6,"LAUNCH_IRQ")
-# GP8 CAM -> camera V5_EN (camera top-left). route up-left over Pico
-poly([pico.p("GP8 CAM"),(246,pico.p("GP8 CAM")[1]),(246,300)]) # placeholder removed below
-S.pop() # drop stray
-poly([pico.p("GP8 CAM"),(248,pico.p("GP8 CAM")[1]),(248,33),(cam.p("V5_EN")[0]+8,33),(cam.p("V5_EN")[0]+8,cam.p("V5_EN")[1]),cam.p("V5_EN")])
-label(pico.p("GP8 CAM")[0]+4,pico.p("GP8 CAM")[1]-0.6,"CAM_EN")
-# GP9 LED, GP10 BUZ, GP22 RBF -> short labeled stubs (local I/O)
-for pin,nm in [("GP9 LED","LED"),("GP10 BUZ","BUZZER"),("GP22 RBF","RBF_SAFE")]:
-    a=pico.p(pin); poly([a,(a[0]+8,a[1])]); label(a[0]+9,a[1]-0.6,nm)
-
-# ----- Battery-sense divider on GP26/ADC0 ---------------------------------------------------
-# ADDED 2026-08. CONFLICTS.md item 4 specifies this divider, COMPATIBILITY.md item 4 verifies its
-# headroom, and firmware/battery.h reads it every loop -- but no wiring generator ever routed it,
-# so the schematic silently disagreed with the firmware and both audit documents.
-# Tap is on the PACK side of the UBEC (true cell voltage, not the regulated rail).
-div=Comp("VBAT DIVIDER",42,150,52,30,"R_top 100k / R_bot 62k -> 0.3827")
-div.pins("L",["VBAT_TAP"]); div.pins("R",["ADC_NODE"]); div.pins("B",["GND"])
-# tap the pack + node directly (upstream of the UBEC), not the regulated 5 V rail
-poly([batt.p("+"),(batt.p("+")[0],48),(26,48),(26,div.p("VBAT_TAP")[1]),div.p("VBAT_TAP")])
-junc(batt.p("+")[0],48)
-poly([div.p("GND"),(div.p("GND")[0],RAIL_GND)]); junc(div.p("GND")[0],RAIL_GND)
-a=pico.p("GP26 VBAT"); b=div.p("ADC_NODE")
-poly([b,(b[0]+6,b[1]),(b[0]+6,a[1]),a])
-label(a[0]-26,a[1]-0.6,"VBAT_SENSE")
-
-
-# mux channels -> sensors (each SDA/SCL pair)
-def muxto(csd,csc,comp,cx):
-    chan(mux.p(csd),comp.p("SDA"),cx)
-    chan(mux.p(csc),comp.p("SCL"),cx+2.5)
-muxto("c0 SD","c0 SC",body,318)
-muxto("c1 SD","c1 SC",recov,318)
-muxto("c2 SD","c2 SC",bme,318)
-muxto("c3 SD","c3 SC",bmp,318)
-
+# GPIO: all four of GP37/36/35/34 are CONFIRMED-usable H1 GPIOs (H1 pins 7/8/9/10); which flight
+# signal rides which pin is a firmware choice, not a schematic label. GP12 (H1 pin13) is reserved
+# for a possible future RBF bodge wire -- NOTHING is soldered there on PCB1 as fabricated; U13 (the
+# physical power switch) has no GPIO connection at all, see CONFLICTS.md section 4.
+poly([mcu.p("GP36 CAM"),(248,mcu.p("GP36 CAM")[1]),(248,33),(cam.p("V_EN")[0]+8,33),
+      (cam.p("V_EN")[0]+8,cam.p("V_EN")[1]),cam.p("V_EN")])
+label(mcu.p("GP36 CAM")[0]+4,mcu.p("GP36 CAM")[1]-0.6,"CAM_EN")
+for pin,nm in [("GP37 IRQ","LAUNCH_IRQ (H1 pin7, confirmed GPIO)"),
+               ("GP12 RBF","RBF (H1 pin13, NOT wired to anything on PCB1)"),
+               ("GP34 BUZ","BUZZER (H1 pin10, confirmed GPIO)"),
+               ("GP35 LED","STATUS_LED (H1 pin9, confirmed GPIO)")]:
+    a=mcu.p(pin); poly([a,(a[0]+8,a[1])]); label(a[0]+9,a[1]-0.6,nm)
 
 # ----- power-rail taps: 3V3 (top pins up to 3V3 rail), GND (bottom pins down to GND rail) -----
 def to3v3(comp,pin="3V3"):
     a=comp.p(pin); poly([a,(a[0],RAIL_3V3)]); junc(a[0],RAIL_3V3)
 def toGND(comp,pin="GND"):
     a=comp.p(pin); poly([a,(a[0],RAIL_GND)]); junc(a[0],RAIL_GND)
-for c in [sd,mux,gim,body,recov,bme,bmp]: to3v3(c)
-for c in [sd,mux,gim,body,recov,bme,bmp]: toGND(c)
-# servo +5V/GND to the shared 5V UBEC rail (servos run at 5V, bulk cap at the servos)
+for c in [sd,body,ext,bme,ina,mag]: to3v3(c)
+for c in [sd,body,ext,bme,ina,mag]: toGND(c)
+# servos off the VBUCK rail (not the 3V3 logic rail) -- matches the real power chain in §3
 for sv in [sv1,sv2]:
-    a=sv.p("+5V"); poly([a,(a[0],RAIL_5V)]); junc(a[0],RAIL_5V)
+    a=sv.p("+V"); poly([a,(a[0],RAIL_VBUCK)]); junc(a[0],RAIL_VBUCK)
     g=sv.p("GND"); poly([g,(g[0]-2,g[1]),(g[0]-2,RAIL_GND)]); junc(g[0]-2,RAIL_GND)
-# camera GND
 g=cam.p("GND"); poly([g,(g[0]+12,g[1]),(g[0]+12,RAIL_GND)]); junc(g[0]+12,RAIL_GND)
 
 # title + notes
-text(40,8,"WYVERN-E, Flight Wiring (fully routed, all components connected)",2.4)
-text(40,300,"All sensors GRV (mag off). 3 BNO085 @0x4A: gimbal on dedicated I2C1; body/recovery isolated on PCA9548A ch0/ch1. RP2350 is 3.3V logic; all STEMMA-QT sensors (incl. BMP388) run at 3.3V.",1.1)
+text(40,8,"WYVERN-E, Flight Wiring (fully routed, all components connected) -- PCB1 custom RP2350B",2.4)
+text(40,300,"One shared I2C bus (no mux), every address netlist-CONFIRMED: body BNO055 0x28, "
+             "external BNO085 0x4A (STEMMA-QT, bulkhead-boundary mount), BME680 0x76, LIS3MDL 0x1C. "
+             "No BMP388 populated, no WiFi/BLE radio chip on this board. INA226 (U4) has a real "
+             "wiring problem, not just an unverified address -- reads the ~5V buck rail instead of "
+             "pack voltage, no true current shunt, address strap ties to an invalid ~5V node -- see "
+             "CONFLICTS.md section 3 and battery.h. RBF (GP12/H1 pin13) is not wired to any switch "
+             "on this board rev; the other four H1 GPIOs (37/36/35/34) are confirmed-usable, their "
+             "function assignment is a firmware choice. CARD1 pin4 traces to GND where VDD would be "
+             "expected -- possible SD-power defect, bench-check before trusting flight logging.",1.1)
 
 body_s="\n ".join(S)
 out=f'''(kicad_sch (version 20230121) (generator "wyvern4_connected") (paper "A1")
-  (title_block (title "WYVERN-E Flight Wiring, fully routed") (company "Skylight Rocketry") (rev "4.0"))
+  (title_block (title "WYVERN-E Flight Wiring, fully routed") (company "Skylight Rocketry") (rev "5.0"))
   (lib_symbols)
   {body_s}
   (sheet_instances (path "/" (page "1"))))'''

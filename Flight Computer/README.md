@@ -10,18 +10,18 @@ See `01_FlightComputer_Spec.md` for the full architecture writeup.
 
 Dual-core RP2350 split for determinism:
 
-- *Core 0, real-time control.* 500 Hz TVC loop only: read gimbal + body BNO085 (Game Rotation
-  Vector), compute nozzle deflection, run PID, command servos. Nothing on core 0 blocks.
+- *Core 0, real-time control.* 500 Hz TVC loop only: read external + body BNO085 (Game Rotation
+  Vector), vote attitude, run PID, command servos. Nothing on core 0 blocks.
 - *Core 1, logging + comms.* Drains the inter-core ring buffer to microSD over SPI, services
   Wi-Fi bench telemetry, handles housekeeping (camera gate, status LED).
 
-Three bays, two sealed bulkheads:
+Two body tubes, one bulkhead joint:
 
 | Bay | Contents |
 |---|---|
-| Engine/TVC bay | F15-4 · 2-axis 2-servo gimbal · gimbal BNO085 (dedicated I²C) |
-| Flight-computer bay | Pico 2 W · body BNO085 · BME688 + BMP388 · microSD · i3 4K Thumb Action Camera · Wi-Fi |
-| Recovery bay | Motor ejection (F15-4 bypass tube) · 24″ chute · Nomex · 3rd BNO085 (redundant) |
+| Lower BT (TVC bay) | F15-4 · 2-axis 2-servo gimbal · motor mount |
+| Upper BT (FC bay) | Pico 2 W (custom RP2350B PCB) · body BNO085 · BME680 + BMP388 · microSD · i3 4K Thumb Action Camera · Wi-Fi |
+| Bulkhead joint | External BNO085 (STEMMA-QT) mounted here · motor-ejection separation point · 24″ chute · Nomex |
 
 PID gains (auto-tuned): *Kp* 0.10 / *Ki* 0.40 / *Kd* 0.18 · ±8° gimbal authority.
 
@@ -43,12 +43,12 @@ Flight Computer/
 │ ├── imu_grv.h ← BNO085 Game Rotation Vector driver
 │ ├── sd_logger.h ← microSD ring-buffer logger
 │ ├── wifi_telemetry.h ← Wi-Fi bench telemetry
-│ ├── baro.h ← BME688 + BMP388 barometric driver
+│ ├── baro.h ← BME680 + BMP388 barometric driver
 │ └── … ← supporting headers
 ├── flowcharts/ ← Mermaid state/logic diagrams
 │ ├── 01_flight_state_machine.mermaid ← BOOT→ARMED→BOOST→COAST→RECOVER→LANDED
 │ ├── 02_tvc_control_loop.mermaid ← 500 Hz PID loop flowchart
-│ ├── 03_recovery_logic.mermaid ← motor-ejection bypass logic
+│ ├── 03_recovery_logic.mermaid ← motor-ejection separation logic
 │ └── 04_power_tree.mermaid ← power distribution diagram
 ├── ground_test_rigs/
 │ ├── wyvern4_gse_servo_rig/
@@ -78,8 +78,9 @@ Flight Computer/
 
 Run these in order before any motor firing:
 
-1. `test_code/t1_i2c_scan.ino`, confirm all 3× BNO085 respond on their expected addresses.
-2. `test_code/t2_imu_grv_deflection.ino`, manually tilt gimbal, verify servo commands track.
+1. `test_code/t1_i2c_scan.ino`, confirm both BNO085s respond on their expected addresses.
+2. `test_code/t2_imu_grv_deflection.ino`, manually tilt the airframe, verify body/external
+   quaternions agree and servo commands track.
 3. `test_code/t3_servo_sweep.ino`, full ±8° sweep, check for binding and correct direction.
 4. `test_code/t4_sensors_sdlog.ino`, all sensors write to microSD; verify file on SD card.
 5. `test_code/selftest.py` + `host_monitor.py` (laptop), Wi-Fi telemetry stream live verification.
@@ -92,7 +93,7 @@ Upload firmware via Arduino IDE 2.x with the [Raspberry Pi Pico 2 W board packag
 
 ```
 BOOT → ARMED → BOOST (F15-4 burn, 3.45 s, 500 Hz TVC) → COAST (brief)
-     → RECOVER (motor ejection ~t=7.5 s via bypass tube) → DESCENT → LANDED
+     → RECOVER (motor ejection ~t=7.5 s, bulkhead joint separates) → DESCENT → LANDED
 ```
 
 See `flowcharts/01_flight_state_machine.mermaid` for the full Mermaid diagram.

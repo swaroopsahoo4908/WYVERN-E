@@ -34,8 +34,8 @@ struct LogFrame {
   uint8_t rbf_pulled;         // 1 = remove-before-flight pin pulled (armed-eligible), 0 = inserted
   uint8_t batt_flags;         // bit0 = low_battery, bit1 = critical (BatteryMonitor thresholds)
 
-  float qb_w, qb_x, qb_y, qb_z;      // voted body quaternion (post 2-of-3 vote)
-  float qg_w, qg_x, qg_y, qg_z;      // gimbal quaternion (dedicated I2C1 bus)
+  float qb_w, qb_x, qb_y, qb_z;      // voted body quaternion (onboard BNO055, 2-of-2 vote)
+  float qg_w, qg_x, qg_y, qg_z;      // external BNO085 quaternion (STEMMA-QT, same shared bus as body)
   float vote_disagree_rad;           // TriImu::vote_disagreement_rad(); -1 = only one IMU reporting
 
   float body_pitch_rad, body_yaw_rad;    // small-angle Euler readout of qb (control loop's own use)
@@ -130,7 +130,28 @@ inline uint32_t log_pending() {
 
 class SdLogger {
 public:
-  static constexpr uint8_t PIN_SCK = 2, PIN_MOSI = 3, PIN_MISO = 4, PIN_CS = 5;
+  // RECONCILED 2026-08-11 against the real PCB1 netlist: GP2-GP5 are NOT SD pins on this board --
+  // they're the four servo/JST connector signal lines (U8-U11, see wyvern4_tvc.ino's pin map). The
+  // microSD card (CARD1, TF-01A) is wired to a separate group of GPIOs entirely.
+  //
+  // All four pins below are CONFIRMED (not best-effort): traced every CARD1 pin against
+  // Netlist_PCB1_2026-08-11.tel and matched against CARD1's schematic-labeled pinout (DAT2(RSV),
+  // DAT3(CS), CMD(DI), VDD, CLK, VSS, DAT0(D0), DAT1(RSV) -- standard TF-01A dual SD/SPI-mode
+  // labeling). Pin1 (DAT2) and pin8 (DAT1) are correctly unconnected -- both are reserved/unused in
+  // SPI mode, not an oversight. This also fixed a real bug in an earlier pass of this file: MOSI and
+  // CS had been swapped (CARD1's CMD/DI pin -- MOSI -- traces to GPIO11, not GPIO9; DAT3/CS traces
+  // to GPIO9, not GPIO11).
+  static constexpr uint8_t PIN_MISO = 8;    // CARD1 pin7, DAT0(D0)
+  static constexpr uint8_t PIN_CS   = 9;    // CARD1 pin2, DAT3(CS)
+  static constexpr uint8_t PIN_SCK  = 10;   // CARD1 pin5, CLK
+  static constexpr uint8_t PIN_MOSI = 11;   // CARD1 pin3, CMD(DI)
+  // FLAGGED, real finding: CARD1 pin4 -- the position a standard TF-01A pinout would call VDD --
+  // traces to the board's GND net in the netlist, not to 3V3. Pins 6 and 9 (both legitimately GND
+  // per the standard pinout) also trace to GND, so this isn't a mislabeling of the whole connector,
+  // just pin4 specifically reading as GND where card power would be expected. If this is accurate,
+  // the microSD socket has no power pin wired and SD.begin() will simply never succeed on this board
+  // rev. Bench-check with a multimeter (continuity from CARD1 pin4 to the 3V3 rail vs. to GND)
+  // before spending time debugging this as a firmware problem -- it may not be one.
   static constexpr const char* FILENAME = "WYV4_FLIGHT.csv";
   static constexpr size_t BURST_FRAMES = 32;     // frames pulled off the FIFO per service() call
 

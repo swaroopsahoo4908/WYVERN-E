@@ -1,16 +1,12 @@
-// WYVERN-E — PCA9548A I2C mux driver (I2C0 trunk, address 0x70).
-// =====================================================================
-// Channel map (frozen, see ../../CONFLICTS.md section 5 / gen_wiring4.py):
-//   ch0 = body BNO085      (0x4A, primary attitude)
-//   ch1 = recovery BNO085  (0x4A, redundant attitude — 2-of-3 vote with body+gimbal)
-//   ch2 = BME688           (0x76)
-//   ch3 = BMP388           (0x77, Adafruit 3966)
-//   ch4 = spare — unpopulated by default
-//
-// The gimbal BNO085 is NOT behind the mux -- it's on the dedicated I2C1 bus (Wire1), per spec,
-// so that mux failure/bus-lockup on I2C0 can never take down the one IMU the control loop must
-// always have (deflection = q_body^-1 (x) q_gimbal needs both, but isolating the gimbal sensor
-// on its own bus means a body/recovery I2C0 fault degrades gracefully instead of killing TVC).
+// WYVERN-E — PCA9548A I2C mux driver. RETIRED 2026-08-11, NOT INCLUDED BY ANY ACTIVE FIRMWARE FILE.
+// =====================================================================================================
+// The custom RP2350B PCB1 (2026-08-11 fab set) has no PCA9548A on it -- verified against the real
+// netlist/BOM (PCB/Netlist_PCB1_2026-08-11.tel, PCB/BOM_Board1_PCB1_2026-08-11.xlsx). Every onboard
+// I2C device (BNO055, BME680, INA226, LIS3MDL) plus the external STEMMA-QT port share ONE bus
+// (GP0 SDA / GP1 SCL), differentiated purely by I2C address -- no channel switching, no mux fault
+// domain to isolate. `imu_grv.h` and `baro.h` were rewritten to talk directly to Wire and no longer
+// include this file. Kept in the tree (not deleted) as a record of the earlier, incorrect
+// architecture, in case a future board revision actually adds a mux and this becomes useful again.
 #pragma once
 #include <Wire.h>
 
@@ -19,7 +15,7 @@ public:
   static constexpr uint8_t ADDR = 0x70;
   static constexpr uint8_t CH_BODY = 0;
   static constexpr uint8_t CH_RECOVERY = 1;
-  static constexpr uint8_t CH_BME688 = 2;
+  static constexpr uint8_t CH_BME680 = 2;
   static constexpr uint8_t CH_BMP388 = 3;
   static constexpr uint8_t CH_SPARE = 4;
 

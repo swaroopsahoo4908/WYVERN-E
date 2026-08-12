@@ -48,7 +48,7 @@ attention from the AI PCB tool (controlled length, controlled impedance, minimal
 | Function | Part | Interface | Package |
 |---|---|---|---|
 | Barometric altimeter | Bosch BMP390, ±3 cm resolution | I2C | LGA-10 |
-| Temp / humidity / gas (VOC index) | Bosch BME688 | I2C | LGA-8 |
+| Temp / humidity / gas (VOC index) | Bosch BME680 | I2C | LGA-8 |
 | Calibrated CO2 (NDIR) | Sensirion SCD41, 400–5000 ppm, ±(50 ppm+5%) | I2C | 10.1×10.1×6.5 mm LGA |
 | Redundant magnetometer | ST LIS3MDL | I2C | LGA-12 |
 | Bus current/voltage, airbrake rail | TI INA226, 16-bit, 0.1% gain error, 10 mΩ shunt | I2C | SOT-23-8 |
@@ -216,6 +216,6 @@ https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf
 [4] Infineon IM69D130 datasheet, 105 dB dynamic range MEMS microphone, 
 https://www.infineon.com/assets/row/public/documents/24/49/infineon-im69d130-datasheet-en.pdf
 
-Other parts (BMP390, BME688, SCD41, LIS3MDL, ICM-42688-P, BNO085, INA226, Savöx SH-0257MG,
+Other parts (BMP390, BME680, SCD41, LIS3MDL, ICM-42688-P, BNO085, INA226, Savöx SH-0257MG,
 TPS54202) carry forward from Rev 1's citation list and the WYVERN-E 2.0 board precedent, same
 parts, same sourcing, just reassigned across the new three-board split.

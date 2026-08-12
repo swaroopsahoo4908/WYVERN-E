@@ -19,7 +19,7 @@ xml=f'''<?xml version='1.0' encoding='utf-8'?>
 </nosecone>
 <bodytube><name>Recovery bay (PLA)</name><id>{uuid.uuid4()}</id><overridemass>0.058</overridemass><overridesubcomponentsmass>false</overridesubcomponentsmass><finish>normal</finish>
 <material type="bulk" density="1240.0">PLA</material><length>0.180</length><thickness>0.0016</thickness><radius>0.035</radius><subcomponents>
-{mc("Bypass tube + Nomex + plenum (motor ejection)",0.02,0.047)}
+{mc("Nomex + wadding (motor ejection)",0.02,0.047)}
 <parachute><name>24in chute</name><id>{uuid.uuid4()}</id><axialoffset method="top">0.06</axialoffset><position type="top">0.06</position><overridemass>0.050</overridemass><overridesubcomponentsmass>false</overridesubcomponentsmass><packedlength>0.08</packedlength><packedradius>0.018</packedradius><radialposition>0.0</radialposition><radialdirection>0.0</radialdirection><cd>auto</cd><material type="surface" density="0.05764">Ripstop nylon</material><deployevent>ejection</deployevent><deployaltitude>150.0</deployaltitude><deploydelay>0.0</deploydelay><diameter>0.6096</diameter><linecount>6</linecount><linelength>0.45</linelength><linematerial type="line" density="0.0016">Kevlar</linematerial></parachute>
 </subcomponents></bodytube>
 <bodytube><name>FC bay (PLA)</name><id>{uuid.uuid4()}</id><overridemass>0.051</overridemass><overridesubcomponentsmass>false</overridesubcomponentsmass><finish>normal</finish>

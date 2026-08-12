@@ -3,7 +3,7 @@
 two-body-tube separation at a single bulkhead joint, NO bypass tube) + 3-axis TVC balance
 (servo test stand) + static thrust stand + static deflector.
 
-Architecture as of 2026-08-10 (`Documentation/WYVERN_E4_Recovery.md`, `CONFLICTS.md` §7/§9,
+Architecture as of 2026-08-10 (`Documentation/WYVERN_E4_Recovery.md`, `CONFLICTS.md` §6/§8,
 `Documentation/WYVERN_E4_Mathematics.md`):
 
   Upper BT (ASA-Aero, foamed 0.65 g/cm3): nose + recovery wadding/FC bay (avionics housing,

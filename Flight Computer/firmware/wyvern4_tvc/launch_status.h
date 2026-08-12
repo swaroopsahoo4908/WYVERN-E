@@ -7,24 +7,40 @@
 
 // ---------------------------------------------------------------------------------------------
 // Launch detect: |a| > 2g sustained for >= 50 ms on the body IMU's accelerometer, per
-// flowcharts/01_flight_state_machine.mermaid ("ARMED --> BOOST: |a|>2g"). BNO085 in Game Rotation
-// Vector mode doesn't directly expose raw accel in the GRV report, so this also enables the
-// accelerometer report (SH2_ACCELEROMETER) on the body IMU for this one purpose. A hardware
-// inertial switch on GP7 (LAUNCH_IRQ) is OR'd in as a redundant trigger -- see CONFLICTS.md
-// section 5 note on LAUNCH_IRQ being an assumption pending bench confirmation of that wiring.
+// flowcharts/01_flight_state_machine.mermaid ("ARMED --> BOOST: |a|>2g"). The body sensor is now a
+// Bosch BNO055 (imu_grv.h), read via getEvent(VECTOR_ACCELEROMETER) rather than an SH2 report -- see
+// that file's header for the full IMU reconciliation. A hardware inertial switch on GP37 (LAUNCH_IRQ)
+// is OR'd in as a redundant trigger.
+//
+// RECONCILED 2026-08-11: GP7 does not exist as a general digital I/O on the real PCB1 (RP2350B has
+// no header pin routed there) -- see wyvern4_tvc.ino's pin-map comment. Corrected AGAIN in a second
+// pass the same day after actually tracing Netlist_PCB1_2026-08-11.tel pin-by-pin instead of reading
+// the schematic's text extraction out of order: the real H1 header is a 14-pin debug/expansion
+// connector with NO SWDIO/SWCLK on it at all (an earlier pass claimed it did -- that was wrong, an
+// artifact of scrambled PDF text-extraction order, not something in the actual netlist). H1's real
+// pinout, CONFIRMED against the netlist: pin1/5=3V3, pin2/6/11/14=GND, pin3/4=QSPI flash signals
+// (U1 pins 34/33, not general-purpose GPIO -- shared with the external flash chip, not usable here),
+// pin7=GPIO37, pin8=GPIO36, pin9=GPIO35, pin10=GPIO34, pin12=VBUCK (the ~5V buck rail, power not
+// signal), pin13=GPIO12. That leaves exactly 4 confirmed-usable general-purpose GPIOs on H1: 37, 36,
+// 35, 34 (plus 12, spare -- see the RBF note below, since RBF no longer uses it).
+// LAUNCH_IRQ/CAM_EN/STATUS_LED/BUZZ below are assigned across GPIO37/36/35/34 in that order. WHICH
+// signal rides which of the 4 pins is still our own firmware-side choice (the schematic doesn't
+// name a function per pin), but which 4 GPIOs are actually present and usable is now confirmed, not
+// guessed.
 // ---------------------------------------------------------------------------------------------
 class LaunchDetect {
 public:
-  // THRESHOLD LOWERED 3.0 -> 2.0 g (2026-08b). The PLA/PETG-CF material change took liftoff
-  // mass 705 -> 792 g, which dropped peak specific force from 3.67 g to 3.27 g. Against the
-  // old 3.0 g threshold the vehicle spent only 61 ms above it -- versus a 50 ms sustain
-  // requirement, an 11 ms margin. Any accelerometer noise, a slightly weak motor, or a few
-  // more grams of build mass and launch detect NEVER FIRES: no BOOST, no TVC, no deploy
-  // logging, no flight data. At 2.0 g the vehicle is above threshold for 549 ms, and 2 g is
-  // still unambiguous against pad handling and wind (both ~1 g +/- 0.2).
+  // THRESHOLD LOWERED 3.0 -> 2.0 g (2026-08b). At the time, liftoff mass had gone 705 -> 792 g,
+  // dropping peak specific force from 3.67 g to 3.27 g and leaving only an 11 ms margin against
+  // the old 3.0 g/50 ms sustain requirement -- any accelerometer noise, a slightly weak motor, or
+  // a few more grams of build mass and launch detect NEVER FIRES. The 2026-08-10 material
+  // re-zoning (ASA-Aero/PETG-CF/PC-FR) since brought liftoff mass to the current canonical 729 g,
+  // which raises peak specific force further, to 3.54 g (CONFLICTS.md section 5) -- this only
+  // WIDENS the margin the 2.0 g threshold already has, so the lowered threshold remains valid
+  // and conservative; not something that needs re-raising as mass has changed since.
   static constexpr float THRESHOLD_G = 2.0f;
   static constexpr unsigned long SUSTAIN_MS = 50;
-  static constexpr uint8_t PIN_LAUNCH_IRQ = 7;
+  static constexpr uint8_t PIN_LAUNCH_IRQ = 37;  // H1 header pin7, confirmed-usable GPIO -- see file header
 
   void begin() {
     pinMode(PIN_LAUNCH_IRQ, INPUT_PULLUP);   // assumption: active-low inertial switch closes to GND
@@ -63,15 +79,16 @@ private:
 };
 
 // ---------------------------------------------------------------------------------------------
-// Camera gate: drives CAM_EN (GP8) high to power the action camera, per
-// Documentation/WYVERN_E4_Camera_Solution.md ("Power the i3 cam ... gated by the FC arming switch
-// so recording starts at power-on/arm" -- here gated by entry into ARMED instead of raw power-on,
-// so the Pico logs a precise timestamp of when the camera was told to start, for post-flight
-// video/sensor-log alignment, exactly as the doc specifies).
+// Camera gate: drives CAM_EN (GP36, H1 header pin8, confirmed-usable GPIO -- see file header above)
+// high to power the action camera, per Documentation/WYVERN_E4_Camera_Solution.md ("Power the i3
+// cam ... gated by the FC arming switch so recording starts at power-on/arm" -- here gated by
+// entry into ARMED instead of raw power-on, so the flight computer logs a precise timestamp of
+// when the camera was told to start, for post-flight video/sensor-log alignment, exactly as the
+// doc specifies).
 // ---------------------------------------------------------------------------------------------
 class CameraGate {
 public:
-  static constexpr uint8_t PIN_CAM_EN = 8;
+  static constexpr uint8_t PIN_CAM_EN = 36;  // H1 header pin8, confirmed-usable GPIO -- see file header
   void begin() { pinMode(PIN_CAM_EN, OUTPUT); digitalWrite(PIN_CAM_EN, LOW); }
   void enable(unsigned long now_ms) {
     if (!enabled_) { digitalWrite(PIN_CAM_EN, HIGH); enabled_ = true; enabled_at_ms_ = now_ms; }
@@ -97,12 +114,18 @@ private:
 class StatusIndicator {
 public:
   enum Pattern { BOOT_SELFTEST, SELFTEST_FAIL, ARMED, LOW_BATTERY, FAULT, OFF };
-  static constexpr uint8_t PIN_LED = 9;
-  static constexpr uint8_t PIN_BUZZ = 10;
+  // Named PIN_STATUS_LED, not PIN_LED: every Arduino-Pico board profile's pins_arduino.h #defines
+  // PIN_LED as a preprocessor macro (e.g. 25u on weact_rp2350b, 64u on rpipico2w), not a constant.
+  // A class member literally named PIN_LED gets textually replaced by the preprocessor before the
+  // compiler ever sees it, producing a nonsensical redefinition and a hard compile error. GP35/GP34
+  // below are discrete status LED/buzzer pins on the H1 debug/expansion header -- best-effort
+  // assignment, unrelated to any board-profile onboard-LED macro.
+  static constexpr uint8_t PIN_STATUS_LED = 35;  // H1 header pin9, confirmed-usable GPIO
+  static constexpr uint8_t PIN_BUZZ = 34;        // H1 header pin10, confirmed-usable GPIO
 
   void begin() {
-    pinMode(PIN_LED, OUTPUT); pinMode(PIN_BUZZ, OUTPUT);
-    digitalWrite(PIN_LED, LOW); digitalWrite(PIN_BUZZ, LOW);
+    pinMode(PIN_STATUS_LED, OUTPUT); pinMode(PIN_BUZZ, OUTPUT);
+    digitalWrite(PIN_STATUS_LED, LOW); digitalWrite(PIN_BUZZ, LOW);
   }
   void set(Pattern p) { if (p != pattern_) { pattern_ = p; phase_start_ms_ = millis(); } }
 
@@ -112,22 +135,22 @@ public:
     switch (pattern_) {
       case BOOT_SELFTEST: blink_(t, 500, 500); break;
       case SELFTEST_FAIL: blink_(t, 100, 100); break;
-      case ARMED: digitalWrite(PIN_LED, HIGH); digitalWrite(PIN_BUZZ, LOW); break;
+      case ARMED: digitalWrite(PIN_STATUS_LED, HIGH); digitalWrite(PIN_BUZZ, LOW); break;
       case LOW_BATTERY: double_blink_(t); break;
-      case FAULT: digitalWrite(PIN_LED, HIGH); digitalWrite(PIN_BUZZ, HIGH); break;
-      case OFF: default: digitalWrite(PIN_LED, LOW); digitalWrite(PIN_BUZZ, LOW); break;
+      case FAULT: digitalWrite(PIN_STATUS_LED, HIGH); digitalWrite(PIN_BUZZ, HIGH); break;
+      case OFF: default: digitalWrite(PIN_STATUS_LED, LOW); digitalWrite(PIN_BUZZ, LOW); break;
     }
   }
 
 private:
   void blink_(unsigned long t, unsigned long on_ms, unsigned long off_ms) {
     bool on = (t % (on_ms + off_ms)) < on_ms;
-    digitalWrite(PIN_LED, on); digitalWrite(PIN_BUZZ, on);
+    digitalWrite(PIN_STATUS_LED, on); digitalWrite(PIN_BUZZ, on);
   }
   void double_blink_(unsigned long t) {
     unsigned long m = t % 2000;
     bool on = (m < 100) || (m >= 250 && m < 350);
-    digitalWrite(PIN_LED, on); digitalWrite(PIN_BUZZ, on);
+    digitalWrite(PIN_STATUS_LED, on); digitalWrite(PIN_BUZZ, on);
   }
   Pattern pattern_ = OFF;
   unsigned long phase_start_ms_ = 0;
