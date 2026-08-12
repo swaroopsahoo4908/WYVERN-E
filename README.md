@@ -1,4 +1,4 @@
-# WYVERN-E
+#GTR70 WYVERN-E
 
 A single-stage, 70 mm, finned active-TVC sustainer built around a **Raspberry Pi Pico 2 W (RP2350)**
 flight computer, powered by an **Estes F15-4**. 
