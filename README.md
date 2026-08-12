@@ -1,7 +1,7 @@
 # WYVERN-E
 
 A single-stage, 70 mm, finned active-TVC sustainer built around a **Raspberry Pi Pico 2 W (RP2350)**
-flight computer, powered by an **Estes F15-4**. A Skylight Rocketry venture.
+flight computer, powered by an **Estes F15-4**. 
 
 The vehicle answers five research questions, run across computational simulation, ground-based
 instrumented testing, and powered flight:
