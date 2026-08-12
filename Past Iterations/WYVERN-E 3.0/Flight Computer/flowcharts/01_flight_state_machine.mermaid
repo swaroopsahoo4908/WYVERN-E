@@ -1,0 +1,26 @@
+%% WYVERN-E 3.0 — Flight software state machine (Raspberry Pi 5)
+stateDiagram-v2
+    [*] --> BOOT
+    BOOT: BOOT\nLinux up, mount 2x microSD, start logger
+    INIT: INIT\nenumerate 3x BNO085 (via TCA9548A) + LSM6DSO32 + LIS2MDL + BMP280 + BME688\nopen camera, zero baro datum
+    SELFTEST: SELFTEST\npreflight_selftest.py — all sensors, both uSD R/W, camera, RRC3+ continuity
+    SAFE: SAFE (RBF inserted)\npyro outputs masked, sensors logging, camera armed
+    ARMED: ARMED (RBF pulled on rail)\nlaunch-detect primed (>3g)
+    BOOST: BOOST\nF40W booster, fixed fins stabilize, log @ full rate
+    COAST_STAGE: COAST/STAGE\ndrag separation at booster burnout, confirm staging
+    TVC_ACTIVE: TVC ACTIVE\nG25W lit; PID gimbal loop stabilize -> commanded maneuver
+    APOGEE: APOGEE\nRRC3+ fires drogue
+    DESCENT: DESCENT\nmain at 150 m, continue logging
+    LANDED: LANDED\nflush logs, stop camera, safe outputs
+    BOOT --> INIT
+    INIT --> SELFTEST
+    SELFTEST --> SAFE: pass
+    SELFTEST --> INIT: fail (retry)
+    SAFE --> ARMED: RBF pulled
+    ARMED --> BOOST: accel > 3g (LAUNCH_IRQ)
+    BOOST --> COAST_STAGE: booster burnout
+    COAST_STAGE --> TVC_ACTIVE: RRC3+ AUX fires G25W
+    TVC_ACTIVE --> APOGEE: sustainer burnout + apogee
+    APOGEE --> DESCENT
+    DESCENT --> LANDED
+    LANDED --> [*]

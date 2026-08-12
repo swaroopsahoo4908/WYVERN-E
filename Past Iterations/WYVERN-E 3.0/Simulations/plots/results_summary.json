@@ -1,0 +1,23 @@
+{
+  "apogee_m": 385.8,
+  "vmax_ms": 68.3,
+  "mach": 0.201,
+  "static_margin_cal": [
+    1.67,
+    1.88
+  ],
+  "min_safety_factor": 17.19,
+  "tvc_bay_peak_C": 73.0,
+  "dispersion": {
+    "cep_m": 112.10157637075392,
+    "drift95_m": 194.02880707559396,
+    "apo_mean": 385.83329039098453,
+    "apo_std": 30.56245549554858
+  },
+  "liftoff_g": 1444.0,
+  "retired_interceptor_plots": [
+    "05_engagement_paths_3d",
+    "06_pk_curves",
+    "07_pk_envelope"
+  ]
+}

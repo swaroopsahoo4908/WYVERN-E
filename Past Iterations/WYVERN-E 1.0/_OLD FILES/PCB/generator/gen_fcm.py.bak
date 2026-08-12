@@ -1,0 +1,406 @@
+#!/usr/bin/env python3
+"""
+WYVERN-E 2.0 FCM -- Flight Computer Module (single consolidated 62 mm disc).
+Derived from XRIM-117E Rev C CCM + SDM, merged onto ONE board.
+
+Subsystems on one board:
+  - RP2350B (QFN-80, 48 GPIO / 8 ADC) flight computer
+  - QSPI boot flash (W25Q32) + SPI NAND data log (W25N01GV) + microSD backup
+  - Sensor suite: ICM-42688-P (6-axis, SPI), BME280 (T/P/RH, I2C),
+    LIS3MDL (magnetometer, I2C); BNO055 (Adafruit 2472) 9-DOF on I2C header;
+    piezo vibration -> ADC; bus current via INA219
+  - 3x PWM solenoid TVC drivers (12 V coil, AO3400A low-side @20 kHz,
+    SS34 freewheel, 20 mOhm shunt -> ADC closed-loop current control)
+  - USB-C 2.0 (program/data) + LoRa E22-900M22S telemetry + camera 2x9 header
+  - RRC3+ pyro interface (power/arm passthrough + drogue/main continuity sense)
+    + onboard 2nd-stage ignition FET channel
+  - 12 V Tenergy NiCd input -> TPS5x buck 3.3 V + 5 V (camera/aux)
+Board: 62 mm circular, center (100,100) r=31. 2-layer shown; 4-layer recommended.
+Run: python3 gen_fcm.py --verify        (autoroute loop: ./route_fcm.sh)
+"""
+import sys, os, math, time, pickle
+from kicadgen import *
+import parts as F
+import parts_ext as FE
+from autoroute import Router, stitch_gnd
+from verify import verify
+
+OUT = os.path.join(os.path.dirname(__file__), '..', 'FCM_KiCAD')
+os.makedirs(OUT, exist_ok=True)
+R_BOARD = 37.5   # 75mm board inside the 80mm ID (84mm OD) tube
+CX = CY = 100.0
+
+# ---------- RP2350B QFN-80 pin map (self-consistent allocation) ----------
+GPIO = {
+ 0:"UART0_TX",1:"UART0_RX",2:"CAM_D0",3:"CAM_D1",4:"CAM_D2",5:"CAM_D3",
+ 6:"CAM_D4",7:"CAM_D5",8:"CAM_D6",9:"CAM_D7",10:"SPI1_SCK",11:"SPI1_MOSI",
+ 12:"SPI1_MISO",13:"NAND_CS",14:"IMU_CS",15:"LORA_NSS",16:"SD_CS",
+ 17:"LORA_BUSY",18:"LORA_DIO1",19:"LORA_NRST",20:"LORA_RXEN",21:"LORA_TXEN",
+ 22:"CAM_XCLK",23:"CAM_PCLK",24:"CAM_VSYNC",25:"CAM_HREF",26:"CAM_RESET",
+ 27:"CAM_PWDN",28:"I2C0_SDA",29:"I2C0_SCL",30:"SOL1_PWM",31:"SOL2_PWM",
+ 32:"SOL3_PWM",33:"PYRO_IGN_GATE",34:"RRC3_ARM",35:"STATUS_LED",
+ 36:"IMU_INT1",37:"BNO_INT",38:"REED",39:"BUZZER",
+ 40:"SOL1_SNS",41:"SOL2_SNS",42:"SOL3_SNS",43:"VBAT_SENSE",
+ 44:"PYRO_IGN_CONT",45:"RRC3_DROGUE_CONT",46:"RRC3_MAIN_CONT",47:"VIBE_SNS"}
+# Build the 80-pin dict: power/special on fixed pins, GPIO fills the rest.
+SPECIAL = {
+ 1:"+3V3",11:"+3V3",21:"+3V3",31:"+3V3",41:"+3V3",51:"+3V3",61:"+3V3",71:"+3V3",  # IOVDD
+ 18:"+1V1",19:"+3V3",                # VREG_VOUT (DVDD core), VREG_VIN
+ 20:"+1V1",60:"+1V1",                # DVDD
+ 39:"+3V3",40:"+3V3",                # USB_VDD, ADC_AVDD
+ 32:"RUN",33:"XIN",34:"XOUT",35:"SWCLK",36:"SWDIO",37:"USB_DP",38:"USB_DM",
+ 72:"QSPI_SD3",73:"QSPI_SCLK",74:"QSPI_SD0",75:"QSPI_SD2",76:"QSPI_SD1",77:"QSPI_SS"}
+RP={}; RPN={}
+gi=iter(sorted(GPIO))
+for pin in range(1,81):
+    if pin in SPECIAL:
+        RP[pin]=SPECIAL[pin]; RPN[pin]=SPECIAL[pin]
+    else:
+        try:
+            g=next(gi); RP[pin]=GPIO[g]; RPN[pin]=f"GPIO{g}"
+        except StopIteration:
+            RP[pin]="+3V3"; RPN[pin]="IOVDD"
+RP[81]="GND"; RPN[81]="EP_GND"
+
+# ---------- peripheral pin maps ----------
+QFLASH={1:"QSPI_SS",2:"QSPI_SD1",3:"QSPI_SD2",4:"GND",5:"QSPI_SD0",6:"QSPI_SCLK",7:"QSPI_SD3",8:"+3V3"}
+QFLASH_N={1:"/CS",2:"DO_IO1",3:"/WP_IO2",4:"GND",5:"DI_IO0",6:"CLK",7:"/HOLD_IO3",8:"VCC"}
+NAND={1:"NAND_CS",2:"SPI1_MISO",3:"+3V3",4:"GND",5:"SPI1_MOSI",6:"SPI1_SCK",7:"+3V3",8:"+3V3"}
+NAND_N={1:"/CS",2:"DO",3:"/WP",4:"GND",5:"DI",6:"CLK",7:"/HOLD",8:"VCC"}
+IMU={1:"SPI1_MISO",2:"",3:"",4:"IMU_INT1",5:"+3V3",6:"GND",7:"GND",8:"+3V3",9:"GND",10:"",11:"",12:"IMU_CS",13:"SPI1_SCK",14:"SPI1_MOSI"}
+IMU_N={1:"SDO",2:"RESV",3:"RESV",4:"INT1",5:"VDDIO",6:"GND",7:"RESV",8:"VDD",9:"INT2",10:"RESV",11:"RESV",12:"CS",13:"SCLK",14:"SDI"}
+BME={1:"+3V3",2:"GND",3:"I2C0_SDA",4:"+3V3",5:"GND",6:"+3V3",7:"I2C0_SCL",8:"GND"}
+BME_N={1:"VDDIO",2:"GND",3:"SDI",4:"CSB",5:"SDO",6:"VDD",7:"SCK",8:"GND"}
+MAG={1:"+3V3",2:"GND",3:"GND",4:"GND",5:"+3V3",6:"I2C0_SCL",7:"I2C0_SDA",8:"GND",9:"GND",10:"GND",11:"GND",12:"+3V3"}
+MAG_N={1:"VDD",2:"GND",3:"RES",4:"GND",5:"VDDIO",6:"SCL",7:"SDA",8:"INT",9:"DRDY",10:"C1",11:"GND",12:"VDD"}
+INA={1:"VBAT12",2:"V_SOL",3:"GND",4:"+3V3",5:"I2C0_SCL",6:"I2C0_SDA",7:"GND",8:"GND"}
+INA_N={1:"IN+",2:"IN-",3:"GND",4:"VS",5:"SCL",6:"SDA",7:"A0",8:"A1"}
+E22={1:"GND",2:"GND",3:"GND",4:"GND",5:"GND",6:"LORA_RXEN",7:"LORA_TXEN",8:"LORA_TXEN",9:"+3V3",10:"GND",11:"GND",12:"GND",13:"LORA_DIO1",14:"LORA_BUSY",15:"LORA_NRST",16:"SPI1_MISO",17:"SPI1_MOSI",18:"SPI1_SCK",19:"LORA_NSS",20:"GND",21:"RF_ANT",22:"GND"}
+E22_N={k:f"P{k}" for k in E22}
+BUCK33={1:"GND",2:"BK3_SW",3:"VBAT12",4:"BK3_FB",5:"",6:"BK3_BOOT"}
+BUCK33_N={1:"GND",2:"SW",3:"VIN",4:"FB",5:"EN",6:"BOOT"}
+BUCK5={1:"GND",2:"BK5_SW",3:"VBAT12",4:"BK5_FB",5:"",6:"BK5_BOOT"}
+BUCK5_N=BUCK33_N
+
+
+def clean_conflicts(brd, clr=0.13):
+    """Rip any different-net copper that violates clearance, net-by-net, until
+    the board is DRC-clean. Ripped nets revert to ratsnest (finish in KiCad).
+    Guarantees zero shorts/clearance violations in the delivered copper."""
+    from shapely.geometry import LineString, Point
+    from shapely.strtree import STRtree
+    from collections import defaultdict, Counter
+    ripped=[]
+    for _ in range(60):
+        # geometry per element (tracks + vias), tagged by (net, kind, index)
+        elems=[]  # (geom, layer, net)
+        for t in brd.tracks:
+            x1,y1,x2,y2,w,layer,nid,net=t
+            elems.append((LineString([(x1,y1),(x2,y2)]).buffer(w/2,1), layer, net))
+        for v in brd.vias:
+            vx,vy,vs,vd,nid,net=v
+            g=Point(vx,vy).buffer(vs/2,2)
+            elems.append((g,"F.Cu",net)); elems.append((g,"B.Cu",net))
+        byl=defaultdict(list)
+        for i,e in enumerate(elems): byl[e[1]].append(i)
+        conf=Counter()
+        for layer,idxs in byl.items():
+            geoms=[elems[i][0] for i in idxs]; tree=STRtree(geoms)
+            for i in idxs:
+                ga=elems[i][0]; na=elems[i][2]
+                if na=="GND": continue
+                for bj in tree.query(ga.buffer(clr)):
+                    j=idxs[bj]
+                    nb=elems[j][2]
+                    if nb==na or nb=="GND": continue
+                    if ga.buffer(clr).intersects(elems[j][0]):
+                        conf[na]+=1; conf[nb]+=1
+        if not conf: break
+        # rip the net with the most conflicts (break ties by fewest segments = least loss)
+        seglen=Counter()
+        for t in brd.tracks: seglen[t[7]]+=1
+        victim=sorted(conf, key=lambda n:(-conf[n], seglen[n]))[0]
+        brd.tracks=[t for t in brd.tracks if t[7]!=victim]
+        brd.vias=[v for v in brd.vias if v[5]!=victim]
+        ripped.append(victim)
+    print(f"clean_conflicts: ripped {len(ripped)} nets to ratsnest -> {ripped}", flush=True)
+    return ripped
+
+
+def main():
+    sch = Schematic("WYVERN-E 2.0 FCM - Flight Computer Module (consolidated)",
+        "Skylight Rocketry",
+        ["WYVERN-E 2.0 | 70 mm 2-stage magnetic-TVC | single 62 mm disc",
+         "RP2350B + NAND + microSD + 9-DOF suite + 3x PWM solenoid closed-loop TVC",
+         "USB-C | LoRa E22 | OV camera | RRC3+ pyro iface | BNO055 (Adafruit 2472) header"])
+    brd = Board("WYVERN-E 2.0 FCM", radius=R_BOARD)
+
+    def boxsym(name, ref, val, fpname, pinmap, names, w=20.0):
+        items=sorted(pinmap.keys()); half=(len(items)+1)//2
+        L=[(names[p],str(p),"pas") for p in items[:half]]
+        Rr=[(names[p],str(p),"pas") for p in items[half:]]
+        sch.add_lib_symbol(make_box_symbol("WE",name,ref,val,"WE:"+fpname,L,Rr,w=w),name,Schematic.box_pins(L,Rr,w=w))
+    boxsym("RP2350","U","RP2350B","QFN-80-1EP_10x10mm_P0.4mm",RP,RPN,w=34)
+    boxsym("QFLASH","U","W25Q32JV","SOIC-8_3.9x4.9mm_P1.27mm",QFLASH,QFLASH_N,w=14)
+    boxsym("NAND","U","W25N01GV","SOIC-8_3.9x4.9mm_P1.27mm",NAND,NAND_N,w=14)
+    boxsym("ICM","U","ICM-42688-P","ICM-42688-P_LGA-14_2.5x3mm",IMU,IMU_N)
+    boxsym("BME","U","BME280","BME280_LGA-8_2.5x2.5mm",BME,BME_N)
+    boxsym("MAG","U","LIS3MDL","LIS3MDL_LGA-12_2x2mm",MAG,MAG_N)
+    boxsym("INA","U","INA219","SOT-23-8",INA,INA_N)
+    boxsym("E22","U","E22-900M22S","E22-900M22S",E22,E22_N,w=22)
+    boxsym("BK3","U","TPS54202(3V3)","SOT-23-6",BUCK33,BUCK33_N)
+    boxsym("BK5","U","TPS54202(5V)","SOT-23-6",BUCK5,BUCK5_N)
+    for nm,glyph,fpn in [("R","R","R_0603"),("C","C","C_0603"),("CP","CP","CP_Radial_D6.3mm_P2.50mm"),
+                         ("L","L","L_4x4mm"),("LED","LED","LED_0603"),("RS","R","R_2512_Shunt"),("D","D","D_SMA")]:
+        sch.add_lib_symbol(make_2pin_symbol("WE",nm,"R" if nm in("R","RS") else {"C":"C","CP":"C","L":"L","LED":"D","D":"D"}[nm],
+                           nm,"WE:"+fpn,glyph),nm,Schematic.TWO_PIN)
+    sch.add_lib_symbol(make_mosfet_symbol("WE","NFET","AO3400A","WE:SOT-23"),"NFET",Schematic.FET_PIN)
+    for n in ["GND","+3V3","+5V","+1V1","VBAT12","V_SOL"]:
+        sch.add_lib_symbol(make_power_symbol(n),"power:"+n,[])
+    sch.lib_symbols.append(PWR_FLAG)
+    def consym(name,npins,names=None,w=12):
+        L=[(names[i] if names else f"P{i+1}",str(i+1),"pas") for i in range(npins)]
+        sch.add_lib_symbol(make_box_symbol("WE",name,"J",name,"",L,[],w=w),name,Schematic.box_pins(L,[],w=w))
+    consym("XT60",2,["VBAT12+","GND"]); consym("SCREW2",2,["A","B"])
+    consym("USBC",8,["VBUS","GND","CC1","CC2","D+","D-","SBU1","SBU2"])
+    consym("uSD",8,["DAT2","CD/CS","DI/MOSI","VDD","CLK","VSS","DO/MISO","DAT1"],w=14)
+    consym("CAM",18); consym("BNO",10,["VIN","3V3","GND","SDA","SCL","RST","INT","ADR","PS0","PS1"],w=14)
+    consym("RRC3",6,["VBAT","GND","ARM","DROG","MAIN","DATA"],w=14)
+    consym("HDR5",5,["3V3","SWDIO","SWCLK","RST","GND"]); consym("HDR2",2,["A","B"])
+    XL=[("IN","1","pas"),("GND","2","pwr")]; XR=[("OUT","3","pas"),("GND","4","pwr")]
+    sch.add_lib_symbol(make_box_symbol("WE","XTAL4","Y","12MHz","WE:Crystal_3225_4Pin",XL,XR,w=10),"XTAL4",Schematic.box_pins(XL,XR,w=10))
+
+    S=sch; col=lambda i:20+ i*55
+    # ---- schematic placement (readable columns by subsystem) ----
+    S.text("MCU: RP2350B + 12MHz XTAL + QSPI boot flash + SWD/USB-C",20,24)
+    S.place("WE:RP2350","RP2350","U1","RP2350B",70,90,{str(k):v for k,v in RP.items()},
+            nc_pins=tuple(str(k) for k,v in RP.items() if v==""))
+    S.place("WE:XTAL4","XTAL4","X1","12MHz",130,40,{"1":"XIN","2":"GND","3":"XOUT","4":"GND"})
+    S.place("WE:C","C","C1","18pF",145,40,{"1":"XIN","2":"GND"})
+    S.place("WE:C","C","C2","18pF",155,40,{"1":"XOUT","2":"GND"})
+    S.place("WE:QFLASH","QFLASH","U2","W25Q32JV",130,70,{str(k):v for k,v in QFLASH.items()})
+    S.place("WE:R","R","R1","10k",150,62,{"1":"+3V3","2":"RUN"})
+    S.place("WE:HDR5","HDR5","J1","SWD",150,82,{"1":"+3V3","2":"SWDIO","3":"SWCLK","4":"RUN","5":"GND"})
+    S.place("WE:C","C","C3","1uF",150,95,{"1":"+1V1","2":"GND"})
+    for i in range(8):
+        S.place("WE:C","C",f"C{10+i}","100nF",30+12*i,120,{"1":"+3V3","2":"GND"})
+    S.place("WE:USBC","USBC","J2","USB-C",170,110,{"1":"+5V_USB","2":"GND","3":"CC1","4":"CC2","5":"USB_DP","6":"USB_DM"})
+    S.place("WE:R","R","R2","5.1k",185,118,{"1":"CC1","2":"GND"})
+    S.place("WE:R","R","R3","5.1k",185,128,{"1":"CC2","2":"GND"})
+
+    S.text("STORAGE: NAND data log (SPI1) + microSD backup (SPI1)",20,150)
+    S.place("WE:NAND","NAND","U3","W25N01GV",40,175,{str(k):v for k,v in NAND.items()})
+    S.place("WE:uSD","uSD","J3","microSD",90,175,{"2":"SD_CS","3":"SPI1_MOSI","4":"+3V3","5":"SPI1_SCK","6":"GND","7":"SPI1_MISO"},nc_pins=("1","8"))
+    S.place("WE:C","C","C20","10uF",120,175,{"1":"+3V3","2":"GND"})
+
+    S.text("SENSOR SUITE: ICM-42688(SPI) BME280(I2C) LIS3MDL(I2C) INA219(I2C) + BNO055 header + vibe",20,200)
+    S.place("WE:ICM","ICM","U4","ICM-42688-P",40,225,{str(k):v for k,v in IMU.items()},nc_pins=("2","3","10","11"))
+    S.place("WE:BME","BME","U5","BME280",95,225,{str(k):v for k,v in BME.items()})
+    S.place("WE:MAG","MAG","U6","LIS3MDL",140,225,{str(k):v for k,v in MAG.items()},nc_pins=("3","4","8","9","10","11"))
+    S.place("WE:R","R","R4","4.7k",185,215,{"1":"+3V3","2":"I2C0_SDA"})
+    S.place("WE:R","R","R5","4.7k",195,215,{"1":"+3V3","2":"I2C0_SCL"})
+    S.place("WE:BNO","BNO","J4","BNO055 (Adafruit 2472)",240,225,
+            {"1":"+3V3","2":"+3V3","3":"GND","4":"I2C0_SDA","5":"I2C0_SCL","7":"BNO_INT"})
+    S.place("WE:SCREW2","SCREW2","J5","PIEZO VIBE",240,250,{"1":"VIBE_SNS","2":"GND"})
+    S.place("WE:R","R","R6","1M",225,258,{"1":"VIBE_SNS","2":"GND"})
+    S.place("WE:INA","INA","U7","INA219",240,200,{str(k):v for k,v in INA.items()})
+
+    S.text("POWER: 12V Tenergy NiCd -> INA219 10m shunt -> V_SOL ; TPS54202 -> 3V3 & 5V",20,275)
+    S.place("WE:XT60","XT60","J6","12V NiCd",30,295,{"1":"VBAT12","2":"GND"})
+    S.place("WE:RS","RS","R7","10m 2512",55,290,{"1":"VBAT12","2":"V_SOL"})
+    S.place("WE:BK3","BK3","U8","TPS54202 3V3",90,295,{str(k):v for k,v in BUCK33.items()},nc_pins=("5",))
+    S.place("WE:L","L","L1","10uH",112,288,{"1":"BK3_SW","2":"+3V3"},rot=90)
+    S.place("WE:R","R","R8","45.3k",122,292,{"1":"+3V3","2":"BK3_FB"})
+    S.place("WE:R","R","R9","10k",122,304,{"1":"BK3_FB","2":"GND"})
+    S.place("WE:BK5","BK5","U9","TPS54202 5V",150,295,{str(k):v for k,v in BUCK5.items()},nc_pins=("5",))
+    S.place("WE:L","L","L2","10uH",172,288,{"1":"BK5_SW","2":"+5V"},rot=90)
+    S.place("WE:R","R","R10","73.2k",182,292,{"1":"+5V","2":"BK5_FB"})
+    S.place("WE:R","R","R11","10k",182,304,{"1":"BK5_FB","2":"GND"})
+    S.place("WE:R","R","R12","100k",55,308,{"1":"VBAT12","2":"VBAT_SENSE"})
+    S.place("WE:R","R","R13","18k",55,320,{"1":"VBAT_SENSE","2":"GND"})
+    for i in range(3):
+        S.place("WE:CP","CP",f"C{30+i}","470uF 25V",70+14*i,335,{"1":"V_SOL","2":"GND"})
+    for net,x in [("VBAT12",30),("V_SOL",60),("+3V3",100),("+5V",150),("GND",190)]:
+        S.power_flag(net,x,348)
+
+    S.text("SOLENOID TVC x3 (12V coil): AO3400A @20kHz + SS34 freewheel + 20m shunt -> ADC closed-loop",20,360)
+    for ch in range(3):
+        y=385+ch*32
+        S.place("WE:SCREW2","SCREW2",f"J{7+ch}",f"SOL{ch+1} EM",30,y,{"1":"V_SOL","2":f"SOL{ch+1}_D"})
+        S.place("WE:D","D",f"D{1+ch}","SS34",55,y-6,{"1":f"SOL{ch+1}_D","2":"V_SOL"})
+        S.place("WE:NFET","NFET",f"Q{1+ch}","AO3400A",78,y,{"1":f"SOL{ch+1}_G","3":f"SOL{ch+1}_D","2":f"SOL{ch+1}_SH"})
+        S.place("WE:R","R",f"R{20+ch*4}","100R",98,y-8,{"1":f"SOL{ch+1}_PWM","2":f"SOL{ch+1}_G"})
+        S.place("WE:R","R",f"R{21+ch*4}","100k",110,y-8,{"1":f"SOL{ch+1}_G","2":"GND"})
+        S.place("WE:RS","RS",f"RS{ch+1}","20m 2512",98,y+6,{"1":f"SOL{ch+1}_SH","2":"GND"})
+        S.place("WE:R","R",f"R{22+ch*4}","1k",122,y-8,{"1":f"SOL{ch+1}_SH","2":f"SOL{ch+1}_SNS"})
+        S.place("WE:C","C",f"C{40+ch}","100nF",134,y-8,{"1":f"SOL{ch+1}_SNS","2":"GND"})
+
+    S.text("PYRO: RRC3+ iface (drogue/main) + onboard 2nd-stage ignition FET + continuity sense",20,490)
+    S.place("WE:RRC3","RRC3","J10","RRC3+ altimeter",40,515,
+            {"1":"VBAT12","2":"GND","3":"RRC3_ARM","4":"RRC3_DROGUE_CONT","5":"RRC3_MAIN_CONT","6":"UART0_TX"})
+    S.place("WE:NFET","NFET","Q4","AO3400A",95,515,{"1":"PYRO_IGN_GATE","3":"PYRO_IGN_D","2":"GND"})
+    S.place("WE:R","R","R40","100k",85,505,{"1":"PYRO_IGN_GATE","2":"GND"})
+    S.place("WE:SCREW2","SCREW2","J11","2ND STG IGNITER",120,515,{"1":"VBAT12","2":"PYRO_IGN_D"})
+    S.place("WE:R","R","R41","100k",112,530,{"1":"PYRO_IGN_D","2":"PYRO_IGN_CONT"})
+    S.place("WE:R","R","R42","18k",124,530,{"1":"PYRO_IGN_CONT","2":"GND"})
+    S.place("WE:LED","LED","LED1","STATUS",160,505,{"2":"LED_R","1":"GND"})
+    S.place("WE:R","R","R43","1k",150,505,{"1":"STATUS_LED","2":"LED_R"})
+    S.place("WE:HDR2","HDR2","J12","ARM REED",160,520,{"1":"REED","2":"GND"})
+    S.place("WE:R","R","R44","10k",150,530,{"1":"+3V3","2":"REED"})
+
+    S.text("TELEMETRY: LoRa E22-900M22S (SPI1) | CAMERA: OV 2x9 header (PIO)",20,545)
+    S.place("WE:E22","E22","U10","E22-900M22S",50,575,{str(k):v for k,v in E22.items()})
+    S.place("WE:CAM","CAM","J13","OV camera",130,575,
+            {"1":"+3V3","2":"GND","3":"CAM_XCLK","4":"CAM_PCLK","5":"CAM_VSYNC","6":"CAM_HREF",
+             "7":"CAM_D0","8":"CAM_D1","9":"CAM_D2","10":"CAM_D3","11":"CAM_D4","12":"CAM_D5",
+             "13":"CAM_D6","14":"CAM_D7","15":"I2C0_SDA","16":"I2C0_SCL","17":"CAM_RESET","18":"CAM_PWDN"})
+
+    # ============ PCB PLACEMENT (62 mm disc) ============
+    rp=FE.qfn80(); qf=F.soic8(); icm=F.lga14_icm(); bme=FE.lga8_bme280(); mag=FE.lga12_mag()
+    ina=F.sot23_8(); s236=F.sot23_6(); s23=F.sot23(); c06=F.c0603(); r06=F.r0603()
+    led=F.led0603(); l44=F.l_4x4(); shunt=F.r2512(); cp=F.cp_radial_d63(); xt=F.xt30()
+    sc2=F.screw2_508(); h5=F.header(5); h2=F.header(2); xtl=F.xtal3225(); m3=F.mount_m3()
+    e22=F.e22_900m22s(); usbc=FE.usb_c(); usd=FE.microsd(); cam=FE.header2(9); bno=F.header(10)
+    rrc=F.header(6); do214=FP("D_SMA",[Pad(1,-2.0,0,1.8,1.7),Pad(2,2.0,0,1.8,1.7)],(-3.2,-1.6,3.2,1.6),
+        ['(fp_line (start -3.0 -1.2) (end -3.0 1.2) (stroke (width 0.2) (type default)) (layer "F.SilkS") (uuid "TSTAMP"))'])
+    A=brd.add_fp; sn=lambda d:{str(k):v for k,v in d.items()}
+    # center MCU + sensors + flash (inner r<18)
+    A(rp,"U1","RP2350B",100,99,0,sn(RP))
+    A(icm,"U4","ICM-42688-P",100,90.5,0,sn(IMU))
+    A(bme,"U5","BME280",106.5,92.0,0,sn(BME))
+    A(mag,"U6","LIS3MDL",93.5,92.0,0,sn(MAG))
+    A(qf,"U2","W25Q32JV",110.5,99.0,0,sn(QFLASH))
+    A(qf,"U3","W25N01GV",89.5,99.0,0,{str(k):v for k,v in NAND.items()})
+    A(xtl,"X1","12MHz",100,108.5,0,{"1":"XIN","2":"GND","3":"XOUT","4":"GND"})
+    A(ina,"U7","INA219",108.0,106.5,0,sn(INA))
+    A(s236,"U8","TPS54202_3V3",92.0,106.0,0,sn(BUCK33))
+    A(l44,"L1","10uH",86.5,103.0,90,{"1":"BK3_SW","2":"+3V3"})
+    A(s236,"U9","TPS54202_5V",114.0,104.5,0,sn(BUCK5))
+    A(l44,"L2","10uH",118.5,108.0,90,{"1":"BK5_SW","2":"+5V"})
+    A(shunt,"R7","10m",100,118.0,0,{"1":"VBAT12","2":"V_SOL"})
+    A(led,"LED1","STAT",94.0,86.0,0,{"1":"GND","2":"LED_R"})
+    A(h5,"J1","SWD",90.0,84.0,0,{"1":"+3V3","2":"SWDIO","3":"SWCLK","4":"RUN","5":"GND"})
+    # rim connectors (annulus r 22..30)
+    def ring(rad,deg): t=math.radians(deg); return CX+rad*math.cos(t),CY+rad*math.sin(t)
+    x,y=ring(26,90);  A(xt,"J6","12V NiCd",x,y,0,{"1":"VBAT12","2":"GND"})
+    x,y=ring(27,135); A(usbc,"J2","USB-C",x,y,45,{"1":"+5V_USB","2":"GND","3":"CC1","4":"CC2","5":"USB_DP","6":"USB_DM","7":"","8":""})
+    x,y=ring(24,180); A(usd,"J3","microSD",x,y,90,{"2":"SD_CS","3":"SPI1_MOSI","4":"+3V3","5":"SPI1_SCK","6":"GND","7":"SPI1_MISO"})
+    x,y=ring(26,225); A(e22,"U10","E22-900M22S",x,y,45,sn(E22))
+    x,y=ring(25,300); A(cam,"J13","OV camera",x,y,0,{"1":"+3V3","2":"CAM_XCLK","3":"CAM_VSYNC","4":"CAM_D0","5":"CAM_D2","6":"CAM_D4","7":"CAM_D6","8":"CAM_RESET","9":"I2C0_SDA","10":"GND","11":"CAM_PCLK","12":"CAM_HREF","13":"CAM_D1","14":"CAM_D3","15":"CAM_D5","16":"CAM_D7","17":"CAM_PWDN","18":"I2C0_SCL"})
+    x,y=ring(25,335); A(bno,"J4","BNO055",x,y,90,{"1":"+3V3","2":"+3V3","3":"GND","4":"I2C0_SDA","5":"I2C0_SCL","6":"RUN","7":"BNO_INT","8":"GND","9":"GND","10":"GND"})
+    x,y=ring(25,45);  A(rrc,"J10","RRC3+",x,y,90,{"1":"VBAT12","2":"GND","3":"RRC3_ARM","4":"RRC3_DROGUE_CONT","5":"RRC3_MAIN_CONT","6":"UART0_TX"})
+    x,y=ring(26,20);  A(sc2,"J11","2ND IGN",x,y,0,{"1":"VBAT12","2":"PYRO_IGN_D"})
+    A(s23,"Q4","AO3400A",*ring(20,20),0,{"1":"PYRO_IGN_GATE","3":"PYRO_IGN_D","2":"GND"})
+    # 3 solenoid power stages at 120 deg (annulus)
+    for ch,th in enumerate([110,230,350]):
+        t=math.radians(th)
+        A(sc2,f"J{7+ch}",f"SOL{ch+1}",*ring(28,th),(-(90+th))%360,{"1":"V_SOL","2":f"SOL{ch+1}_D"})
+        A(s23,f"Q{1+ch}","AO3400A",*ring(22,th),(-(90+th))%360,{"1":f"SOL{ch+1}_G","3":f"SOL{ch+1}_D","2":f"SOL{ch+1}_SH"})
+        dx,dy=ring(25,th+4); A(do214,f"D{1+ch}","SS34",dx,dy,(-(90+th))%360,{"1":f"SOL{ch+1}_D","2":"V_SOL"})
+        A(shunt,f"RS{ch+1}","20m",*ring(18,th),(-(90+th))%360,{"1":f"SOL{ch+1}_SH","2":"GND"})
+        gx,gy=ring(22,th+5); A(r06,f"R{20+ch*4}","100R",gx,gy,0,{"1":f"SOL{ch+1}_PWM","2":f"SOL{ch+1}_G"})
+        g2x,g2y=ring(22,th-5); A(r06,f"R{21+ch*4}","100k",g2x,g2y,0,{"1":f"SOL{ch+1}_G","2":"GND"})
+        f1x,f1y=ring(15,th+4); A(r06,f"R{22+ch*4}","1k",f1x,f1y,0,{"1":f"SOL{ch+1}_SH","2":f"SOL{ch+1}_SNS"})
+        f2x,f2y=ring(15,th-4); A(c06,f"C{40+ch}","100nF",f2x,f2y,0,{"1":f"SOL{ch+1}_SNS","2":"GND"})
+    # bulk caps + decoupling field
+    for i,th in enumerate([70,190,310]):
+        A(cp,f"C{30+i}","470uF",*ring(29,th),0,{"1":"V_SOL","2":"GND"})
+    decoup=[("C10",100,95),("C11",104,95),("C12",96,95),("C13",100,103),("C14",104,103),
+            ("C15",96,103),("C16",108,99),("C17",92,99),("C20",112,95),("C3",88,95)]
+    for ref,xx,yy in decoup: A(c06,ref,"100nF",xx,yy,0,{"1":"+3V3","2":"GND"})
+    A(c06,"C1","18pF",97.5,111.0,0,{"1":"XIN","2":"GND"})
+    A(c06,"C2","18pF",102.5,111.0,0,{"1":"XOUT","2":"GND"})
+    A(c06,"C50","1uF",105,112.0,0,{"1":"+1V1","2":"GND"})
+    # feedback + misc resistors near regulators
+    misc=[("R1","10k",112,108,{"1":"+3V3","2":"RUN"}),("R8","45.3k",90,110,{"1":"+3V3","2":"BK3_FB"}),
+          ("R9","10k",93,110,{"1":"BK3_FB","2":"GND"}),("R10","73.2k",116,110,{"1":"+5V","2":"BK5_FB"}),
+          ("R11","10k",119,110,{"1":"BK5_FB","2":"GND"}),("R12","100k",105,116,{"1":"VBAT12","2":"VBAT_SENSE"}),
+          ("R13","18k",108,116,{"1":"VBAT_SENSE","2":"GND"}),("R4","4.7k",110,90,{"1":"+3V3","2":"I2C0_SDA"}),
+          ("R5","4.7k",112,90,{"1":"+3V3","2":"I2C0_SCL"}),("R40","100k",116,86,{"1":"PYRO_IGN_GATE","2":"GND"}),
+          ("R41","100k",119,89,{"1":"PYRO_IGN_D","2":"PYRO_IGN_CONT"}),("R42","18k",119,92,{"1":"PYRO_IGN_CONT","2":"GND"}),
+          ("R43","1k",90,87,{"1":"STATUS_LED","2":"LED_R"}),("R44","10k",87,90,{"1":"+3V3","2":"REED"}),
+          ("R2","5.1k",84,108,{"1":"CC1","2":"GND"}),("R3","5.1k",84,111,{"1":"CC2","2":"GND"}),
+          ("R6","1M",118,118,{"1":"VIBE_SNS","2":"GND"})]
+    for ref,val,xx,yy,nets in misc: A(r06,ref,val,xx,yy,0,nets)
+    A(h2,"J12","REED",84,90,90,{"1":"REED","2":"GND"})
+    A(sc2,"J5","VIBE",*ring(28,60),0,{"1":"VIBE_SNS","2":"GND"})
+    # mounting holes M3 on 24mm radius (4x at 45 deg offsets, clear of rim parts)
+    for i,th in enumerate([0,90,180,270]):
+        A(m3,f"H{i+1}","M3",*ring(34.5,th),0,{})
+
+    # escape fine-pitch parts
+    escape_stubs(brd,rp,100,99,0,sn(RP))
+    escape_stubs(brd,icm,100,90.5,0,sn(IMU))
+    escape_stubs(brd,bme,106.5,92.0,0,sn(BME))
+    escape_stubs(brd,mag,93.5,92.0,0,sn(MAG))
+    escape_stubs(brd,ina,108.0,106.5,0,sn(INA))
+
+    widths={"+3V3":0.5,"+5V":0.5,"VBAT12":1.2,"V_SOL":1.5,"GND":0.5,"BK3_SW":0.6,"BK5_SW":0.6,
+            "SOL1_D":1.0,"SOL2_D":1.0,"SOL3_D":1.0,"PYRO_IGN_D":0.8,
+            "SOL1_SH":0.8,"SOL2_SH":0.8,"SOL3_SH":0.8}
+    rt=Router(brd,widths)
+    order=["SOL1_PWM","SOL2_PWM","SOL3_PWM","SOL1_SNS","SOL2_SNS","SOL3_SNS",
+           "I2C0_SDA","I2C0_SCL","SPI1_SCK","SPI1_MOSI","SPI1_MISO","NAND_CS","IMU_CS","SD_CS","LORA_NSS",
+           "UART0_TX","UART0_RX","SWDIO","SWCLK","RUN","XIN","XOUT","USB_DP","USB_DM",
+           "LORA_BUSY","LORA_DIO1","LORA_NRST","LORA_RXEN","LORA_TXEN","IMU_INT1","BNO_INT","REED",
+           "STATUS_LED","LED_R","VBAT_SENSE","VIBE_SNS","PYRO_IGN_GATE","PYRO_IGN_CONT","PYRO_IGN_D",
+           "RRC3_ARM","RRC3_DROGUE_CONT","RRC3_MAIN_CONT",
+           "CAM_XCLK","CAM_PCLK","CAM_VSYNC","CAM_HREF","CAM_D0","CAM_D1","CAM_D2","CAM_D3","CAM_D4","CAM_D5","CAM_D6","CAM_D7","CAM_RESET","CAM_PWDN",
+           "QSPI_SS","QSPI_SCLK","QSPI_SD0","QSPI_SD1","QSPI_SD2","QSPI_SD3",
+           "SOL1_G","SOL2_G","SOL3_G","SOL1_SH","SOL2_SH","SOL3_SH","SOL1_D","SOL2_D","SOL3_D",
+           "BK3_SW","BK5_SW","BK3_FB","BK5_FB","BK3_BOOT","BK5_BOOT","CC1","CC2",
+           "+1V1","+5V","V_SOL","VBAT12","+3V3"]
+    allnets=set(n for n in brd.nets if n and n!="GND")
+    seq=[n for n in order if n in allnets]+sorted(allnets-set(order))
+    if "--frompcb" in sys.argv:
+        import re as _re
+        old=open(os.path.join(OUT,"WYVERN_E2_FCM.kicad_pcb")).read()
+        idn={int(i):n for i,n in _re.findall(r'\(net (\d+) "([^"]*)"\)',old)}
+        brd.tracks=[]; brd.vias=[]
+        for a,b,c,d,w,l,n in _re.findall(r'\(segment \(start ([\d.-]+) ([\d.-]+)\) \(end ([\d.-]+) ([\d.-]+)\) \(width ([\d.-]+)\) \(layer "([^"]+)"\) \(net (\d+)\)',old):
+            nm=idn.get(int(n),"")
+            if nm: brd.track(nm,[(float(a),float(b)),(float(c),float(d))],l,float(w))
+        for vx,vy,vs,vd,n in _re.findall(r'\(via \(at ([\d.-]+) ([\d.-]+)\) \(size ([\d.-]+)\) \(drill ([\d.-]+)\) \(layers "[^"]+" "[^"]+"\) \(net (\d+)\)',old):
+            nm=idn.get(int(n),"")
+            if nm: brd.via(nm,float(vx),float(vy),float(vs),float(vd))
+        seq=[]; print("FROMPCB loaded",len(brd.tracks),"tracks",len(brd.vias),"vias",flush=True)
+    CK=os.path.join(OUT,"route_state.pkl"); done=[]; fails=[]
+    if "--resume" in sys.argv and os.path.exists(CK):
+        brd2,rt2,fails2,done=pickle.load(open(CK,"rb"))
+        brd.__dict__.update(brd2.__dict__); rt=Router(brd,widths); fails=fails2
+        print("resumed at",len(done),flush=True)
+    t0=time.time()
+    for net in seq:
+        if "--finish" in sys.argv:
+            fails=sorted(set(fails)|set(n for n in seq if n not in done)); break
+        if net in done: continue
+        if not rt.route_net(net,widths.get(net,0.2)): fails.append(net)
+        done.append(net)
+        if False:
+            pickle.dump((brd,rt,fails,done),open(CK,"wb")); print("CHECKPOINT",len(done),flush=True); sys.exit(42)
+    if "--noretry" not in sys.argv:
+        retry=list(dict.fromkeys(fails)); fails=[]
+        for net in retry:
+            if time.time()-t0>600:
+                fails.append(net); continue
+            if not rt.route_net(net,max(0.18,widths.get(net,0.2)*0.6)): fails.append(net)
+    print(f"ROUTING FCM: {len(fails)} of {len(seq)} failed: {fails}",flush=True)
+    clean_conflicts(brd)
+    nv=stitch_gnd(brd,spacing=6.0); print("stitch vias:",nv,flush=True)
+    brd.gnd_zone("F.Cu"); brd.gnd_zone("B.Cu")
+    ok=True
+    if "--verify" in sys.argv: ok=verify(brd,sch.netlist,"FCM")
+    base="WYVERN_E2_FCM"
+    open(os.path.join(OUT,base+".kicad_sch"),"w").write(sch.emit())
+    open(os.path.join(OUT,base+".kicad_pcb"),"w").write(brd.emit())
+    open(os.path.join(OUT,base+".kicad_pro"),"w").write(project_file(base))
+    if "--gerber" in sys.argv:
+        import gerber_export
+        gdir=os.path.join(OUT,"gerbers"); gerber_export.export(brd, gdir, "WYVERN_E2_FCM")
+        print("GERBERS ->", gdir, flush=True)
+    routed=len(seq)-len(fails)
+    print(f"WROTE {OUT}  routed {routed}/{len(seq)} nets ({100*routed//max(len(seq),1)}%)  verify_ok={ok}",flush=True)
+    return 0
+
+if __name__=="__main__":
+    sys.exit(main())

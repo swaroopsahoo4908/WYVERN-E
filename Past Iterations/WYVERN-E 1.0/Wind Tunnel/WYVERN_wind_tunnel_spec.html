@@ -1,0 +1,575 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --ink:var(--color-text-primary);
+    --ink2:var(--color-text-secondary);
+    --ink3:var(--color-text-tertiary);
+    --surface:var(--color-background-primary);
+    --surface2:var(--color-background-secondary);
+    --border:var(--color-border-tertiary);
+    --border2:var(--color-border-secondary);
+    --accent:#BA7517;
+    --accent-bg:var(--color-background-warning);
+    --accent-text:var(--color-text-warning);
+    --info-bg:var(--color-background-info);
+    --info-text:var(--color-text-info);
+    --mono:'IBM Plex Mono',monospace;
+    --sans:'IBM Plex Sans',sans-serif;
+  }
+  body{font-family:var(--sans);font-size:13px;color:var(--ink);line-height:1.5;padding:0 0 40px}
+
+  .doc-header{padding:28px 28px 20px;border-bottom:0.5px solid var(--border2)}
+  .doc-header .eyebrow{font-size:10px;letter-spacing:0.12em;color:var(--ink3);font-weight:500;margin-bottom:6px;text-transform:uppercase}
+  .doc-header h1{font-size:20px;font-weight:500;color:var(--ink);margin-bottom:2px}
+  .doc-header .sub{font-size:12px;color:var(--ink2)}
+  .meta-row{display:flex;gap:24px;margin-top:12px;flex-wrap:wrap}
+  .meta-item{font-size:11px;color:var(--ink3)}
+  .meta-item strong{color:var(--ink2);font-weight:500}
+
+  .tabs{display:flex;gap:0;border-bottom:0.5px solid var(--border);padding:0 28px;overflow-x:auto}
+  .tab{padding:10px 16px;font-size:12px;font-weight:500;color:var(--ink3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s,border-color .15s}
+  .tab.active{color:var(--ink);border-bottom-color:var(--accent)}
+  .tab:hover{color:var(--ink2)}
+
+  .panel{display:none;padding:24px 28px}
+  .panel.active{display:block}
+
+  .section-title{font-size:11px;letter-spacing:0.10em;text-transform:uppercase;color:var(--ink3);font-weight:500;margin-bottom:14px;padding-bottom:6px;border-bottom:0.5px solid var(--border)}
+
+  .kv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:20px}
+  .kv{background:var(--surface2);border-radius:8px;padding:10px 12px}
+  .kv .label{font-size:10px;color:var(--ink3);margin-bottom:3px;letter-spacing:0.05em}
+  .kv .val{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--ink)}
+  .kv.accent{background:var(--accent-bg)}
+  .kv.accent .val{color:var(--accent-text)}
+  .kv.info{background:var(--info-bg)}
+  .kv.info .val{color:var(--info-text)}
+
+  table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:20px}
+  th{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);font-weight:500;text-align:left;padding:6px 10px;border-bottom:0.5px solid var(--border2)}
+  td{padding:7px 10px;border-bottom:0.5px solid var(--border);color:var(--ink);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td.mono{font-family:var(--mono);font-size:11px;color:var(--ink2)}
+  td.em{font-weight:500}
+  .badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:500}
+  .badge.ok{background:var(--color-background-success);color:var(--color-text-success)}
+  .badge.warn{background:var(--accent-bg);color:var(--accent-text)}
+  .badge.info{background:var(--info-bg);color:var(--info-text)}
+  .badge.vis{background:var(--color-background-secondary);color:var(--ink3)}
+
+  .note{background:var(--accent-bg);border-left:2px solid var(--accent);padding:10px 14px;border-radius:0 6px 6px 0;font-size:12px;color:var(--accent-text);margin-bottom:16px;line-height:1.6}
+
+  .module-row{display:flex;align-items:stretch;gap:0;margin-bottom:4px}
+  .module-block{flex:1;min-width:0;border:0.5px solid var(--border);padding:8px 10px;font-size:11px;position:relative}
+  .module-block:first-child{border-radius:6px 0 0 6px}
+  .module-block:last-child{border-radius:0 6px 6px 0}
+  .module-block .mname{font-weight:500;color:var(--ink);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .module-block .mdim{font-family:var(--mono);color:var(--ink2);font-size:10px}
+  .module-block .marrow{position:absolute;right:-6px;top:50%;transform:translateY(-50%);z-index:2;font-size:10px;color:var(--ink3);background:var(--surface);padding:0 1px}
+
+  .tunnel-svg{width:100%;margin-bottom:16px;overflow:visible}
+
+  .profile-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+  @media(max-width:500px){.profile-row{grid-template-columns:1fr}}
+
+  .eq{font-family:var(--mono);font-size:12px;color:var(--ink2);background:var(--surface2);padding:8px 12px;border-radius:6px;margin-bottom:10px;line-height:1.7;overflow-x:auto;white-space:pre}
+
+  .print-table td:nth-child(3),
+  .print-table td:nth-child(4),
+  .print-table td:nth-child(5){font-family:var(--mono);font-size:11px;color:var(--ink2)}
+
+  .cost-total{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--surface2);border-radius:8px;margin-top:8px}
+  .cost-total .label{font-size:12px;color:var(--ink2)}
+  .cost-total .val{font-family:var(--mono);font-size:16px;font-weight:500;color:var(--ink)}
+
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:520px){.two-col{grid-template-columns:1fr}}
+
+  .sub-section{margin-bottom:20px}
+  .sub-section-title{font-size:12px;font-weight:500;color:var(--ink2);margin-bottom:8px}
+
+  .flow-arrow{font-size:18px;color:var(--ink3);text-align:center;line-height:1;margin:2px 0}
+</style>
+
+<div class="doc-header">
+  <div class="eyebrow">Skylight Industries LLC · Confidential · Proprietary · Not for Distribution</div>
+  <h1>XRIM-117 WYVERN PTD — Dedicated Aerodynamic Ground Test Facility</h1>
+  <div class="sub">Open-return low-speed wind tunnel · Full 3D-printed · Designed for 1:3 scale PTD PDR-002 Rev A test articles</div>
+  <div class="meta-row">
+    <span class="meta-item"><strong>Programme:</strong> PDR-002 Rev A</span>
+    <span class="meta-item"><strong>Test scale:</strong> 1:3 geometric</span>
+    <span class="meta-item"><strong>Fan:</strong> AC Infinity Cloudline T8</span>
+    <span class="meta-item"><strong>Contraction:</strong> 9:1</span>
+    <span class="meta-item"><strong>Test section:</strong> 150 × 150 × 500 mm</span>
+    <span class="meta-item"><strong>OAL:</strong> 2,468 mm</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('overview')">Overview</div>
+  <div class="tab" onclick="showTab('modules')">Module specs</div>
+  <div class="tab" onclick="showTab('aero')">Aerodynamics</div>
+  <div class="tab" onclick="showTab('contraction')">Contraction profile</div>
+  <div class="tab" onclick="showTab('print')">Print plan</div>
+  <div class="tab" onclick="showTab('bom')">BOM & cost</div>
+</div>
+
+<!-- ══════ TAB: OVERVIEW ══════ -->
+<div id="tab-overview" class="panel active">
+  <div class="section-title">Critical dimensions</div>
+  <div class="kv-grid">
+    <div class="kv info"><div class="label">Test section (H × W × L)</div><div class="val">150 × 150 × 500 mm</div></div>
+    <div class="kv info"><div class="label">Test section area</div><div class="val">225 cm²</div></div>
+    <div class="kv accent"><div class="label">Contraction ratio</div><div class="val">9 : 1</div></div>
+    <div class="kv accent"><div class="label">Settling chamber</div><div class="val">450 × 450 mm</div></div>
+    <div class="kv"><div class="label">Test section velocity</div><div class="val">7.3 m/s (24 ft/s)</div></div>
+    <div class="kv"><div class="label">Dynamic pressure q</div><div class="val">33.0 Pa</div></div>
+    <div class="kv"><div class="label">Fan</div><div class="val">AC Infinity T8 (200 mm)</div></div>
+    <div class="kv"><div class="label">Flow rate (loaded est.)</div><div class="val">350 CFM / 0.165 m³·s⁻¹</div></div>
+    <div class="kv"><div class="label">Contraction cone length</div><div class="val">900 mm</div></div>
+    <div class="kv"><div class="label">Diffuser length</div><div class="val">220 mm (4° half-angle)</div></div>
+    <div class="kv"><div class="label">Full tunnel OAL</div><div class="val">2,468 mm (2.47 m)</div></div>
+    <div class="kv"><div class="label">Wall thickness (all modules)</div><div class="val">3.0 mm PETG-CF</div></div>
+    <div class="kv"><div class="label">Module OD</div><div class="val">156 × 156 mm</div></div>
+    <div class="kv"><div class="label">Junction ring OD</div><div class="val">176 mm</div></div>
+    <div class="kv"><div class="label">Honeycomb cell</div><div class="val">4 mm hex, L/d = 7</div></div>
+    <div class="kv"><div class="label">Screen set</div><div class="val">20-mesh + 80-mesh stainless</div></div>
+    <div class="kv"><div class="label">Smoke ports</div><div class="val">3 × 3 grid, 50 mm pitch</div></div>
+    <div class="kv"><div class="label">Bell-mouth lip radius</div><div class="val">180 mm</div></div>
+    <div class="kv"><div class="label">Est. turbulence intensity</div><div class="val">~0.21 %</div></div>
+    <div class="kv"><div class="label">Total print mass</div><div class="val">~4,109 g (4.1 kg)</div></div>
+    <div class="kv accent"><div class="label">Estimated filament cost</div><div class="val">~$115 USD</div></div>
+  </div>
+
+  <div class="section-title">Tunnel layout — side elevation</div>
+  <svg class="tunnel-svg" viewBox="0 0 680 120">
+    <defs>
+      <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round"/>
+      </marker>
+    </defs>
+    <!-- Module blocks left to right: bell, honey+screen, empty, screen, empty, smoke, contraction, TS, diffuser, fan -->
+    <!-- Proportional to actual lengths; total = 2468mm mapped to 620px → scale = 620/2468 = 0.251 -->
+    <g transform="translate(30,10)">
+      <!-- Labels top -->
+      <text x="18" y="8" font-family="'IBM Plex Mono',monospace" font-size="8" fill="var(--color-text-tertiary)" text-anchor="middle">Bell</text>
+      <text x="52" y="8" font-family="'IBM Plex Mono',monospace" font-size="8" fill="var(--color-text-tertiary)" text-anchor="middle">Cond.</text>
+      <text x="100" y="8" font-family="'IBM Plex Mono',monospace" font-size="8" fill="var(--color-text-tertiary)" text-anchor="middle">Contraction 900mm</text>
+      <text x="188" y="8" font-family="'IBM Plex Mono',monospace" font-size="8" fill="var(--color-text-tertiary)" text-anchor="middle">Test section 500mm</text>
+      <text x="251" y="8" font-family="'IBM Plex Mono',monospace" font-size="8" fill="var(--color-text-tertiary)" text-anchor="middle">Diff.</text>
+      <text x="269" y="8" font-family="'IBM Plex Mono',monospace" font-size="8" fill="var(--color-text-tertiary)" text-anchor="middle">Fan</text>
+
+      <!-- All scaled: 1px ≈ 4mm; settle=113px wide, contraction tapers, TS=125px, diff=55px, fan=50px -->
+      <!-- Settling chamber cross: 450mm → 113px height; TS: 150mm → 38px height -->
+
+      <!-- Bell mouth (120mm long) -->
+      <path d="M0,56 Q30,56 30,76 L30,22 Q30,12 0,12 Z" fill="var(--color-background-info)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+      <line x1="0" y1="12" x2="0" y2="56" stroke="var(--color-border-secondary)" stroke-width="0.5" stroke-dasharray="2 2"/>
+
+      <!-- Conditioning (honeycomb+screens+empty: 120+40+150+40+150+100 = 600mm → ~150px) -->
+      <rect x="30" y="12" width="75" height="64" fill="var(--color-background-secondary)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+      <!-- internal lines for honey/screen/duct dividers at ~12px intervals -->
+      <line x1="42" y1="12" x2="42" y2="76" stroke="var(--color-border-tertiary)" stroke-width="0.3" stroke-dasharray="1 2"/>
+      <line x1="52" y1="12" x2="52" y2="76" stroke="var(--color-border-tertiary)" stroke-width="0.3" stroke-dasharray="1 2"/>
+      <line x1="68" y1="12" x2="68" y2="76" stroke="var(--color-border-tertiary)" stroke-width="0.3" stroke-dasharray="1 2"/>
+      <line x1="80" y1="12" x2="80" y2="76" stroke="var(--color-border-tertiary)" stroke-width="0.3" stroke-dasharray="1 2"/>
+      <line x1="90" y1="12" x2="90" y2="76" stroke="var(--color-border-tertiary)" stroke-width="0.3" stroke-dasharray="1 2"/>
+      <line x1="100" y1="12" x2="100" y2="76" stroke="var(--color-border-tertiary)" stroke-width="0.3" stroke-dasharray="1 2"/>
+
+      <!-- Contraction cone (900mm → 225px) -->
+      <path d="M105,12 L330,31.5 L330,56.5 L105,76 Z" fill="var(--color-background-warning)" fill-opacity="0.4" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+
+      <!-- Test section (500mm → 125px) -->
+      <rect x="330" y="31.5" width="125" height="25" fill="var(--color-background-info)" fill-opacity="0.5" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+
+      <!-- Diffuser (220mm → 55px) -->
+      <path d="M455,31.5 L510,25 L510,63 L455,56.5 Z" fill="var(--color-background-secondary)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+
+      <!-- Fan (200mm → 50px cylinder) -->
+      <ellipse cx="535" cy="44" rx="5" ry="19" fill="var(--color-background-secondary)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+      <rect x="510" y="25" width="25" height="38" fill="var(--color-background-secondary)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+      <ellipse cx="510" cy="44" rx="5" ry="19" fill="var(--color-background-primary)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+
+      <!-- Centerline -->
+      <line x1="0" y1="44" x2="540" y2="44" stroke="var(--color-border-tertiary)" stroke-width="0.5" stroke-dasharray="3 3"/>
+
+      <!-- Flow arrow -->
+      <line x1="555" y1="44" x2="580" y2="44" stroke="var(--color-text-tertiary)" stroke-width="1" marker-end="url(#arr2)"/>
+      <text x="590" y="47" font-family="'IBM Plex Mono',monospace" font-size="8" fill="var(--color-text-tertiary)">exhaust</text>
+
+      <!-- Scale bar -->
+      <line x1="0" y1="95" x2="25" y2="95" stroke="var(--color-text-tertiary)" stroke-width="0.5"/>
+      <line x1="0" y1="92" x2="0" y2="98" stroke="var(--color-text-tertiary)" stroke-width="0.5"/>
+      <line x1="25" y1="92" x2="25" y2="98" stroke="var(--color-text-tertiary)" stroke-width="0.5"/>
+      <text x="12" y="108" font-family="'IBM Plex Mono',monospace" font-size="8" fill="var(--color-text-tertiary)" text-anchor="middle">100 mm</text>
+    </g>
+  </svg>
+
+  <div class="section-title">Blockage summary (1:3 scale model, 150 × 150 mm test section)</div>
+  <table>
+    <tr><th>Test article</th><th>Frontal area</th><th>Blockage</th><th>Status</th></tr>
+    <tr><td>Nose cone on sting (body only)</td><td class="mono">4.28 cm²</td><td class="mono">1.9 %</td><td><span class="badge ok">No correction</span></td></tr>
+    <tr><td>Single fin panel — half-span wall mount</td><td class="mono">5.44 cm²</td><td class="mono">2.4 %</td><td><span class="badge ok">No correction</span></td></tr>
+    <tr><td>Ring 2 assembly + body stub</td><td class="mono">6.97 cm²</td><td class="mono">3.1 %</td><td><span class="badge ok">No correction</span></td></tr>
+    <tr><td>Ring 1 assembly + body stub</td><td class="mono">15.17 cm²</td><td class="mono">6.7 %</td><td><span class="badge warn">Maskell correction</span></td></tr>
+    <tr><td>Full rocket, 0° AoA (both rings)</td><td class="mono">17.82 cm²</td><td class="mono">7.9 %</td><td><span class="badge warn">Maskell correction</span></td></tr>
+    <tr><td>Full rocket, 45° roll</td><td class="mono">~23.6 cm²</td><td class="mono">~10.5 %</td><td><span class="badge vis">Visualization only</span></td></tr>
+  </table>
+
+  <div class="note">The 150 × 150 mm test section resolves the primary limitation of the source STEM tunnel (80 × 130 mm, 37% blockage at 1:1). The full-rocket at 0° AoA now sits at 7.9% — within the Maskell-correctable range. At 1:3 scale, body OD = 23.3 mm, Ring 1 fin span = 23.3 mm, OAL = 390 mm.</div>
+</div>
+
+<!-- ══════ TAB: MODULES ══════ -->
+<div id="tab-modules" class="panel">
+  <div class="section-title">Module specifications — all dimensions internal unless noted</div>
+
+  <div class="two-col">
+    <div>
+      <div class="sub-section">
+        <div class="sub-section-title">1. Bell-mouth inlet</div>
+        <table>
+          <tr><th>Parameter</th><th>Value</th></tr>
+          <tr><td>Face area (internal square)</td><td class="mono">450 × 450 mm</td></tr>
+          <tr><td>OAL</td><td class="mono">120 mm</td></tr>
+          <tr><td>Lip profile</td><td class="mono">Elliptical, r = 180 mm</td></tr>
+          <tr><td>Wall thickness</td><td class="mono">3 mm PETG-CF</td></tr>
+          <tr><td>Print split</td><td class="mono">2-piece, M3 bolts at midplane</td></tr>
+        </table>
+      </div>
+      <div class="sub-section">
+        <div class="sub-section-title">2. Honeycomb flow straightener</div>
+        <table>
+          <tr><th>Parameter</th><th>Value</th></tr>
+          <tr><td>Cell geometry</td><td class="mono">4 mm hex inscribed circle</td></tr>
+          <tr><td>Section length (L/d = 7)</td><td class="mono">28 mm</td></tr>
+          <tr><td>Wall cell thickness</td><td class="mono">0.4 mm</td></tr>
+          <tr><td>Re in cell (at 0.816 m/s)</td><td class="mono">223 — laminar ✓</td></tr>
+          <tr><td>Print method</td><td class="mono">Hex infill, no top/bot skins</td></tr>
+        </table>
+      </div>
+      <div class="sub-section">
+        <div class="sub-section-title">3. Screen frames (× 2)</div>
+        <table>
+          <tr><th>Parameter</th><th>Value</th></tr>
+          <tr><td>Screen 1 (upstream)</td><td class="mono">20-mesh stainless, K = 1.04</td></tr>
+          <tr><td>Screen 2 (downstream)</td><td class="mono">80-mesh stainless, K = 2.54</td></tr>
+          <tr><td>Frame OAL each</td><td class="mono">40 mm (8 mm print + 32 mm screen depth)</td></tr>
+          <tr><td>ΔP screen 1</td><td class="mono">0.42 Pa</td></tr>
+          <tr><td>ΔP screen 2</td><td class="mono">1.04 Pa</td></tr>
+          <tr><td>Install method</td><td class="mono">Pause at 4 mm, lay mesh, resume</td></tr>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="sub-section">
+        <div class="sub-section-title">4. Empty duct sections (× 2)</div>
+        <table>
+          <tr><th>Parameter</th><th>Value</th></tr>
+          <tr><td>Internal cross-section</td><td class="mono">450 × 450 mm</td></tr>
+          <tr><td>Length each</td><td class="mono">150 mm</td></tr>
+          <tr><td>Required decay length</td><td class="mono">≥ 64 mm — satisfied ✓</td></tr>
+          <tr><td>Print</td><td class="mono">1-piece vertical, 150 mm tall</td></tr>
+        </table>
+      </div>
+      <div class="sub-section">
+        <div class="sub-section-title">5. Smoke-strut section</div>
+        <table>
+          <tr><th>Parameter</th><th>Value</th></tr>
+          <tr><td>OAL</td><td class="mono">100 mm</td></tr>
+          <tr><td>Port count</td><td class="mono">9 (3 × 3 grid)</td></tr>
+          <tr><td>Port spacing</td><td class="mono">50 mm pitch</td></tr>
+          <tr><td>Port diameter</td><td class="mono">4 mm Loc-Line compatible</td></tr>
+          <tr><td>Port cover plugs</td><td class="mono">9× printed, push-fit</td></tr>
+        </table>
+      </div>
+      <div class="sub-section">
+        <div class="sub-section-title">6. Junction rings</div>
+        <table>
+          <tr><th>Parameter</th><th>Value</th></tr>
+          <tr><td>OD</td><td class="mono">176 mm</td></tr>
+          <tr><td>ID (slips over module OD)</td><td class="mono">156 mm</td></tr>
+          <tr><td>Wall</td><td class="mono">10 mm</td></tr>
+          <tr><td>Height (each half)</td><td class="mono">15 mm</td></tr>
+          <tr><td>Chamfer angle</td><td class="mono">15° compression fit</td></tr>
+          <tr><td>Heat-set inserts</td><td class="mono">4× M3 × 5 mm at 90° spacing</td></tr>
+          <tr><td>O-ring groove</td><td class="mono">2 × 1.5 mm (optional seal)</td></tr>
+          <tr><td>Quantity</td><td class="mono">8 junctions × 4 pieces = 32 rings</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Test section — detail</div>
+  <div class="two-col">
+    <div>
+      <table>
+        <tr><th>Parameter</th><th>Value</th></tr>
+        <tr><td>Internal cross-section</td><td class="mono">150 × 150 mm square</td></tr>
+        <tr><td>OAL</td><td class="mono">500 mm (3 sections of 167 mm)</td></tr>
+        <tr><td>L/W ratio</td><td class="mono">3.33</td></tr>
+        <tr><td>Wall thickness</td><td class="mono">3 mm PETG-CF</td></tr>
+        <tr><td>Windows per section</td><td class="mono">4 walls × 1 panel = 4 per section</td></tr>
+        <tr><td>Window size</td><td class="mono">135 × 157 mm</td></tr>
+        <tr><td>Window material</td><td class="mono">3 mm cast acrylic (PMMA)</td></tr>
+        <tr><td>Window retention</td><td class="mono">M2.5 quick-release tabs (4 per window)</td></tr>
+        <tr><td>Total windows</td><td class="mono">12 panels = 12 × 135 × 157 mm</td></tr>
+        <tr><td>Floor mount system</td><td class="mono">Gridfinity 2 × 1 pattern, 6-ball magnet</td></tr>
+        <tr><td>Sting bore (floor)</td><td class="mono">6 mm hex, 4 mm CF rod insert</td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="sub-section-title">Diffuser</div>
+      <table>
+        <tr><th>Parameter</th><th>Value</th></tr>
+        <tr><td>Profile</td><td class="mono">Square → circle transition</td></tr>
+        <tr><td>Inlet</td><td class="mono">150 × 150 mm square</td></tr>
+        <tr><td>Outlet</td><td class="mono">200 mm diameter circle</td></tr>
+        <tr><td>Length</td><td class="mono">220 mm</td></tr>
+        <tr><td>Half-angle</td><td class="mono">4.0° (separation-free)</td></tr>
+        <tr><td>Area ratio</td><td class="mono">1.40</td></tr>
+        <tr><td>Corner radius at outlet</td><td class="mono">100 mm (full circle)</td></tr>
+        <tr><td>Print split</td><td class="mono">2-piece along centerline</td></tr>
+      </table>
+      <div class="sub-section-title" style="margin-top:12px">Fan interface</div>
+      <table>
+        <tr><th>Parameter</th><th>Value</th></tr>
+        <tr><td>Fan model</td><td class="mono">AC Infinity Cloudline T8</td></tr>
+        <tr><td>Inlet diameter</td><td class="mono">200 mm</td></tr>
+        <tr><td>Adapter ring</td><td class="mono">PETG-CF printed, bolt-on</td></tr>
+        <tr><td>Speed control</td><td class="mono">PWM via included controller</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ TAB: AERO ══════ -->
+<div id="tab-aero" class="panel">
+  <div class="section-title">Flow conditions</div>
+  <div class="kv-grid">
+    <div class="kv info"><div class="label">Test section velocity</div><div class="val">7.34 m/s</div></div>
+    <div class="kv info"><div class="label">Mach number</div><div class="val">M = 0.0216</div></div>
+    <div class="kv"><div class="label">Dynamic pressure</div><div class="val">33.0 Pa</div></div>
+    <div class="kv"><div class="label">Settling chamber vel.</div><div class="val">0.816 m/s</div></div>
+    <div class="kv accent"><div class="label">Est. turbulence intensity</div><div class="val">0.21 %</div></div>
+    <div class="kv"><div class="label">Honeycomb Re (cell)</div><div class="val">223 (laminar)</div></div>
+  </div>
+
+  <div class="section-title">Reynolds numbers — 1:3 scale model at 7.34 m/s</div>
+  <table>
+    <tr><th>Reference length</th><th>Dimension</th><th>Re (tunnel)</th><th>Re (flight)</th><th>Ratio</th></tr>
+    <tr><td>Model body diameter</td><td class="mono">23.3 mm</td><td class="mono">1.17 × 10⁴</td><td class="mono">8.03 × 10⁵</td><td class="mono">0.015</td></tr>
+    <tr><td>Model OAL</td><td class="mono">390 mm</td><td class="mono">1.96 × 10⁵</td><td class="mono">6.78 × 10⁶</td><td class="mono">0.029</td></tr>
+    <tr><td>Ring 1 fin root chord</td><td class="mono">31.0 mm</td><td class="mono">1.56 × 10⁴</td><td class="mono">4.28 × 10⁵</td><td class="mono">0.036</td></tr>
+    <tr><td>Ring 2 fin root chord</td><td class="mono">15.7 mm</td><td class="mono">7.9 × 10³</td><td class="mono">2.17 × 10⁵</td><td class="mono">0.036</td></tr>
+  </table>
+
+  <div class="note">Re mismatch is ~2 decades. Tunnel data is qualitative visualization and relative comparison only. Do not use tunnel drag coefficients to calibrate OpenRocket models.</div>
+
+  <div class="section-title">Screen pressure drop budget</div>
+  <div class="eq">ΔP_20mesh = K · ½ρV²_settle = 1.041 × ½ × 1.225 × 0.816² = 0.424 Pa
+ΔP_80mesh = K · ½ρV²_settle = 2.542 × ½ × 1.225 × 0.816² = 1.036 Pa
+ΔP_total_screens = 1.460 Pa (negligible vs fan capacity)</div>
+
+  <div class="section-title">Turbulence intensity derivation</div>
+  <div class="eq">TI_inlet  (room air)      ≈ 3.0 %
+TI_post_honeycomb        = 3.0 × 0.50          = 1.50 %
+TI_post_screen_1  (20m)  = 1.50 × 0.65         = 0.975 %
+TI_post_screen_2  (80m)  = 0.975 × 0.65         = 0.634 %
+TI_test_section          = 0.634 / √CR          
+                         = 0.634 / √9           = 0.634 / 3 = 0.211 %</div>
+
+  <div class="section-title">Force balance requirements</div>
+  <table>
+    <tr><th>Test article</th><th>Component</th><th>Area (cm²)</th><th>Coeff.</th><th>Force at q = 33 Pa</th></tr>
+    <tr><td>Nose cone</td><td>Drag (CD ≈ 0.04)</td><td class="mono">4.28</td><td class="mono">CD = 0.04</td><td class="mono">0.57 mN / 0.058 gf</td></tr>
+    <tr><td>Single fin panel</td><td>Drag (CD ≈ 0.015)</td><td class="mono">5.44</td><td class="mono">CD = 0.015</td><td class="mono">0.27 mN / 0.028 gf</td></tr>
+    <tr><td>Single fin panel at 5° AoA</td><td>Lift (CL ≈ 0.35)</td><td class="mono">5.44</td><td class="mono">CL = 0.35</td><td class="mono">6.29 mN / 0.641 gf</td></tr>
+  </table>
+
+  <div class="note">Recommended load cell: TAL221 50 g range with HX711 24-bit ADC. Usable resolution ~0.3 μN per count; noise floor at ×10 counts = ~0.3 mN — sufficient to resolve fin lift at 5° AoA. Sting deflection at 6.3 mN: δ = 0.008 mm; AoA error = 0.003° — negligible.</div>
+
+  <div class="section-title">Maskell solid-body blockage correction</div>
+  <div class="eq">C_D,corr = C_D,meas × (1 − A_frontal / A_TS)²
+
+Ring 1 assembly (A = 15.17 cm², blockage = 6.7%):
+  Correction factor = (1 − 0.067)² = 0.870
+  C_D,corr = C_D,meas × 0.870  →  13% reduction applied
+
+Full rocket at 0° (A = 17.82 cm², blockage = 7.9%):
+  Correction factor = (1 − 0.079)² = 0.846
+  C_D,corr = C_D,meas × 0.846  →  15.4% reduction applied
+
+Full rocket at 45° roll (blockage ≈ 10.5%): visualization only — no C_D extraction</div>
+</div>
+
+<!-- ══════ TAB: CONTRACTION PROFILE ══════ -->
+<div id="tab-contraction" class="panel">
+  <div class="section-title">Bell 5th-order polynomial contraction — 9:1 ratio</div>
+  <div class="eq">Profile equation (half-width at station x along 900 mm cone):
+
+y(x) = 225 − 150 · [10·(x/900)³ − 15·(x/900)⁴ + 6·(x/900)⁵]   [mm]
+
+Boundary conditions:
+  y(0) = 225 mm  →  settling chamber half-width (450 mm internal)
+  y(900) = 75 mm  →  test section half-width (150 mm internal)
+  y'(0) = y'(900) = 0   (zero slope at both ends — no inflection shock)
+  y''(0) = y''(900) = 0  (zero curvature at both ends)</div>
+
+  <div class="section-title">Station coordinates</div>
+  <table>
+    <tr><th>x (mm)</th><th>Half-width y (mm)</th><th>Full width (mm)</th><th>Cross-section area (mm²)</th><th>Local V / V_TS</th></tr>
+    <tr><td class="mono">0</td><td class="mono">225.0</td><td class="mono">450.0</td><td class="mono">202,500</td><td class="mono">0.111</td></tr>
+    <tr><td class="mono">100</td><td class="mono">223.3</td><td class="mono">446.5</td><td class="mono">199,398</td><td class="mono">0.113</td></tr>
+    <tr><td class="mono">200</td><td class="mono">213.5</td><td class="mono">427.1</td><td class="mono">182,394</td><td class="mono">0.123</td></tr>
+    <tr><td class="mono">300</td><td class="mono">193.5</td><td class="mono">387.0</td><td class="mono">149,798</td><td class="mono">0.150</td></tr>
+    <tr><td class="mono">400</td><td class="mono">165.5</td><td class="mono">331.0</td><td class="mono">109,557</td><td class="mono">0.205</td></tr>
+    <tr><td class="mono">500</td><td class="mono">134.5</td><td class="mono">269.0</td><td class="mono">72,364</td><td class="mono">0.311</td></tr>
+    <tr><td class="mono">600</td><td class="mono">106.5</td><td class="mono">213.0</td><td class="mono">45,353</td><td class="mono">0.496</td></tr>
+    <tr><td class="mono">700</td><td class="mono">86.5</td><td class="mono">172.9</td><td class="mono">29,902</td><td class="mono">0.753</td></tr>
+    <tr><td class="mono">800</td><td class="mono">76.7</td><td class="mono">153.5</td><td class="mono">23,550</td><td class="mono">0.956</td></tr>
+    <tr><td class="mono">900</td><td class="mono">75.0</td><td class="mono">150.0</td><td class="mono">22,500</td><td class="mono">1.000</td></tr>
+  </table>
+
+  <div class="section-title">Contraction profile — cross-section view</div>
+  <svg width="100%" viewBox="0 0 680 180">
+    <defs>
+      <marker id="arrc" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round"/>
+      </marker>
+    </defs>
+    <!-- Contraction shape: inlet at left (y_half = 225mm → 67px in view) outlet at right (75mm → 22px) -->
+    <!-- Scale: 900mm → 450px, 225mm → 67px half -->
+    <g transform="translate(80,20)">
+      <!-- Upper wall profile (scaled) -->
+      <path d="M0,0 C135,0 225,39 315,52 C405,62 432,62 450,44" fill="var(--color-background-warning)" fill-opacity="0.25" stroke="var(--color-text-secondary)" stroke-width="1" fill-rule="evenodd"/>
+      <!-- Lower wall (mirror) -->
+      <path d="M0,134 C135,134 225,95 315,82 C405,72 432,72 450,90" fill="var(--color-background-warning)" fill-opacity="0.25" stroke="var(--color-text-secondary)" stroke-width="1"/>
+      <!-- Interior flow fill -->
+      <path d="M0,0 C135,0 225,39 315,52 C405,62 432,62 450,44 L450,90 C432,72 405,72 315,82 C225,95 135,134 0,134 Z" fill="var(--color-background-info)" fill-opacity="0.2"/>
+      <!-- Centerline -->
+      <line x1="0" y1="67" x2="460" y2="67" stroke="var(--color-border-tertiary)" stroke-width="0.5" stroke-dasharray="4 4"/>
+      <!-- Station ticks and labels -->
+      <g font-family="'IBM Plex Mono',monospace" font-size="9" fill="var(--color-text-tertiary)" text-anchor="middle">
+        <line x1="0" y1="134" x2="0" y2="148" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+        <text x="0" y="158">0</text>
+        <line x1="50" y1="134" x2="50" y2="148" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+        <text x="50" y="158">100</text>
+        <line x1="150" y1="95" x2="150" y2="148" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+        <text x="150" y="158">300</text>
+        <line x1="250" y1="52" x2="250" y2="148" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+        <text x="250" y="158">500</text>
+        <line x1="350" y1="53" x2="350" y2="148" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+        <text x="350" y="158">700</text>
+        <line x1="450" y1="90" x2="450" y2="148" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+        <text x="450" y="158">900</text>
+        <text x="225" y="168">x (mm)</text>
+      </g>
+      <!-- Width annotations -->
+      <line x1="-10" y1="0" x2="-10" y2="134" stroke="var(--color-text-tertiary)" stroke-width="0.5" marker-start="url(#arrc)" marker-end="url(#arrc)"/>
+      <text x="-30" y="67" font-family="'IBM Plex Mono',monospace" font-size="8" fill="var(--color-text-tertiary)" text-anchor="middle" transform="rotate(-90,-30,67)">450 mm</text>
+      <line x1="460" y1="44" x2="460" y2="90" stroke="var(--color-text-tertiary)" stroke-width="0.5" marker-start="url(#arrc)" marker-end="url(#arrc)"/>
+      <text x="490" y="70" font-family="'IBM Plex Mono',monospace" font-size="8" fill="var(--color-text-tertiary)" text-anchor="middle">150 mm</text>
+      <!-- Flow direction arrow -->
+      <line x1="480" y1="67" x2="510" y2="67" stroke="var(--color-text-tertiary)" stroke-width="1" marker-end="url(#arrc)"/>
+      <text x="525" y="70" font-family="'IBM Plex Mono',monospace" font-size="9" fill="var(--color-text-tertiary)">flow</text>
+    </g>
+  </svg>
+
+  <div class="section-title">Diffuser square-to-circle transition</div>
+  <div class="eq">Corner radius grows linearly from inlet to outlet:
+  r(x) = R_fan · (x / L_diff) = 100 · (x / 220)   [mm]
+
+Station profile:
+  x =   0 mm:  150 × 150 mm square  (r = 0)
+  x =  44 mm:  110 × 110 mm + r = 20 mm  
+  x =  88 mm:   70 × 70 mm  + r = 40 mm  
+  x = 132 mm:   30 × 30 mm  + r = 60 mm  
+  x = 176 mm:   0 × 0 mm    + r = 80 mm  → near-circular
+  x = 220 mm:   200 mm diameter circle (r = 100 mm)</div>
+</div>
+
+<!-- ══════ TAB: PRINT PLAN ══════ -->
+<div id="tab-print" class="panel">
+  <div class="section-title">Print parameters by module</div>
+  <table class="print-table">
+    <tr><th>Module</th><th>Material</th><th>Layer h.</th><th>Walls</th><th>Infill</th><th>Est. mass</th><th>Notes</th></tr>
+    <tr><td class="em">Bell-mouth inlet</td><td class="mono">PETG-CF</td><td class="mono">0.20</td><td class="mono">4</td><td class="mono">25% gyroid</td><td class="mono">~380 g</td><td>2-piece split at midplane, M3 bolts</td></tr>
+    <tr><td class="em">Honeycomb section</td><td class="mono">PETG-CF</td><td class="mono">0.20</td><td class="mono">2</td><td class="mono">hex 4 mm, 0% skins</td><td class="mono">~90 g</td><td>Print flat; hex infill method</td></tr>
+    <tr><td class="em">Screen frames × 2</td><td class="mono">PETG</td><td class="mono">0.20</td><td class="mono">3</td><td class="mono">20% gyroid</td><td class="mono">~40 g</td><td>Pause at 4 mm layer, embed wire mesh</td></tr>
+    <tr><td class="em">Empty duct sections × 2</td><td class="mono">PETG-CF</td><td class="mono">0.20</td><td class="mono">3</td><td class="mono">15% gyroid</td><td class="mono">~240 g</td><td>1 piece each, 150 mm tall, vertical</td></tr>
+    <tr><td class="em">Smoke-strut section</td><td class="mono">PETG-CF</td><td class="mono">0.20</td><td class="mono">4</td><td class="mono">20% gyroid</td><td class="mono">~220 g</td><td>9× 4 mm Loc-Line port inserts</td></tr>
+    <tr><td class="em">Contraction cone</td><td class="mono">PETG-CF</td><td class="mono">0.15</td><td class="mono">4</td><td class="mono">30% gyroid</td><td class="mono">~820 g</td><td>6 × 150 mm sections, junction rings</td></tr>
+    <tr><td class="em">Test section × 3</td><td class="mono">PETG-CF</td><td class="mono">0.20</td><td class="mono">4</td><td class="mono">20% gyroid</td><td class="mono">~580 g</td><td>167 mm each; M2.5 inserts for window latches</td></tr>
+    <tr><td class="em">Diffuser</td><td class="mono">PETG-CF</td><td class="mono">0.20</td><td class="mono">4</td><td class="mono">20% gyroid</td><td class="mono">~240 g</td><td>2-piece, square→circle transition</td></tr>
+    <tr><td class="em">Junction rings × 32</td><td class="mono">PETG-CF</td><td class="mono">0.20</td><td class="mono">4</td><td class="mono">40% gyroid</td><td class="mono">~960 g</td><td>4 pcs per junction, 8 junctions</td></tr>
+    <tr><td class="em">Sting base (Gridfinity)</td><td class="mono">PETG</td><td class="mono">0.20</td><td class="mono">4</td><td class="mono">40% gyroid</td><td class="mono">~45 g</td><td>6 mm hex bore, 6-ball magnetic</td></tr>
+    <tr><td class="em">Test article models</td><td class="mono">PETG-CF</td><td class="mono">0.15</td><td class="mono">4</td><td class="mono">40% gyroid</td><td class="mono">~119 g</td><td>All 5 WYVERN test articles per programme</td></tr>
+    <tr><td class="em">Smoke wands + plugs</td><td class="mono">PETG</td><td class="mono">0.20</td><td class="mono">3</td><td class="mono">20% gyroid</td><td class="mono">~60 g</td><td>Loc-Line compatible joints</td></tr>
+    <tr><td class="em">Fan adapter ring</td><td class="mono">PETG-CF</td><td class="mono">0.20</td><td class="mono">4</td><td class="mono">30% gyroid</td><td class="mono">~95 g</td><td>Bolt-on to diffuser exit</td></tr>
+    <tr><td class="em">Stand feet × 4 pairs</td><td class="mono">PETG-CF</td><td class="mono">0.20</td><td class="mono">5</td><td class="mono">40% gyroid</td><td class="mono">~220 g</td><td>110 mm tall, M6 leveling feet</td></tr>
+  </table>
+
+  <div class="note">Use 0.15 mm layer height on all aerodynamically critical surfaces (nose cone, fin panels, contraction cone interior). Sand through 400 grit and apply 2 coats Rust-Oleum 2X primer. This reduces equivalent sand-grain roughness from ~50 μm to ~5 μm, maintaining hydraulically smooth regime for Re &lt; 10⁵.</div>
+
+  <div class="section-title">Build volume requirements</div>
+  <table>
+    <tr><th>Module</th><th>Max dimension</th><th>Required bed</th><th>Status</th></tr>
+    <tr><td>Bell-mouth (2-piece)</td><td class="mono">156 × 156 × 120 mm</td><td class="mono">180 × 180</td><td><span class="badge ok">Fits Bambu A1 Mini</span></td></tr>
+    <tr><td>Honeycomb section</td><td class="mono">156 × 156 × 50 mm</td><td class="mono">180 × 180</td><td><span class="badge ok">Fits Bambu A1 Mini</span></td></tr>
+    <tr><td>Empty duct (each)</td><td class="mono">156 × 156 × 150 mm</td><td class="mono">180 × 180</td><td><span class="badge ok">Fits Bambu A1 Mini</span></td></tr>
+    <tr><td>Contraction (each of 6 sections)</td><td class="mono">varies to 156 × 450 × 150 mm</td><td class="mono">256 × 256</td><td><span class="badge info">Requires Bambu X1 / P1S / Prusa XL</span></td></tr>
+    <tr><td>Test section (each of 3)</td><td class="mono">156 × 156 × 167 mm</td><td class="mono">180 × 180</td><td><span class="badge ok">Fits Bambu A1 Mini</span></td></tr>
+    <tr><td>Diffuser (2-piece)</td><td class="mono">156 → 206 × 220 mm</td><td class="mono">256 × 256</td><td><span class="badge info">Requires Bambu X1 / P1S</span></td></tr>
+    <tr><td>Junction rings</td><td class="mono">176 × 176 × 30 mm</td><td class="mono">180 × 180</td><td><span class="badge ok">Fits Bambu A1 Mini</span></td></tr>
+  </table>
+  <div class="note">Contraction cone sections are the critical build volume constraint. The settling chamber cross-section (450 × 450 mm) requires printing as six separate 150 mm-long tunnel sections, each joined by junction rings. Each section exterior is 156 × 156 mm — within a 180 mm bed. The contraction profile (taper from 450 to 150 mm internal) means only sections near the inlet require the largest horizontal cross-section. These sections print fine on a 180 mm bed because the wall forms a square frame, not a solid block.</div>
+</div>
+
+<!-- ══════ TAB: BOM & COST ══════ -->
+<div id="tab-bom" class="panel">
+  <div class="section-title">Purchased hardware BOM</div>
+  <table>
+    <tr><th>Item</th><th>Spec</th><th>Qty</th><th>Unit $</th><th>Total</th></tr>
+    <tr><td class="em">AC Infinity Cloudline T8</td><td class="mono">200 mm inline duct fan, PWM</td><td class="mono">1</td><td class="mono">$80</td><td class="mono">$80</td></tr>
+    <tr><td class="em">Stainless wire cloth 20-mesh</td><td class="mono">450 × 450 mm sheet</td><td class="mono">1</td><td class="mono">$12</td><td class="mono">$12</td></tr>
+    <tr><td class="em">Stainless wire cloth 80-mesh</td><td class="mono">450 × 450 mm sheet</td><td class="mono">1</td><td class="mono">$15</td><td class="mono">$15</td></tr>
+    <tr><td class="em">Cast acrylic 3 mm sheet</td><td class="mono">600 × 600 mm for 12 windows</td><td class="mono">1</td><td class="mono">$18</td><td class="mono">$18</td></tr>
+    <tr><td class="em">M3 heat-set inserts × 5 mm</td><td class="mono">Junction ring inserts</td><td class="mono">64</td><td class="mono">$0.08</td><td class="mono">$5</td></tr>
+    <tr><td class="em">M2.5 heat-set inserts × 4 mm</td><td class="mono">Test section window latches</td><td class="mono">48</td><td class="mono">$0.07</td><td class="mono">$3</td></tr>
+    <tr><td class="em">M3 bolts (various lengths)</td><td class="mono">Junction ring fasteners</td><td class="mono">1 kit</td><td class="mono">$8</td><td class="mono">$8</td></tr>
+    <tr><td class="em">M2.5 bolts (various)</td><td class="mono">Window latch fasteners</td><td class="mono">1 kit</td><td class="mono">$5</td><td class="mono">$5</td></tr>
+    <tr><td class="em">M6 leveling feet</td><td class="mono">Stand feet adjuster</td><td class="mono">8</td><td class="mono">$1.50</td><td class="mono">$12</td></tr>
+    <tr><td class="em">Loc-Line 4 mm kit</td><td class="mono">Smoke port wand system</td><td class="mono">1</td><td class="mono">$18</td><td class="mono">$18</td></tr>
+    <tr><td class="em">4 mm CF rod</td><td class="mono">Sting (300 mm length)</td><td class="mono">1</td><td class="mono">$6</td><td class="mono">$6</td></tr>
+    <tr><td class="em">6-ball magnet kit</td><td class="mono">Gridfinity floor mounts</td><td class="mono">1</td><td class="mono">$8</td><td class="mono">$8</td></tr>
+    <tr><td class="em">TAL221 load cell 50 g</td><td class="mono">Force balance</td><td class="mono">2</td><td class="mono">$4</td><td class="mono">$8</td></tr>
+    <tr><td class="em">HX711 24-bit ADC board</td><td class="mono">Load cell amplifier</td><td class="mono">2</td><td class="mono">$3</td><td class="mono">$6</td></tr>
+    <tr><td class="em">Vosentech MicroFogger 5 Pro</td><td class="mono">Smoke generator</td><td class="mono">1</td><td class="mono">$65</td><td class="mono">$65</td></tr>
+    <tr><td class="em">OxLasers 520 nm laser line</td><td class="mono">Laser sheet visualisation</td><td class="mono">1</td><td class="mono">$35</td><td class="mono">$35</td></tr>
+    <tr><td class="em">BUNA-N O-ring #222</td><td class="mono">Test section seal (optional)</td><td class="mono">4</td><td class="mono">$1</td><td class="mono">$4</td></tr>
+  </table>
+
+  <div class="section-title">Filament BOM</div>
+  <table>
+    <tr><th>Material</th><th>Mass</th><th>Price/kg</th><th>Cost</th></tr>
+    <tr><td class="em">PETG-CF 20% CF</td><td class="mono">~3,600 g</td><td class="mono">$32/kg</td><td class="mono">$115</td></tr>
+    <tr><td class="em">Standard PETG</td><td class="mono">~510 g</td><td class="mono">$20/kg</td><td class="mono">$10</td></tr>
+  </table>
+
+  <div class="cost-total"><span class="label">Hardware subtotal</span><span class="val">$308</span></div>
+  <div class="cost-total" style="margin-top:8px"><span class="label">Filament subtotal</span><span class="val">$125</span></div>
+  <div class="cost-total" style="margin-top:8px;border:1px solid var(--color-border-secondary)"><span class="label" style="font-weight:500">Total estimated build cost</span><span class="val">~$433 USD</span></div>
+
+  <div class="note" style="margin-top:16px">Fan ($80) and MicroFogger ($65) account for $145 of the hardware cost. Structural hardware (fasteners, inserts, feet) totals ~$41. Force balance ($14) and visualization ($35 laser) are low-cost instrumentation additions. Total is approximately 68% of the source STEM tunnel cost while providing a 150 × 150 × 500 mm test section vs 80 × 130 × 130 mm.</div>
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>

@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.obsidian/
+*~
+~$*
+*.tmp
+*.lck
+
+# Autorouter / build checkpoints & scratch
+*.pkl
+*_route.pkl
+route_state.pkl
+
+# KiCad local + backup artifacts
+*.kicad_prl
+*-backups/
+fp-info-cache
+*.kicad_pcb-bak
+_autosave-*
+
+# Archived / superseded (kept locally, not for the public repo)
+_OLD FILES/
+3DP/
+Docs/
+Sims/
+
+# LibreOffice / app lock files
+.~lock.*

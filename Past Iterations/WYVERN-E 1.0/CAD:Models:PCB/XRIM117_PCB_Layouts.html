@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>XRIM-117 PDR-002 — PCB Layout Diagrams</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f4f1ea; margin: 0; padding: 24px; color: #1a1a2e; }
+  h1 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin: 0 0 4px; }
+  h2 { font-size: 15px; font-weight: 500; color: #555; margin: 0 0 20px; }
+  .header { border-bottom: 3px solid #c8a951; padding-bottom: 16px; margin-bottom: 32px; }
+  .badge { display: inline-block; background: #c8a951; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 4px; margin-left: 10px; vertical-align: middle; letter-spacing: 0.5px; }
+  .boards { display: flex; flex-direction: column; gap: 48px; }
+  .board-section { background: #fff; border-radius: 12px; border: 1px solid #ddd; padding: 28px 32px; }
+  .board-title { font-size: 17px; font-weight: 700; margin: 0 0 4px; }
+  .board-sub { font-size: 12px; color: #888; margin: 0 0 20px; }
+  .board-layout { display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap; }
+  .pcb-wrap { flex-shrink: 0; }
+  .bom-table { flex: 1; min-width: 320px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { background: #1a1a2e; color: #c8a951; font-weight: 700; padding: 6px 10px; text-align: left; }
+  td { padding: 5px 10px; border-bottom: 1px solid #eee; color: #333; vertical-align: top; }
+  tr:nth-child(even) td { background: #faf8f2; }
+  .conn-label { font-size: 10px; fill: #333; font-family: Arial, sans-serif; }
+  .chip-label { font-size: 9px; fill: #fff; font-weight: 700; font-family: Arial, sans-serif; }
+  .sig-label { font-size: 9px; fill: #555; font-family: Arial, sans-serif; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 16px; font-size: 11px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+  .note { background: #fdf8ed; border-left: 4px solid #c8a951; padding: 10px 14px; font-size: 12px; color: #555; margin-top: 16px; border-radius: 0 6px 6px 0; font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>XRIM-117 WYVERN 70mm PTD <span class="badge">PDR-002 Rev A</span></h1>
+  <h2>PCB Layout Diagrams — CCM · ASAM-1 · ASAM-2 | Skylight Industries LLC | 62mm Circular, 2-Layer FR4, ENIG</h2>
+</div>
+
+<div class="boards">
+
+<!-- ═══════════════ CCM ═══════════════ -->
+<div class="board-section">
+  <div class="board-title">CCM — Central Command Module</div>
+  <div class="board-sub">RP2040 · ICM-42688-P · BMP388 · Ebyte E22-900M22S · 3× Pyro MOSFET · 1S 850mAh LiPo · 62mm circular</div>
+  <div class="board-layout">
+    <div class="pcb-wrap">
+      <svg width="320" height="320" viewBox="0 0 320 320">
+        <!-- PCB outline (62mm = ~248px at 4px/mm, centered) -->
+        <circle cx="160" cy="160" r="148" fill="#1a6b2a" stroke="#0d4a1a" stroke-width="2"/>
+        <!-- Board silkscreen ring -->
+        <circle cx="160" cy="160" r="145" fill="none" stroke="#fff" stroke-width="0.5" stroke-dasharray="3 3" opacity="0.3"/>
+        <!-- Mounting holes (4x M2.5 at 52mm BC = 208px/2 = 104px radius) -->
+        <circle cx="160" cy="56" r="5" fill="#0d4a1a" stroke="#c8a951" stroke-width="1"/>
+        <circle cx="264" cy="160" r="5" fill="#0d4a1a" stroke="#c8a951" stroke-width="1"/>
+        <circle cx="160" cy="264" r="5" fill="#0d4a1a" stroke="#c8a951" stroke-width="1"/>
+        <circle cx="56" cy="160" r="5" fill="#0d4a1a" stroke="#c8a951" stroke-width="1"/>
+
+        <!-- RP2040 (QFN-56, ~7mm = 28px, center-left) -->
+        <rect x="100" y="115" width="52" height="52" rx="3" fill="#222" stroke="#c8a951" stroke-width="1"/>
+        <text x="126" y="139" text-anchor="middle" class="chip-label">RP2040</text>
+        <text x="126" y="151" text-anchor="middle" class="chip-label">QFN-56</text>
+        <text x="126" y="163" text-anchor="middle" class="chip-label">133MHz</text>
+        <!-- QFN pad indicators -->
+        <rect x="97" y="119" width="3" height="3" fill="#c8a951"/>
+        <rect x="97" y="125" width="3" height="3" fill="#c8a951"/>
+        <rect x="97" y="131" width="3" height="3" fill="#c8a951"/>
+        <rect x="97" y="137" width="3" height="3" fill="#c8a951"/>
+        <rect x="97" y="143" width="3" height="3" fill="#c8a951"/>
+        <rect x="97" y="149" width="3" height="3" fill="#c8a951"/>
+        <rect x="97" y="155" width="3" height="3" fill="#c8a951"/>
+        <rect x="152" y="119" width="3" height="3" fill="#c8a951"/>
+        <rect x="152" y="125" width="3" height="3" fill="#c8a951"/>
+        <rect x="152" y="131" width="3" height="3" fill="#c8a951"/>
+        <rect x="152" y="137" width="3" height="3" fill="#c8a951"/>
+        <rect x="152" y="143" width="3" height="3" fill="#c8a951"/>
+        <rect x="152" y="149" width="3" height="3" fill="#c8a951"/>
+        <rect x="152" y="155" width="3" height="3" fill="#c8a951"/>
+
+        <!-- W25Q128 Flash (SOIC-8) -->
+        <rect x="102" y="78" width="28" height="20" rx="2" fill="#333" stroke="#aaa" stroke-width="0.8"/>
+        <text x="116" y="88" text-anchor="middle" class="chip-label">FLASH</text>
+        <text x="116" y="96" text-anchor="middle" class="chip-label">16MB</text>
+
+        <!-- ICM-42688-P IMU (LGA-14, 3×3mm = 12px) -->
+        <rect x="165" y="115" width="30" height="30" rx="2" fill="#444" stroke="#4fc" stroke-width="1"/>
+        <text x="180" y="129" text-anchor="middle" class="chip-label">IMU</text>
+        <text x="180" y="140" text-anchor="middle" class="chip-label">42688</text>
+        <!-- Decoupling caps -->
+        <rect x="162" y="108" width="6" height="4" rx="1" fill="#c8a951"/>
+        <rect x="170" y="108" width="6" height="4" rx="1" fill="#c8a951"/>
+
+        <!-- BMP388 barometer (LGA-8) -->
+        <rect x="165" y="155" width="22" height="18" rx="2" fill="#553" stroke="#ff9" stroke-width="0.8"/>
+        <text x="176" y="165" text-anchor="middle" class="chip-label">BMP</text>
+        <text x="176" y="174" text-anchor="middle" class="chip-label">388</text>
+
+        <!-- Ebyte E22 LoRa module (large, top right) -->
+        <rect x="170" y="70" width="64" height="36" rx="3" fill="#1a3a6a" stroke="#5af" stroke-width="1.2"/>
+        <text x="202" y="83" text-anchor="middle" class="chip-label">Ebyte E22</text>
+        <text x="202" y="93" text-anchor="middle" class="chip-label">SX1268 915MHz</text>
+        <text x="202" y="103" text-anchor="middle" class="chip-label">22dBm LoRa</text>
+        <!-- Antenna keepout zone -->
+        <circle cx="232" cy="88" r="18" fill="none" stroke="#5af" stroke-width="0.5" stroke-dasharray="2 2"/>
+        <!-- SMA edge connector (at 12 o'clock / top) -->
+        <rect x="148" y="12" width="24" height="10" rx="2" fill="#888" stroke="#c8a951" stroke-width="1"/>
+        <text x="160" y="21" text-anchor="middle" style="font-size:8px;fill:#fff;font-family:Arial">SMA</text>
+        <!-- Trace from E22 to SMA -->
+        <line x1="202" y1="70" x2="202" y2="40" stroke="#5af" stroke-width="1" stroke-dasharray="2 1"/>
+        <line x1="202" y1="40" x2="160" y2="22" stroke="#5af" stroke-width="1"/>
+
+        <!-- TLV62569 buck (SOT-23-5) -->
+        <rect x="102" y="183" width="18" height="14" rx="2" fill="#444" stroke="#aaa" stroke-width="0.8"/>
+        <text x="111" y="193" text-anchor="middle" style="font-size:8px;fill:#fff;font-family:Arial">3V3</text>
+
+        <!-- IRFZ44N Pyro MOSFETs x3 -->
+        <rect x="72" y="183" width="16" height="20" rx="2" fill="#660000" stroke="#f55" stroke-width="1"/>
+        <text x="80" y="196" text-anchor="middle" style="font-size:7.5px;fill:#fff;font-family:Arial">Q1</text>
+        <rect x="72" y="210" width="16" height="20" rx="2" fill="#660000" stroke="#f55" stroke-width="1"/>
+        <text x="80" y="223" text-anchor="middle" style="font-size:7.5px;fill:#fff;font-family:Arial">Q2</text>
+        <rect x="72" y="237" width="16" height="20" rx="2" fill="#660000" stroke="#f55" stroke-width="1"/>
+        <text x="80" y="250" text-anchor="middle" style="font-size:7.5px;fill:#fff;font-family:Arial">Q3</text>
+
+        <!-- JST-GH 8-pin connectors (ASAM-1 and ASAM-2) -->
+        <rect x="190" y="192" width="48" height="12" rx="2" fill="#555" stroke="#c8a951" stroke-width="1"/>
+        <text x="214" y="202" text-anchor="middle" style="font-size:8px;fill:#c8a951;font-family:Arial">J1 → ASAM-1</text>
+        <rect x="190" y="210" width="48" height="12" rx="2" fill="#555" stroke="#c8a951" stroke-width="1"/>
+        <text x="214" y="220" text-anchor="middle" style="font-size:8px;fill:#c8a951;font-family:Arial">J2 → ASAM-2</text>
+
+        <!-- XT30 battery connector -->
+        <rect x="125" y="237" width="32" height="16" rx="2" fill="#c8a951" stroke="#886600" stroke-width="1"/>
+        <text x="141" y="249" text-anchor="middle" style="font-size:8px;fill:#000;font-family:Arial">XT30 BAT</text>
+
+        <!-- Arm switch -->
+        <rect x="165" y="237" width="28" height="12" rx="2" fill="#333" stroke="#aaa" stroke-width="0.8"/>
+        <text x="179" y="247" text-anchor="middle" style="font-size:7.5px;fill:#fff;font-family:Arial">ARM SW</text>
+
+        <!-- Pyro screw terminals -->
+        <rect x="72" y="262" width="16" height="12" rx="1" fill="#444" stroke="#f55" stroke-width="0.8"/>
+        <text x="80" y="271" text-anchor="middle" style="font-size:7px;fill:#f55;font-family:Arial">CH1</text>
+        <rect x="92" y="262" width="16" height="12" rx="1" fill="#444" stroke="#f55" stroke-width="0.8"/>
+        <text x="100" y="271" text-anchor="middle" style="font-size:7px;fill:#f55;font-family:Arial">CH2</text>
+        <rect x="112" y="262" width="16" height="12" rx="1" fill="#444" stroke="#f55" stroke-width="0.8"/>
+        <text x="120" y="271" text-anchor="middle" style="font-size:7px;fill:#f55;font-family:Arial">CH3</text>
+
+        <!-- TC2030 debug header -->
+        <rect x="196" y="230" width="24" height="10" rx="1" fill="#333" stroke="#aaa" stroke-width="0.8"/>
+        <text x="208" y="239" text-anchor="middle" style="font-size:7.5px;fill:#aaa;font-family:Arial">SWD</text>
+
+        <!-- Reference dot -->
+        <circle cx="108" cy="118" r="3" fill="#fff" opacity="0.7"/>
+
+        <!-- Board label -->
+        <text x="160" y="295" text-anchor="middle" style="font-size:10px;fill:#c8a951;font-family:Arial;font-weight:700">CCM · 62mm · ENIG</text>
+      </svg>
+    </div>
+    <div class="bom-table">
+      <table>
+        <tr><th>Ref</th><th>Component</th><th>Package</th><th>Function</th></tr>
+        <tr><td>U1</td><td>RP2040</td><td>QFN-56</td><td>Primary MCU, 133MHz dual M0+</td></tr>
+        <tr><td>U2</td><td>W25Q128JVSIQ</td><td>SOIC-8</td><td>16MB QSPI flash — telemetry log</td></tr>
+        <tr><td>U3</td><td>ICM-42688-P</td><td>LGA-14</td><td>Primary IMU, SPI 32kHz ODR</td></tr>
+        <tr><td>U4</td><td>BMP388</td><td>LGA-8</td><td>Primary barometer, I2C 200Hz</td></tr>
+        <tr><td>U5</td><td>Ebyte E22-900M22S</td><td>SMD module</td><td>LoRa 915MHz, SX1268, 22dBm</td></tr>
+        <tr><td>U6</td><td>TLV62569</td><td>SOT-23-5</td><td>3.3V 600mA buck for logic</td></tr>
+        <tr><td>Q1–Q3</td><td>IRFZ44N ×3</td><td>TO-220/D2PAK</td><td>Pyro MOSFET channels</td></tr>
+        <tr><td>J1</td><td>JST-GH 8-pin</td><td>Through-hole</td><td>ASAM-1 ribbon connector</td></tr>
+        <tr><td>J2</td><td>JST-GH 8-pin</td><td>Through-hole</td><td>ASAM-2 ribbon connector</td></tr>
+        <tr><td>J3</td><td>SMA edge-mount</td><td>PCB mount</td><td>915MHz antenna pigtail</td></tr>
+        <tr><td>J4</td><td>XT30-M</td><td>Through-hole</td><td>1S 850mAh LiPo input</td></tr>
+        <tr><td>J5</td><td>2-pin screw term.</td><td>Through-hole</td><td>Physical arm switch</td></tr>
+        <tr><td>J6–J8</td><td>2-pin screw ×3</td><td>Through-hole</td><td>Pyro e-match outputs CH1–3</td></tr>
+        <tr><td>SW1</td><td>TC2030</td><td>SMD 6-pin</td><td>SWD debug + UART boot</td></tr>
+        <tr><td>LED1–3</td><td>Bicolor LED ×3</td><td>0805</td><td>Pyro continuity (CH1–3)</td></tr>
+        <tr><td colspan="4" style="color:#888;font-style:italic;font-size:11px;padding-top:8px">Passives: 100nF+10μF decoupling on each IC power rail. Antenna keepout: 10mm no-copper around SMA. 100Ω series on crystal lines.</td></tr>
+      </table>
+      <div class="note">SMA connector sits at 12 o'clock board edge. LoRa RF trace from E22 to SMA must be 50Ω controlled impedance (~0.9mm trace width on 1.6mm FR4). Keep 10mm copper-free keepout around antenna pad. Route IMU SPI traces &lt;20mm with matched lengths.</div>
+    </div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#1a3a6a"></div>LoRa / RF</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#660000"></div>Pyro MOSFET</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#444"></div>MCU / logic IC</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#c8a951"></div>Connector / power</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#553"></div>Sensor</div>
+  </div>
+</div>
+
+<!-- ═══════════════ ASAM-1 ═══════════════ -->
+<div class="board-section">
+  <div class="board-title">ASAM-1 — Mid Ring Controller</div>
+  <div class="board-sub">STM32F411 · ICM-42688-P · MS5611 · 4× Servo Outputs (Ring 2 mid fins) · MT3608 7.4V boost · 1S 1000mAh LiPo · 62mm circular</div>
+  <div class="board-layout">
+    <div class="pcb-wrap">
+      <svg width="320" height="320" viewBox="0 0 320 320">
+        <!-- PCB outline -->
+        <circle cx="160" cy="160" r="148" fill="#1a3a6a" stroke="#0d2244" stroke-width="2"/>
+        <circle cx="160" cy="160" r="145" fill="none" stroke="#fff" stroke-width="0.5" stroke-dasharray="3 3" opacity="0.3"/>
+        <!-- Mounting holes -->
+        <circle cx="160" cy="56" r="5" fill="#0d2244" stroke="#c8a951" stroke-width="1"/>
+        <circle cx="264" cy="160" r="5" fill="#0d2244" stroke="#c8a951" stroke-width="1"/>
+        <circle cx="160" cy="264" r="5" fill="#0d2244" stroke="#c8a951" stroke-width="1"/>
+        <circle cx="56" cy="160" r="5" fill="#0d2244" stroke="#c8a951" stroke-width="1"/>
+
+        <!-- STM32F411 (UFQFPN-48, 7×7mm = 28px) -->
+        <rect x="106" y="106" width="56" height="56" rx="3" fill="#222" stroke="#c8a951" stroke-width="1.2"/>
+        <text x="134" y="128" text-anchor="middle" class="chip-label">STM32</text>
+        <text x="134" y="140" text-anchor="middle" class="chip-label">F411CEU6</text>
+        <text x="134" y="152" text-anchor="middle" class="chip-label">100MHz M4</text>
+        <!-- QFN pad rows -->
+        <rect x="103" y="110" width="3" height="3" fill="#c8a951"/>
+        <rect x="103" y="117" width="3" height="3" fill="#c8a951"/>
+        <rect x="103" y="124" width="3" height="3" fill="#c8a951"/>
+        <rect x="103" y="131" width="3" height="3" fill="#c8a951"/>
+        <rect x="103" y="138" width="3" height="3" fill="#c8a951"/>
+        <rect x="103" y="145" width="3" height="3" fill="#c8a951"/>
+        <rect x="103" y="152" width="3" height="3" fill="#c8a951"/>
+        <rect x="162" y="110" width="3" height="3" fill="#c8a951"/>
+        <rect x="162" y="117" width="3" height="3" fill="#c8a951"/>
+        <rect x="162" y="124" width="3" height="3" fill="#c8a951"/>
+        <rect x="162" y="131" width="3" height="3" fill="#c8a951"/>
+        <rect x="162" y="138" width="3" height="3" fill="#c8a951"/>
+        <rect x="162" y="145" width="3" height="3" fill="#c8a951"/>
+        <rect x="162" y="152" width="3" height="3" fill="#c8a951"/>
+        <rect x="110" y="103" width="3" height="3" fill="#c8a951"/>
+        <rect x="117" y="103" width="3" height="3" fill="#c8a951"/>
+        <rect x="124" y="103" width="3" height="3" fill="#c8a951"/>
+        <rect x="131" y="103" width="3" height="3" fill="#c8a951"/>
+        <rect x="138" y="103" width="3" height="3" fill="#c8a951"/>
+        <rect x="145" y="103" width="3" height="3" fill="#c8a951"/>
+        <rect x="110" y="162" width="3" height="3" fill="#c8a951"/>
+        <rect x="117" y="162" width="3" height="3" fill="#c8a951"/>
+        <rect x="124" y="162" width="3" height="3" fill="#c8a951"/>
+        <rect x="131" y="162" width="3" height="3" fill="#c8a951"/>
+        <rect x="138" y="162" width="3" height="3" fill="#c8a951"/>
+        <rect x="145" y="162" width="3" height="3" fill="#c8a951"/>
+
+        <!-- ICM-42688-P IMU -->
+        <rect x="175" y="106" width="28" height="28" rx="2" fill="#444" stroke="#4fc" stroke-width="1"/>
+        <text x="189" y="118" text-anchor="middle" class="chip-label">IMU</text>
+        <text x="189" y="130" text-anchor="middle" class="chip-label">42688</text>
+
+        <!-- MS5611 baro -->
+        <rect x="175" y="143" width="24" height="20" rx="2" fill="#553" stroke="#ff9" stroke-width="0.8"/>
+        <text x="187" y="152" text-anchor="middle" class="chip-label">MS5611</text>
+        <text x="187" y="161" text-anchor="middle" class="chip-label">BARO</text>
+
+        <!-- INA219 current sensor -->
+        <rect x="175" y="172" width="24" height="16" rx="2" fill="#333" stroke="#aaa" stroke-width="0.8"/>
+        <text x="187" y="183" text-anchor="middle" style="font-size:7.5px;fill:#fff;font-family:Arial">INA219</text>
+
+        <!-- MT3608 Boost converter -->
+        <rect x="100" y="72" width="32" height="20" rx="2" fill="#4a2200" stroke="#f90" stroke-width="1.2"/>
+        <text x="116" y="82" text-anchor="middle" class="chip-label">MT3608</text>
+        <text x="116" y="90" text-anchor="middle" class="chip-label">→ 7.4V HV</text>
+        <!-- Inductor -->
+        <ellipse cx="145" cy="82" rx="10" ry="7" fill="none" stroke="#f90" stroke-width="1.5"/>
+        <text x="145" y="86" text-anchor="middle" style="font-size:7px;fill:#f90;font-family:Arial">L</text>
+
+        <!-- TLV62569 3.3V buck -->
+        <rect x="100" y="200" width="22" height="16" rx="2" fill="#444" stroke="#aaa" stroke-width="0.8"/>
+        <text x="111" y="212" text-anchor="middle" style="font-size:7.5px;fill:#fff;font-family:Arial">3V3</text>
+
+        <!-- 4x Servo connectors (Ring 2 fins) -->
+        <rect x="70" y="70" width="18" height="30" rx="2" fill="#555" stroke="#ff0" stroke-width="1.2"/>
+        <text x="79" y="80" text-anchor="middle" style="font-size:7px;fill:#ff0;font-family:Arial">J2</text>
+        <text x="79" y="88" text-anchor="middle" style="font-size:7px;fill:#ff0;font-family:Arial">Fin1</text>
+        <text x="79" y="96" text-anchor="middle" style="font-size:7px;fill:#ff0;font-family:Arial">N</text>
+
+        <rect x="70" y="108" width="18" height="30" rx="2" fill="#555" stroke="#ff0" stroke-width="1.2"/>
+        <text x="79" y="118" text-anchor="middle" style="font-size:7px;fill:#ff0;font-family:Arial">J3</text>
+        <text x="79" y="126" text-anchor="middle" style="font-size:7px;fill:#ff0;font-family:Arial">Fin2</text>
+        <text x="79" y="134" text-anchor="middle" style="font-size:7px;fill:#ff0;font-family:Arial">E</text>
+
+        <rect x="70" y="146" width="18" height="30" rx="2" fill="#555" stroke="#ff0" stroke-width="1.2"/>
+        <text x="79" y="156" text-anchor="middle" style="font-size:7px;fill:#ff0;font-family:Arial">J4</text>
+        <text x="79" y="164" text-anchor="middle" style="font-size:7px;fill:#ff0;font-family:Arial">Fin3</text>
+        <text x="79" y="172" text-anchor="middle" style="font-size:7px;fill:#ff0;font-family:Arial">S</text>
+
+        <rect x="70" y="184" width="18" height="30" rx="2" fill="#555" stroke="#ff0" stroke-width="1.2"/>
+        <text x="79" y="194" text-anchor="middle" style="font-size:7px;fill:#ff0;font-family:Arial">J5</text>
+        <text x="79" y="202" text-anchor="middle" style="font-size:7px;fill:#ff0;font-family:Arial">Fin4</text>
+        <text x="79" y="210" text-anchor="middle" style="font-size:7px;fill:#ff0;font-family:Arial">W</text>
+
+        <!-- 470uF bulk caps for 7.4V rail -->
+        <circle cx="175" cy="82" r="7" fill="#444" stroke="#f90" stroke-width="1"/>
+        <text x="175" y="86" text-anchor="middle" style="font-size:7px;fill:#f90;font-family:Arial">470</text>
+        <circle cx="193" cy="82" r="7" fill="#444" stroke="#f90" stroke-width="1"/>
+        <text x="193" y="86" text-anchor="middle" style="font-size:7px;fill:#f90;font-family:Arial">470</text>
+        <circle cx="211" cy="82" r="7" fill="#444" stroke="#f90" stroke-width="1"/>
+        <text x="211" y="86" text-anchor="middle" style="font-size:7px;fill:#f90;font-family:Arial">470</text>
+        <circle cx="229" cy="82" r="7" fill="#444" stroke="#f90" stroke-width="1"/>
+        <text x="229" y="86" text-anchor="middle" style="font-size:7px;fill:#f90;font-family:Arial">470</text>
+
+        <!-- JST-GH 8-pin to CCM (at 12-o'clock edge) -->
+        <rect x="136" y="14" width="48" height="12" rx="2" fill="#555" stroke="#c8a951" stroke-width="1"/>
+        <text x="160" y="24" text-anchor="middle" style="font-size:8px;fill:#c8a951;font-family:Arial">J1 → CCM ribbon</text>
+
+        <!-- XT30 battery -->
+        <rect x="120" y="237" width="32" height="16" rx="2" fill="#c8a951" stroke="#886600" stroke-width="1"/>
+        <text x="136" y="249" text-anchor="middle" style="font-size:8px;fill:#000;font-family:Arial">XT30 1S BAT</text>
+
+        <!-- TC2030 SWD -->
+        <rect x="170" y="228" width="24" height="10" rx="1" fill="#333" stroke="#aaa" stroke-width="0.8"/>
+        <text x="182" y="237" text-anchor="middle" style="font-size:7.5px;fill:#aaa;font-family:Arial">SWD</text>
+
+        <!-- Reference dot -->
+        <circle cx="112" cy="110" r="3" fill="#fff" opacity="0.7"/>
+        <text x="160" y="295" text-anchor="middle" style="font-size:10px;fill:#c8a951;font-family:Arial;font-weight:700">ASAM-1 · 62mm · ENIG</text>
+      </svg>
+    </div>
+    <div class="bom-table">
+      <table>
+        <tr><th>Ref</th><th>Component</th><th>Package</th><th>Function</th></tr>
+        <tr><td>U1</td><td>STM32F411CEU6</td><td>UFQFPN-48</td><td>MCU, Cortex-M4 100MHz FPU</td></tr>
+        <tr><td>U2</td><td>ICM-42688-P</td><td>LGA-14</td><td>Redundant IMU, SPI 32kHz</td></tr>
+        <tr><td>U3</td><td>MS5611</td><td>SMD-8</td><td>Redundant barometer, SPI 150Hz</td></tr>
+        <tr><td>U4</td><td>INA219</td><td>SOT-23-8</td><td>Servo current monitor (7.4V rail)</td></tr>
+        <tr><td>U5</td><td>TLV62569</td><td>SOT-23-5</td><td>3.3V 600mA logic buck</td></tr>
+        <tr><td>U6</td><td>MT3608</td><td>SOT-23-6</td><td>Boost: 1S LiPo → 7.4V HV servo rail</td></tr>
+        <tr><td>L1</td><td>4.7μH inductor</td><td>0805</td><td>MT3608 boost inductor</td></tr>
+        <tr><td>J1</td><td>JST-GH 8-pin</td><td>Through-hole</td><td>CCM inter-board ribbon (top edge)</td></tr>
+        <tr><td>J2–J5</td><td>JR/Futaba 3-pin ×4</td><td>Through-hole</td><td>Servo outputs — Ring 2 fins N/E/S/W</td></tr>
+        <tr><td>J6</td><td>XT30-M</td><td>Through-hole</td><td>1S 1000mAh LiPo input</td></tr>
+        <tr><td>C1–C4</td><td>470μF electrolytic ×4</td><td>Radial 6.3mm</td><td>Bulk capacitance on 7.4V servo rail</td></tr>
+        <tr><td>C5–C20</td><td>100nF ceramic ×16</td><td>0402</td><td>Decoupling on all IC power pins</td></tr>
+        <tr><td>R1–R4</td><td>10kΩ ×4</td><td>0402</td><td>I2C pull-ups SDA/SCL</td></tr>
+        <tr><td>SW1</td><td>TC2030</td><td>SMD 6-pin</td><td>SWD programming + UART bootloader</td></tr>
+        <tr><td colspan="4" style="color:#888;font-style:italic;font-size:11px;padding-top:8px">PWM: TIM1_CH1–CH4 on PA8–PA11. Servo connector order clockwise from North: J2/J3/J4/J5. 7.4V HV rail separate from 3.3V logic.</td></tr>
+      </table>
+      <div class="note">MT3608 boost converter requires careful layout: short traces from inductor to IC, large pour on output side, output caps close to servo connector ground pins. 7.4V servo rail is isolated from 3.3V logic rail — ground planes share only at one star point near the input connector.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ ASAM-2 ═══════════════ -->
+<div class="board-section">
+  <div class="board-title">ASAM-2 — TVC + Sustainer Controller</div>
+  <div class="board-sub">STM32F411 · ICM-42688-P · MS5611 · 2× TVC Servo Outputs (jetavane pitch/yaw) · Sustainer Relay · MT3608 7.4V · 1S 1200mAh LiPo · 62mm circular</div>
+  <div class="board-layout">
+    <div class="pcb-wrap">
+      <svg width="320" height="320" viewBox="0 0 320 320">
+        <!-- PCB outline — red/coral for ASAM-2 -->
+        <circle cx="160" cy="160" r="148" fill="#5a1a1a" stroke="#3a0a0a" stroke-width="2"/>
+        <circle cx="160" cy="160" r="145" fill="none" stroke="#fff" stroke-width="0.5" stroke-dasharray="3 3" opacity="0.3"/>
+        <!-- Mounting holes -->
+        <circle cx="160" cy="56" r="5" fill="#3a0a0a" stroke="#c8a951" stroke-width="1"/>
+        <circle cx="264" cy="160" r="5" fill="#3a0a0a" stroke="#c8a951" stroke-width="1"/>
+        <circle cx="160" cy="264" r="5" fill="#3a0a0a" stroke="#c8a951" stroke-width="1"/>
+        <circle cx="56" cy="160" r="5" fill="#3a0a0a" stroke="#c8a951" stroke-width="1"/>
+
+        <!-- STM32F411 (center) -->
+        <rect x="106" y="106" width="56" height="56" rx="3" fill="#222" stroke="#c8a951" stroke-width="1.2"/>
+        <text x="134" y="126" text-anchor="middle" class="chip-label">STM32</text>
+        <text x="134" y="138" text-anchor="middle" class="chip-label">F411CEU6</text>
+        <text x="134" y="150" text-anchor="middle" class="chip-label">2× PWM</text>
+        <text x="134" y="160" text-anchor="middle" class="chip-label">TVC + relay</text>
+        <!-- QFN pads abbreviated -->
+        <rect x="103" y="110" width="3" height="3" fill="#c8a951"/>
+        <rect x="103" y="120" width="3" height="3" fill="#c8a951"/>
+        <rect x="103" y="130" width="3" height="3" fill="#c8a951"/>
+        <rect x="103" y="140" width="3" height="3" fill="#c8a951"/>
+        <rect x="103" y="150" width="3" height="3" fill="#c8a951"/>
+        <rect x="162" y="110" width="3" height="3" fill="#c8a951"/>
+        <rect x="162" y="120" width="3" height="3" fill="#c8a951"/>
+        <rect x="162" y="130" width="3" height="3" fill="#c8a951"/>
+        <rect x="162" y="140" width="3" height="3" fill="#c8a951"/>
+        <rect x="162" y="150" width="3" height="3" fill="#c8a951"/>
+
+        <!-- ICM IMU -->
+        <rect x="175" y="106" width="28" height="28" rx="2" fill="#444" stroke="#4fc" stroke-width="1"/>
+        <text x="189" y="118" text-anchor="middle" class="chip-label">IMU</text>
+        <text x="189" y="130" text-anchor="middle" class="chip-label">42688</text>
+
+        <!-- MS5611 baro -->
+        <rect x="175" y="143" width="24" height="20" rx="2" fill="#553" stroke="#ff9" stroke-width="0.8"/>
+        <text x="187" y="152" text-anchor="middle" class="chip-label">MS5611</text>
+        <text x="187" y="161" text-anchor="middle" class="chip-label">BARO</text>
+
+        <!-- INA219 -->
+        <rect x="175" y="172" width="24" height="16" rx="2" fill="#333" stroke="#aaa" stroke-width="0.8"/>
+        <text x="187" y="183" text-anchor="middle" style="font-size:7.5px;fill:#fff;font-family:Arial">INA219</text>
+
+        <!-- MT3608 Boost -->
+        <rect x="100" y="72" width="32" height="20" rx="2" fill="#4a2200" stroke="#f90" stroke-width="1.2"/>
+        <text x="116" y="82" text-anchor="middle" class="chip-label">MT3608</text>
+        <text x="116" y="90" text-anchor="middle" class="chip-label">→ 7.4V HV</text>
+        <ellipse cx="145" cy="82" rx="10" ry="7" fill="none" stroke="#f90" stroke-width="1.5"/>
+        <text x="145" y="86" text-anchor="middle" style="font-size:7px;fill:#f90;font-family:Arial">L</text>
+
+        <!-- TPS5430 5V buck (ASAM-2 has extra 5V rail) -->
+        <rect x="100" y="196" width="32" height="18" rx="2" fill="#333" stroke="#aaa" stroke-width="0.8"/>
+        <text x="116" y="207" text-anchor="middle" style="font-size:7.5px;fill:#fff;font-family:Arial">TPS5430</text>
+        <text x="116" y="213" text-anchor="middle" style="font-size:7px;fill:#aaa;font-family:Arial">5V 3A</text>
+
+        <!-- TLV62569 3.3V buck -->
+        <rect x="100" y="220" width="22" height="16" rx="2" fill="#444" stroke="#aaa" stroke-width="0.8"/>
+        <text x="111" y="232" text-anchor="middle" style="font-size:7.5px;fill:#fff;font-family:Arial">3V3</text>
+
+        <!-- IRFZ44N sustainer relay MOSFET -->
+        <rect x="205" y="196" width="24" height="28" rx="2" fill="#660000" stroke="#f55" stroke-width="1.2"/>
+        <text x="217" y="208" text-anchor="middle" style="font-size:7.5px;fill:#fff;font-family:Arial">IRFZ44</text>
+        <text x="217" y="218" text-anchor="middle" style="font-size:7px;fill:#fff;font-family:Arial">SUSTAIN</text>
+        <text x="217" y="228" text-anchor="middle" style="font-size:7px;fill:#f55;font-family:Arial">RELAY</text>
+
+        <!-- PC817 optocoupler -->
+        <rect x="205" y="172" width="20" height="16" rx="2" fill="#333" stroke="#aaa" stroke-width="0.8"/>
+        <text x="215" y="183" text-anchor="middle" style="font-size:7.5px;fill:#fff;font-family:Arial">PC817</text>
+
+        <!-- 2x TVC servo outputs (moved to left edge now that aft fins are passive) -->
+        <rect x="70" y="118" width="18" height="30" rx="2" fill="#330055" stroke="#c088ff" stroke-width="1.5"/>
+        <text x="79" y="128" text-anchor="middle" style="font-size:7px;fill:#c088ff;font-family:Arial">J2</text>
+        <text x="79" y="136" text-anchor="middle" style="font-size:7px;fill:#c088ff;font-family:Arial">TVC</text>
+        <text x="79" y="144" text-anchor="middle" style="font-size:7px;fill:#c088ff;font-family:Arial">PCH</text>
+
+        <rect x="70" y="156" width="18" height="30" rx="2" fill="#330055" stroke="#c088ff" stroke-width="1.5"/>
+        <text x="79" y="166" text-anchor="middle" style="font-size:7px;fill:#c088ff;font-family:Arial">J3</text>
+        <text x="79" y="174" text-anchor="middle" style="font-size:7px;fill:#c088ff;font-family:Arial">TVC</text>
+        <text x="79" y="182" text-anchor="middle" style="font-size:7px;fill:#c088ff;font-family:Arial">YAW</text>
+
+        <!-- 3x 470uF bulk caps on 7.4V rail -->
+        <circle cx="175" cy="82" r="6" fill="#444" stroke="#f90" stroke-width="1"/>
+        <text x="175" y="86" text-anchor="middle" style="font-size:6.5px;fill:#f90;font-family:Arial">470</text>
+        <circle cx="190" cy="82" r="6" fill="#444" stroke="#f90" stroke-width="1"/>
+        <text x="190" y="86" text-anchor="middle" style="font-size:6.5px;fill:#f90;font-family:Arial">470</text>
+        <circle cx="205" cy="82" r="6" fill="#444" stroke="#f90" stroke-width="1"/>
+        <text x="205" y="86" text-anchor="middle" style="font-size:6.5px;fill:#f90;font-family:Arial">470</text>
+
+        <!-- Sustainer e-match screw terminal -->
+        <rect x="205" y="232" width="24" height="12" rx="1" fill="#440000" stroke="#f55" stroke-width="1"/>
+        <text x="217" y="241" text-anchor="middle" style="font-size:7.5px;fill:#f55;font-family:Arial">E-MATCH</text>
+
+        <!-- Reed switch header (eject detect) -->
+        <rect x="205" y="250" width="24" height="10" rx="1" fill="#333" stroke="#aaa" stroke-width="0.8"/>
+        <text x="217" y="259" text-anchor="middle" style="font-size:7px;fill:#aaa;font-family:Arial">REED SW</text>
+
+        <!-- JST-GH to CCM -->
+        <rect x="136" y="14" width="48" height="12" rx="2" fill="#555" stroke="#c8a951" stroke-width="1"/>
+        <text x="160" y="24" text-anchor="middle" style="font-size:8px;fill:#c8a951;font-family:Arial">J1 → CCM ribbon</text>
+
+        <!-- XT30 battery -->
+        <rect x="116" y="237" width="36" height="16" rx="2" fill="#c8a951" stroke="#886600" stroke-width="1"/>
+        <text x="134" y="249" text-anchor="middle" style="font-size:8px;fill:#000;font-family:Arial">XT30 1S 1.2Ah</text>
+
+        <!-- TC2030 SWD -->
+        <rect x="160" y="228" width="24" height="10" rx="1" fill="#333" stroke="#aaa" stroke-width="0.8"/>
+        <text x="172" y="237" text-anchor="middle" style="font-size:7.5px;fill:#aaa;font-family:Arial">SWD</text>
+
+        <!-- Reference dot -->
+        <circle cx="112" cy="110" r="3" fill="#fff" opacity="0.7"/>
+        <text x="160" y="295" text-anchor="middle" style="font-size:10px;fill:#c8a951;font-family:Arial;font-weight:700">ASAM-2 · 62mm · ENIG</text>
+      </svg>
+    </div>
+    <div class="bom-table">
+      <table>
+        <tr><th>Ref</th><th>Component</th><th>Package</th><th>Function</th></tr>
+        <tr><td>U1</td><td>STM32F411CEU6</td><td>UFQFPN-48</td><td>MCU, Cortex-M4 100MHz, 2× PWM TIM outputs</td></tr>
+        <tr><td>U2</td><td>ICM-42688-P</td><td>LGA-14</td><td>Redundant IMU, SPI 32kHz</td></tr>
+        <tr><td>U3</td><td>MS5611</td><td>SMD-8</td><td>Redundant barometer, SPI 150Hz</td></tr>
+        <tr><td>U4</td><td>INA219</td><td>SOT-23-8</td><td>Servo current monitor (7.4V rail)</td></tr>
+        <tr><td>U5</td><td>TLV62569</td><td>SOT-23-5</td><td>3.3V 600mA logic buck</td></tr>
+        <tr><td>U6</td><td>MT3608</td><td>SOT-23-6</td><td>Boost: 1S LiPo → 7.4V HV servo rail</td></tr>
+        <tr><td>U7</td><td>TPS5430</td><td>TO-263-7</td><td>5V 3A buck (extra MCU headroom)</td></tr>
+        <tr><td>U8</td><td>PC817 optocoupler</td><td>DIP-4</td><td>Sustainer ignition relay isolation</td></tr>
+        <tr><td>Q1</td><td>IRFZ44N</td><td>TO-220/D2PAK</td><td>Sustainer e-match MOSFET relay</td></tr>
+        <tr><td>J1</td><td>JST-GH 8-pin</td><td>Through-hole</td><td>CCM inter-board ribbon (top edge)</td></tr>
+        <tr><td>J2–J3</td><td>JR/Futaba 3-pin ×2</td><td>Through-hole</td><td>TVC Pitch servo (J2) and TVC Yaw servo (J3)</td></tr>
+        <tr><td>J4</td><td>XT30-M</td><td>Through-hole</td><td>1S 1200mAh LiPo input</td></tr>
+        <tr><td>J5</td><td>2-pin screw term.</td><td>Through-hole</td><td>Sustainer e-match output</td></tr>
+        <tr><td>J6</td><td>2-pin header</td><td>Through-hole</td><td>Booster eject reed switch</td></tr>
+        <tr><td>C1–C3</td><td>470μF electrolytic ×3</td><td>Radial 8mm</td><td>Bulk cap on 7.4V rail (2 TVC servos)</td></tr>
+        <tr><td>L1</td><td>4.7μH inductor</td><td>0805</td><td>MT3608 boost inductor</td></tr>
+        <tr><td>SW1</td><td>TC2030</td><td>SMD 6-pin</td><td>SWD debug + UART boot</td></tr>
+        <tr><td colspan="4" style="color:#888;font-style:italic;font-size:11px;padding-top:8px">TVC servos on TIM2_CH1 (PA0) and TIM2_CH2 (PA1). Aft fins are passive (no PWM channels required). Sustainer relay fires on UART command from CCM decoded by STM32 → PC817 → IRFZ44N → e-match.</td></tr>
+      </table>
+      <div class="note">With passive aft fins, ASAM-2's servo load drops dramatically — only the 2 TVC servos remain on the 7.4V rail. Peak simultaneous stall is 2× 1.5A = 3A instantaneous. Three 470μF bulk capacitors are more than adequate to prevent voltage sag during TVC corrections. Place capacitors within 5mm of TVC connector ground pins. IRFZ44N gate must still be driven via PC817 optocoupler for galvanic isolation from CCM logic ground.</div>
+    </div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#660000"></div>Sustainer relay</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#330055"></div>TVC servo outputs</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#4a2200;border:1px solid #f90"></div>Boost converter</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#c8a951"></div>Power connector</div>
+  </div>
+</div>
+
+</div><!-- /boards -->
+
+<div style="margin-top:32px;font-size:11px;color:#aaa;border-top:1px solid #ddd;padding-top:12px;">
+  XRIM-117 WYVERN PDR-002 Rev A — PCB Layout Reference | Skylight Industries LLC | CONFIDENTIAL | All boards: 62mm circular, 2-layer FR4 1.6mm, ENIG, JLCPCB fabrication
+</div>
+</body>
+</html>

@@ -1,0 +1,316 @@
+package com.arc.sim;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+/**
+ * ENGINE 2: FullFactorialSweep
+ *
+ * Runs EVERY combination in the grid defined by sweep_grid.properties -- no sampling, no
+ * skipping. Holds the rocket design exactly as uploaded (same as EnvironmentSweep). Use this
+ * instead of EnvironmentSweep when you specifically want exhaustive coverage rather than a
+ * statistical sample, and are willing to pick increments that keep the total count runnable.
+ *
+ * At your original increments (0.5 m/s wind, 0.1 m/s std dev, 1% turbulence, 0.5 deg direction,
+ * 1 deg C, 1 mbar) the grid is ~388 BILLION points -- roughly 369 years on one CPU core, ~23
+ * years on 16 cores. That is not a "let it run overnight" problem; it needs coarser increments.
+ * Edit sweep_grid.properties to control this. The default in that file finishes in a few hours
+ * on a modern multi-core machine (~1.6M combos) -- tune it up or down for your time budget using
+ * the printed estimate below before committing to a run.
+ *
+ * Output format: Parquet, not xlsx. A true full-factorial run routinely produces tens of
+ * millions of rows -- far past Excel's ~1,048,576-rows-per-sheet ceiling that the old xlsx writer
+ * had to work around with multi-sheet chunking. Every row (one per simulated combination) is
+ * written to a single "<orkName>_fullfactorial_<timestamp>.parquet" file via MiniParquet (this
+ * project's own dependency-free Parquet writer -- see MiniParquet.java), streamed in bounded-size
+ * row groups so memory stays flat regardless of how many combinations are run. Open it in this
+ * toolkit's own Data Viewer tab, or in pandas / DuckDB / any Parquet-aware tool. The success-rate
+ * + correlation summary (previously an xlsx "Summary" sheet) is written alongside it as a small
+ * companion "<...>_summary.csv".
+ *
+ * Safety: refuses to start if totalCombos() > maxCombosSafety in the config, unless --force is
+ * passed, so a typo in the properties file can't accidentally launch a multi-year job.
+ */
+public class FullFactorialSweep {
+
+    private static final double TARGET_APOGEE_M = 243.84; // 800 ft
+    private static final double APOGEE_TOLERANCE_M = 0.25;
+    private static final double TARGET_TIME_CENTER_S = 38.5; // midpoint of the 37.5-39.5s window
+    private static final double TIME_TOLERANCE_S = 1.0; // half-width of the 37.5-39.5s window
+    private static final long QUEUE_CAPACITY = 50_000;
+    private static final int ROWS_PER_ROW_GROUP = 200_000; // bounds MiniParquet's in-memory buffer per flush
+
+    public static void main(String[] args) {
+        if (args.length < 2) {
+            System.err.println("Usage: FullFactorialSweep <input.ork> <sweep_grid.properties> [outputDir] [--force]");
+            System.err.println("  outputDir defaults to the input .ork file's own folder if omitted.");
+            System.err.println("  Output filename is auto-generated as <orkName>_fullfactorial_<timestamp>.parquet " +
+                    "(+ a companion _summary.csv) -- never overwrites a previous run.");
+            System.exit(1);
+        }
+        File outDir = (args.length > 2 && !args[2].equals("--force")) ? new File(args[2]) : null;
+        boolean force = java.util.Arrays.asList(args).contains("--force");
+        try {
+            run(new File(args[0]), new File(args[1]), outDir, force,
+                    (processed, total, eta) -> {
+                        if (processed % 50_000 == 0 || processed == total) {
+                            System.out.printf("...%,d / %,d combinations done (%.1f%%) -- ETA %s%n",
+                                    processed, total, 100.0 * processed / total, EtaTracker.formatDuration(eta));
+                        }
+                    });
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+
+    /** Backward-compatible overload with no progress reporting. outDir may be null (defaults to the ork's own folder). */
+    public static File run(File orkFile, File configFile, File outDir, boolean force) throws Exception {
+        return run(orkFile, configFile, outDir, force, ProgressListener.NONE);
+    }
+
+    /** Backward-compatible overload with no live leaderboard. */
+    public static File run(File orkFile, File configFile, File outDir, boolean force, ProgressListener listener) throws Exception {
+        return run(orkFile, configFile, outDir, force, listener, LeaderboardListener.NONE);
+    }
+
+    /**
+     * Programmatic entry point (no System.exit) -- safe to call from the GUI or other Java code.
+     * outDir is the FOLDER to write into (may be null to default to the ork file's own folder) --
+     * the actual filename is auto-generated ("<orkName>_fullfactorial_<timestamp>.parquet") via
+     * OutputNaming, so repeated runs never overwrite each other. Returns the .parquet file written
+     * (the companion "_summary.csv" is written right alongside it, same name minus extension).
+     *
+     * leaderboardListener gets a live "most favorable conditions seen so far" top-10 push, same
+     * idea as EnvironmentSweep -- updated on the single consumer thread that drains the worker
+     * queue, so no extra synchronization is needed beyond TopNLeaderboard's own.
+     */
+    public static File run(File orkFile, File configFile, File outDir, boolean force, ProgressListener listener,
+                            LeaderboardListener leaderboardListener) throws Exception {
+        File outFile = OutputNaming.uniqueFile(orkFile, outDir, "fullfactorial", "parquet");
+        GridAxis.SweepConfig cfg = GridAxis.load(configFile);
+        long total = cfg.totalCombos();
+        double estSecPerSim = 0.03; // rough estimate; adjust after timing a few runs on your machine
+        double estHoursSingleThread = total * estSecPerSim / 3600.0;
+        double estHoursParallel = estHoursSingleThread / cfg.threads;
+
+        System.out.printf("Grid: windAvg=%d x windStdDev=%d x turbulence=%d x windDir=%d x temp=%d x pressure=%d x sites=%d%n",
+                cfg.windAvg.count(), cfg.windStdDev.count(), cfg.turbulencePct.count(),
+                cfg.windDir.count(), cfg.temp.count(), cfg.pressure.count(), cfg.sites.size());
+        System.out.printf("TOTAL COMBINATIONS: %,d%n", total);
+        System.out.printf("Estimated runtime: ~%.1f hours single-threaded, ~%.1f hours across %d threads " +
+                "(rough estimate at %.0fms/sim -- time a short run on your machine to calibrate)%n",
+                estHoursSingleThread, estHoursParallel, cfg.threads, estSecPerSim * 1000);
+
+        if (total > cfg.maxCombosSafety && !force) {
+            String msg = String.format("Refusing to run: %,d combinations exceeds the safety cap of %,d " +
+                    "(set in sweep_grid.properties as maxCombosSafety). Coarsen the increments, raise " +
+                    "maxCombosSafety, or force the run.", total, cfg.maxCombosSafety);
+            throw new IllegalStateException(msg);
+        }
+
+        EtaTracker etaTracker = new EtaTracker(total);
+
+        long[] counts = {
+                cfg.windAvg.count(), cfg.windStdDev.count(), cfg.turbulencePct.count(),
+                cfg.windDir.count(), cfg.temp.count(), cfg.pressure.count(), cfg.sites.size()
+        };
+
+        BlockingQueue<Object[]> queue = new ArrayBlockingQueue<>((int) QUEUE_CAPACITY);
+
+        ExecutorService pool = Executors.newFixedThreadPool(cfg.threads);
+        long chunkSize = (total + cfg.threads - 1) / cfg.threads;
+        List<Future<?>> futures = new java.util.ArrayList<>();
+
+        for (int t = 0; t < cfg.threads; t++) {
+            long startIdx = t * chunkSize;
+            long endIdx = Math.min(total, startIdx + chunkSize);
+            if (startIdx >= endIdx) continue;
+            futures.add(pool.submit(() -> {
+                try {
+                    SimRunner runner = new SimRunner(orkFile); // own document instance per thread
+                    for (long i = startIdx; i < endIdx; i++) {
+                        if (Thread.currentThread().isInterrupted()) break;
+                        double[] vals = decode(i, counts, cfg);
+                        LaunchSite site = cfg.sites.get((int) vals[6]);
+                        EnvironmentPoint env = new EnvironmentPoint(vals[0], vals[1], vals[2] / 100.0, vals[3], vals[4], vals[5], site);
+                        SimRunner.FlightResult r = runner.run(env);
+                        queue.put(new Object[]{vals, site, r});
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }));
+        }
+
+        List<MiniParquet.Column> columns = List.of(
+                new MiniParquet.Column("wind_avg_ms", MiniParquet.ColType.DOUBLE),
+                new MiniParquet.Column("wind_stddev_ms", MiniParquet.ColType.DOUBLE),
+                new MiniParquet.Column("turbulence_pct", MiniParquet.ColType.DOUBLE),
+                new MiniParquet.Column("wind_dir_deg", MiniParquet.ColType.DOUBLE),
+                new MiniParquet.Column("temp_c", MiniParquet.ColType.DOUBLE),
+                new MiniParquet.Column("pressure_mbar", MiniParquet.ColType.DOUBLE),
+                new MiniParquet.Column("site", MiniParquet.ColType.STRING),
+                new MiniParquet.Column("apogee_m", MiniParquet.ColType.DOUBLE),
+                new MiniParquet.Column("flight_time_s", MiniParquet.ColType.DOUBLE),
+                new MiniParquet.Column("meets_apogee", MiniParquet.ColType.BOOLEAN),
+                new MiniParquet.Column("meets_time", MiniParquet.ColType.BOOLEAN),
+                new MiniParquet.Column("meets_both", MiniParquet.ColType.BOOLEAN),
+                new MiniParquet.Column("condition", MiniParquet.ColType.STRING),
+                new MiniParquet.Column("ok", MiniParquet.ColType.BOOLEAN),
+                new MiniParquet.Column("error", MiniParquet.ColType.STRING)
+        );
+
+        long processed = 0;
+        long meetsBoth = 0;
+        TopNLeaderboard leaderboard = new TopNLeaderboard(10);
+        RunningStats apogeeStats = new RunningStats();
+        RunningStats timeStats = new RunningStats();
+        RunningStats.Correlation corrWindApogee = new RunningStats.Correlation();
+        RunningStats.Correlation corrTempApogee = new RunningStats.Correlation();
+        RunningStats.Correlation corrPressureApogee = new RunningStats.Correlation();
+        RunningStats.Correlation corrWindTime = new RunningStats.Correlation();
+        RunningStats.Correlation corrTempTime = new RunningStats.Correlation();
+        RunningStats.Correlation corrPressureTime = new RunningStats.Correlation();
+
+        try (MiniParquet.Writer writer = new MiniParquet.Writer(outFile, columns, ROWS_PER_ROW_GROUP)) {
+
+            // Fixed "all-zero" baseline row (0 wind/stddev/turbulence/direction, STP atmosphere,
+            // real site lat/long/altitude) -- same reference row Engine 1 writes.
+            LaunchSite baselineSite = cfg.sites.get(0);
+            SimRunner baselineRunner = new SimRunner(orkFile);
+            EnvironmentPoint stpEnv = EnvironmentPoint.stpBaseline(baselineSite);
+            SimRunner.FlightResult stpResult = baselineRunner.run(stpEnv);
+            writeRow(writer, stpEnv.windSpeedAvgMs, stpEnv.windSpeedStdDevMs, stpEnv.turbulenceIntensity * 100.0,
+                    stpEnv.windDirectionDeg, stpEnv.temperatureC, stpEnv.pressureMbar, baselineSite.label,
+                    stpResult, "STP_ZERO_BASELINE");
+
+            while (processed < total) {
+                if (Thread.currentThread().isInterrupted()) {
+                    System.out.println("Cancelled after " + processed + " / " + total + " combinations.");
+                    pool.shutdownNow();
+                    break;
+                }
+                Object[] item = queue.take();
+                double[] vals = (double[]) item[0];
+                LaunchSite site = (LaunchSite) item[1];
+                SimRunner.FlightResult r = (SimRunner.FlightResult) item[2];
+
+                writeRow(writer, vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], site.label, r, "full_factorial");
+
+                if (r.ok) {
+                    boolean meetsApogee = Math.abs(r.apogeeM - TARGET_APOGEE_M) <= APOGEE_TOLERANCE_M;
+                    boolean meetsTime = Math.abs(r.flightTimeS - TARGET_TIME_CENTER_S) <= TIME_TOLERANCE_S;
+                    if (meetsApogee && meetsTime) meetsBoth++;
+                    apogeeStats.add(r.apogeeM);
+                    timeStats.add(r.flightTimeS);
+                    corrWindApogee.addPair(vals[0], r.apogeeM);
+                    corrTempApogee.addPair(vals[4], r.apogeeM);
+                    corrPressureApogee.addPair(vals[5], r.apogeeM);
+                    corrWindTime.addPair(vals[0], r.flightTimeS);
+                    corrTempTime.addPair(vals[4], r.flightTimeS);
+                    corrPressureTime.addPair(vals[5], r.flightTimeS);
+
+                    double apogeeErrNorm = Math.abs(r.apogeeM - TARGET_APOGEE_M) / Math.max(APOGEE_TOLERANCE_M, 1e-9);
+                    double timeErrNorm = Math.abs(r.flightTimeS - TARGET_TIME_CENTER_S) / Math.max(TIME_TOLERANCE_S, 1e-9);
+                    double combinedErr = apogeeErrNorm + timeErrNorm;
+                    String detail = String.format("wind %.1f±%.1f m/s @%.0f°, turb %.1f%%, %.1f°C, %.0f mbar, %s",
+                            vals[0], vals[1], vals[3], vals[2], vals[4], vals[5], site.label);
+                    if (leaderboard.offer(combinedErr, r.apogeeM, r.flightTimeS, detail)) {
+                        leaderboardListener.onUpdate(leaderboard.snapshot());
+                    }
+                }
+
+                processed++;
+                if (processed % 1_000 == 0 || processed == total) {
+                    listener.onProgress(processed, total, etaTracker.etaSeconds(processed));
+                }
+            }
+
+            for (Future<?> f : futures) {
+                try {
+                    f.get();
+                } catch (Exception ignored) {
+                    // worker was interrupted/cancelled -- fine, we still write whatever was processed
+                }
+            }
+            pool.shutdown();
+        }
+
+        File summaryFile = new File(outFile.getParentFile(), OutputNaming.baseName(outFile) + "_summary.csv");
+        writeSummaryCsv(summaryFile, processed, meetsBoth, apogeeStats, timeStats,
+                corrWindApogee, corrTempApogee, corrPressureApogee,
+                corrWindTime, corrTempTime, corrPressureTime);
+
+        System.out.println("Wrote " + processed + " combinations to " + outFile.getAbsolutePath());
+        System.out.println("Wrote summary to " + summaryFile.getAbsolutePath());
+        return outFile;
+    }
+
+    private static void writeRow(MiniParquet.Writer writer, double windAvg, double windStdDev, double turbulencePct,
+                                  double windDir, double temp, double pressure, String siteLabel,
+                                  SimRunner.FlightResult r, String condition) throws Exception {
+        boolean meetsApogee = r.ok && Math.abs(r.apogeeM - TARGET_APOGEE_M) <= APOGEE_TOLERANCE_M;
+        boolean meetsTime = r.ok && Math.abs(r.flightTimeS - TARGET_TIME_CENTER_S) <= TIME_TOLERANCE_S;
+        writer.writeRow(new Object[]{
+                windAvg, windStdDev, turbulencePct, windDir, temp, pressure, siteLabel,
+                r.ok ? r.apogeeM : Double.NaN, r.ok ? r.flightTimeS : Double.NaN,
+                meetsApogee, meetsTime, meetsApogee && meetsTime, condition, r.ok, r.ok ? "" : (r.error == null ? "" : r.error)
+        });
+    }
+
+    /** Decode a linear combo index into [windAvg, windStdDev, turbulencePct, windDir, temp, pressure, siteIdx]. */
+    private static double[] decode(long index, long[] counts, GridAxis.SweepConfig cfg) {
+        long i = index;
+        long siteIdx = i % counts[6]; i /= counts[6];
+        long pIdx = i % counts[5]; i /= counts[5];
+        long tIdx = i % counts[4]; i /= counts[4];
+        long dirIdx = i % counts[3]; i /= counts[3];
+        long turbIdx = i % counts[2]; i /= counts[2];
+        long sdIdx = i % counts[1]; i /= counts[1];
+        long avgIdx = i % counts[0];
+
+        return new double[]{
+                cfg.windAvg.value((int) avgIdx),
+                cfg.windStdDev.value((int) sdIdx),
+                cfg.turbulencePct.value((int) turbIdx),
+                cfg.windDir.value((int) dirIdx),
+                cfg.temp.value((int) tIdx),
+                cfg.pressure.value((int) pIdx),
+                siteIdx
+        };
+    }
+
+    private static void writeSummaryCsv(File summaryFile, long total, long meetsBoth,
+                                         RunningStats apogeeStats, RunningStats timeStats,
+                                         RunningStats.Correlation corrWindApogee, RunningStats.Correlation corrTempApogee,
+                                         RunningStats.Correlation corrPressureApogee,
+                                         RunningStats.Correlation corrWindTime, RunningStats.Correlation corrTempTime,
+                                         RunningStats.Correlation corrPressureTime) throws Exception {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(summaryFile))) {
+            pw.println(CsvUtil.row("metric", "value"));
+            pw.println(CsvUtil.row("Total combinations", total));
+            pw.println(CsvUtil.row("Combinations meeting BOTH targets (apogee " + TARGET_APOGEE_M + "m +/- " +
+                    APOGEE_TOLERANCE_M + "m, time " + TARGET_TIME_CENTER_S + "s +/- " + TIME_TOLERANCE_S + "s)", meetsBoth));
+            pw.println(CsvUtil.row("Success rate", (double) meetsBoth / total));
+            pw.println(CsvUtil.row("Mean apogee (m)", apogeeStats.mean()));
+            pw.println(CsvUtil.row("Std dev apogee (m)", apogeeStats.stddev()));
+            pw.println(CsvUtil.row("Mean flight time (s)", timeStats.mean()));
+            pw.println(CsvUtil.row("Std dev flight time (s)", timeStats.stddev()));
+            pw.println(CsvUtil.row("Correlation wind_avg vs apogee", corrWindApogee.correlation()));
+            pw.println(CsvUtil.row("Correlation temp vs apogee", corrTempApogee.correlation()));
+            pw.println(CsvUtil.row("Correlation pressure vs apogee", corrPressureApogee.correlation()));
+            pw.println(CsvUtil.row("Correlation wind_avg vs flight_time", corrWindTime.correlation()));
+            pw.println(CsvUtil.row("Correlation temp vs flight_time", corrTempTime.correlation()));
+            pw.println(CsvUtil.row("Correlation pressure vs flight_time", corrPressureTime.correlation()));
+        }
+    }
+}

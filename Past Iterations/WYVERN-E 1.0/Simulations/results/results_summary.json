@@ -1,0 +1,138 @@
+{
+  "aero": {
+    "CNa_total_per_rad": 13.322,
+    "CNa_nose": 2.0,
+    "CNa_ring1": 8.837,
+    "CNa_ring2": 2.485,
+    "XN_mm": 680.9,
+    "SM_allup_cal": 1.036,
+    "SM_burnout_cal": 1.705,
+    "CD0_M0.3": 0.0388,
+    "CD0_M0.5": 0.0385,
+    "CD0_M0.8": 0.0416
+  },
+  "structures": {
+    "SF_euler_column": 245.8,
+    "SF_shell_buckling": 394.5,
+    "body_bend_sigma_MPa": 1.25,
+    "body_bend_SF": 38.3,
+    "fin_R1_sigma_MPa": 12.2,
+    "fin_R1_SF": 3.93,
+    "first_bending_Hz_freefree": 152.8,
+    "flutter_V_R1_ms": 555.2,
+    "flutter_V_R2_ms": 558.1,
+    "servo_margin_x": 52.5
+  },
+  "trajectory": {
+    "fullstack_apogee_m": 6996.1,
+    "fullstack_v_max_ms": 353.9,
+    "fullstack_M_max": 1.05,
+    "fullstack_q_max_kPa": 70.83,
+    "fullstack_t_apogee_s": 37.8,
+    "booster_only_apogee_m": 1468.9,
+    "booster_only_v_max_ms": 168.0,
+    "booster_only_M_max": 0.495,
+    "tilt80_apogee_m": 6405.1,
+    "tilt80_downrange_m": 7144.3,
+    "pp6dof_alpha_max_deg": 3.15
+  },
+  "pk": {
+    "n_runs": 150,
+    "miss_median_m": 1.27,
+    "miss_p90_m": 1.82,
+    "Pk_capture_1m": 0.3,
+    "Pk_capture_2m": 0.92,
+    "Pk_capture_5m": 1.0,
+    "sample_miss": {
+      "crossing": 0.02,
+      "inbound": 0.01,
+      "weave": 0.02,
+      "hover": 0.0
+    }
+  },
+  "pk_envelope": {
+    "ranges_m": [
+      200,
+      350,
+      500,
+      650,
+      800
+    ],
+    "alts_m": [
+      60,
+      120,
+      200,
+      300
+    ],
+    "Pk_grid_2m_capture": [
+      [
+        0.0,
+        0.83,
+        0.92,
+        0.75,
+        0.75
+      ],
+      [
+        0.08,
+        0.92,
+        1.0,
+        0.67,
+        0.92
+      ],
+      [
+        1.0,
+        1.0,
+        1.0,
+        0.83,
+        0.83
+      ],
+      [
+        1.0,
+        1.0,
+        1.0,
+        0.75,
+        0.92
+      ]
+    ]
+  },
+  "thermal": {
+    "T_stag_M0.55_C": 31.7,
+    "T_stag_M1.0_C": 71.9,
+    "T_skin_max_C": 42.5
+  },
+  "dispersion": {
+    "n_runs": 60,
+    "config": "booster_only, 88 deg rail, 4 m/s mean wind",
+    "CEP_m": 1194.3,
+    "max_drift_m": 2256.9,
+    "apogee_mean_m": 1498.5,
+    "apogee_std_m": 179.5
+  },
+  "sensitivity": {
+    "apogee_base_m": 6995.8,
+    "tornado_delta_m": {
+      "CD +/-10%": [
+        -115.2,
+        127.4
+      ],
+      "Impulse +/-5%": [
+        -43.9,
+        42.3
+      ],
+      "Mass +/-3%": [
+        10.1,
+        -9.8
+      ],
+      "Rail elev 85 deg": [
+        -137.3,
+        0.0
+      ]
+    }
+  },
+  "pk_samples": {
+    "crossing": 0.02,
+    "inbound": 0.01,
+    "weave": 0.02,
+    "hover": 0.0
+  }
+}

@@ -1,0 +1,243 @@
+{
+  "head": {
+    "editorVersion": "6.5.47",
+    "docType": "5",
+    "title": "XRIM-117 CCM - Central Command Module",
+    "description": "XRIM-117 WYVERN 70mm PTD PDR-002 Rev A - CCM Schematic. RP2040 + ICM-42688-P + BMP388 + Ebyte E22 LoRa + 3x Pyro MOSFET",
+    "author": "Skylight Industries LLC",
+    "version": "1.0.0",
+    "newgId": "XRIM117-CCM",
+    "uuid": "ccm-xrim117-001"
+  },
+  "canvas": "CA~100~50~#ffffff~yes~yes~50~12000~9000~line~solid~mil~1~no~no~0~0",
+  "shape": [
+    "T~note~200~100~0~0~default~28~1~1~XRIM-117 CCM - Central Command Module~#000080~none",
+    "T~note~200~160~0~0~default~16~0~1~PDR-002 Rev A | RP2040 | ICM-42688-P | BMP388 | Ebyte E22-900M22S LoRa | 3x Pyro CH | 62mm Circular 2-Layer FR4 ENIG~#444444~none",
+    "T~note~200~220~0~0~default~13~0~1~Power: 1S LiPo (3.7V nom) via XT30 -> TLV62569 3.3V buck -> MCU/sensors. Pyro channels at battery voltage (armed).~#880000~none",
+    "T~note~150~400~0~0~default~16~1~1~POWER SECTION~#006600~none",
+    "R~140~380~0~0~2000~900~#006600~1~2~#f0fff0~0",
+    "LIB~300~550~package~XT30-M~Ref~J4~value~XT30-M BAT IN~description~1S 850mAh LiPo Input Connector~spicePre~~importFlag~1~0~1~J4~0~~XT30-M~#P~VBAT~~VBAT~0~0~0~0~0~~~^^P~GND~~GND~1~100~0~0~0~~~",
+    "LIB~800~550~package~TLV62569~Ref~U6~value~TLV62569 3V3~description~3.3V 600mA Synchronous Buck Converter SOT-23-5~spicePre~~importFlag~1~0~1~U6~0~~TLV62569~#P~VIN~~VBAT~0~0~0~0~0~~~^^P~GND~~GND~1~100~0~0~0~~~^^P~VOUT~~VCC3V3~2~200~0~0~0~~~^^P~EN~~VCC3V3~3~300~0~0~0~~~^^P~FB~~FB_3V3~4~400~0~0~0~~~",
+    "LIB~600~700~package~C_POL~Ref~C1~value~47uF 10V~description~Input bulk cap for TLV62569~spicePre~~importFlag~1~0~1~C_in1~0~~C_POL~#P~+~~VBAT~0~0~0~0~0~~~^^P~-~~GND~1~100~0~0~0~~~",
+    "LIB~1100~700~package~C_POL~Ref~C2~value~22uF 6.3V~description~Output cap for TLV62569~spicePre~~importFlag~1~0~1~C_out1~0~~C_POL~#P~+~~VCC3V3~0~0~0~0~0~~~^^P~-~~GND~1~100~0~0~0~~~",
+    "LIB~1600~550~package~SW_ARM~Ref~J5~value~ARM SWITCH 2pin~description~Physical arm switch - enables pyro channels~spicePre~~importFlag~1~0~1~ARM_SW~0~~SW_ARM~#P~IN~~VBAT~0~0~0~0~0~~~^^P~OUT~~VBAT_ARMED~1~100~0~0~0~~~",
+    "PO~300~480~0~0~VBAT~VBAT~#880000~supply~gge795918",
+    "PO~1100~480~0~0~+3V3~VCC3V3~#880000~supply~gge012167",
+    "PO~600~1050~180~0~GND~GND~#880000~supply~gge286263",
+    "T~note~2350~400~0~0~default~16~1~1~MCU - RP2040~#000080~none",
+    "R~2340~380~0~0~2400~1200~#000080~1~2~#f0f0ff~0",
+    "LIB~3200~900~package~RP2040~Ref~U1~value~RP2040 QFN-56~description~RP2040 Dual-Core ARM Cortex M0+ 133MHz MCU~spicePre~~importFlag~1~0~1~U1~0~~RP2040~#P~VDD~~VCC3V3~0~0~0~0~0~~~^^P~DVDD~~VCC3V3~1~100~0~0~0~~~^^P~GND~~GND~2~200~0~0~0~~~^^P~USB_DP~~USB_DP~3~300~0~0~0~~~^^P~USB_DM~~USB_DM~4~400~0~0~0~~~^^P~GPIO0~~UART0_TX~5~500~0~0~0~~~^^P~GPIO1~~UART0_RX~6~600~0~0~0~~~^^P~GPIO2~~SPI0_SCK~7~700~0~0~0~~~^^P~GPIO3~~SPI0_MOSI~8~800~0~0~0~~~^^P~GPIO4~~SPI0_MISO~9~900~0~0~0~~~^^P~GPIO5~~IMU_CS~10~1000~0~0~0~~~^^P~GPIO6~~FLASH_CS~11~1100~0~0~0~~~^^P~GPIO8~~I2C0_SDA~12~1200~0~0~0~~~^^P~GPIO9~~I2C0_SCL~13~1300~0~0~0~~~^^P~GPIO10~~LORA_SCK~14~1400~0~0~0~~~^^P~GPIO11~~LORA_MOSI~15~1500~0~0~0~~~^^P~GPIO12~~LORA_MISO~16~1600~0~0~0~~~^^P~GPIO13~~LORA_CS~17~1700~0~0~0~~~^^P~GPIO14~~LORA_BUSY~18~1800~0~0~0~~~^^P~GPIO15~~LORA_IRQ~19~1900~0~0~0~~~^^P~GPIO16~~LORA_NRST~20~2000~0~0~0~~~^^P~GPIO20~~PYRO1_GATE~21~2100~0~0~0~~~^^P~GPIO21~~PYRO2_GATE~22~2200~0~0~0~~~^^P~GPIO22~~PYRO3_GATE~23~2300~0~0~0~~~^^P~GPIO25~~LED_STATUS~24~2400~0~0~0~~~^^P~GPIO26~~PYRO1_CONT~25~2500~0~0~0~~~^^P~GPIO27~~PYRO2_CONT~26~2600~0~0~0~~~^^P~GPIO28~~PYRO3_CONT~27~2700~0~0~0~~~^^P~SWCLK~~SWCLK~28~2800~0~0~0~~~^^P~SWDIO~~SWDIO~29~2900~0~0~0~~~^^P~RUN~~NRST~30~3000~0~0~0~~~",
+    "LIB~2500~700~package~W25Q128~Ref~U2~value~W25Q128JVSIQ SOIC-8~description~16MB QSPI Flash for telemetry logging~spicePre~~importFlag~1~0~1~U2~0~~W25Q128~#P~VCC~~VCC3V3~0~0~0~0~0~~~^^P~GND~~GND~1~100~0~0~0~~~^^P~CS~~FLASH_CS~2~200~0~0~0~~~^^P~CLK~~SPI0_SCK~3~300~0~0~0~~~^^P~MOSI~~SPI0_MOSI~4~400~0~0~0~~~^^P~MISO~~SPI0_MISO~5~500~0~0~0~~~^^P~WP~~VCC3V3~6~600~0~0~0~~~^^P~HOLD~~VCC3V3~7~700~0~0~0~~~",
+    "LIB~2900~1300~package~C_NP~Ref~C10~value~100nF 0402~description~MCU VDD decoupling~spicePre~~importFlag~1~0~1~C_mcu1~0~~C_NP~#P~A~~VCC3V3~0~0~0~0~0~~~^^P~B~~GND~1~100~0~0~0~~~",
+    "LIB~3100~1300~package~C_NP~Ref~C11~value~10uF 0402~description~MCU VDD bulk decoupling~spicePre~~importFlag~1~0~1~C_mcu2~0~~C_NP~#P~A~~VCC3V3~0~0~0~0~0~~~^^P~B~~GND~1~100~0~0~0~~~",
+    "LIB~2500~1200~package~C_NP~Ref~C12~value~100nF 0402~description~RESET filter cap~spicePre~~importFlag~1~0~1~C_boot~0~~C_NP~#P~A~~NRST~0~0~0~0~0~~~^^P~B~~GND~1~100~0~0~0~~~",
+    "LIB~2700~1200~package~R~Ref~R1~value~10k 0402~description~RESET pull-up~spicePre~~importFlag~1~0~1~R_rst~0~~R~#P~A~~VCC3V3~0~0~0~0~0~~~^^P~B~~NRST~1~100~0~0~0~~~",
+    "T~note~4950~400~0~0~default~16~1~1~SENSORS~#005555~none",
+    "R~4940~380~0~0~2000~1200~#005555~1~2~#f0ffff~0",
+    "LIB~5200~700~package~ICM-42688-P~Ref~U3~value~ICM-42688-P LGA-14~description~Primary IMU 6-axis accel+gyro SPI 32kHz ODR~spicePre~~importFlag~1~0~1~U3~0~~ICM-42688-P~#P~VDD~~VCC3V3~0~0~0~0~0~~~^^P~VDDIO~~VCC3V3~1~100~0~0~0~~~^^P~GND~~GND~2~200~0~0~0~~~^^P~CS~~IMU_CS~3~300~0~0~0~~~^^P~SCLK~~SPI0_SCK~4~400~0~0~0~~~^^P~MOSI~~SPI0_MOSI~5~500~0~0~0~~~^^P~MISO~~SPI0_MISO~6~600~0~0~0~~~^^P~INT1~~IMU_INT1~7~700~0~0~0~~~^^P~INT2~~IMU_INT2~8~800~0~0~0~~~^^P~CLKIN~~GND~9~900~0~0~0~~~^^P~AP_AD0~~GND~10~1000~0~0~0~~~",
+    "LIB~5200~1100~package~BMP388~Ref~U4~value~BMP388 LGA-8~description~Primary barometric altimeter I2C 200Hz~spicePre~~importFlag~1~0~1~U4~0~~BMP388~#P~VDD~~VCC3V3~0~0~0~0~0~~~^^P~VDDIO~~VCC3V3~1~100~0~0~0~~~^^P~GND~~GND~2~200~0~0~0~~~^^P~SDI~~I2C0_SDA~3~300~0~0~0~~~^^P~SCK~~I2C0_SCL~4~400~0~0~0~~~^^P~SDO~~GND~5~500~0~0~0~~~^^P~CSB~~VCC3V3~6~600~0~0~0~~~",
+    "LIB~4980~870~package~C_NP~Ref~C20~value~100nF 0402~description~~spicePre~~importFlag~1~0~1~C_imu1~0~~C_NP~#P~A~~VCC3V3~0~0~0~0~0~~~^^P~B~~GND~1~100~0~0~0~~~",
+    "LIB~5100~870~package~C_NP~Ref~C21~value~100nF 0402~description~~spicePre~~importFlag~1~0~1~C_imu2~0~~C_NP~#P~A~~VCC3V3~0~0~0~0~0~~~^^P~B~~GND~1~100~0~0~0~~~",
+    "LIB~6600~700~package~R~Ref~R10~value~4.7k 0402~description~I2C SDA pull-up~spicePre~~importFlag~1~0~1~R_sda~0~~R~#P~A~~VCC3V3~0~0~0~0~0~~~^^P~B~~I2C0_SDA~1~100~0~0~0~~~",
+    "LIB~6600~850~package~R~Ref~R11~value~4.7k 0402~description~I2C SCL pull-up~spicePre~~importFlag~1~0~1~R_scl~0~~R~#P~A~~VCC3V3~0~0~0~0~0~~~^^P~B~~I2C0_SCL~1~100~0~0~0~~~",
+    "T~note~200~1500~0~0~default~16~1~1~RF - Ebyte E22-900M22S LoRa 915MHz~#003388~none",
+    "R~190~1480~0~0~2400~900~#003388~1~2~#f0f0ff~0",
+    "LIB~900~1800~package~E22-900M22S~Ref~U5~value~Ebyte E22-900M22S~description~SX1268 LoRa 915MHz 22dBm module~spicePre~~importFlag~1~0~1~U5~0~~E22-900M22S~#P~VCC~~VCC3V3~0~0~0~0~0~~~^^P~GND~~GND~1~100~0~0~0~~~^^P~SCLK~~LORA_SCK~2~200~0~0~0~~~^^P~MOSI~~LORA_MOSI~3~300~0~0~0~~~^^P~MISO~~LORA_MISO~4~400~0~0~0~~~^^P~NSS~~LORA_CS~5~500~0~0~0~~~^^P~BUSY~~LORA_BUSY~6~600~0~0~0~~~^^P~DIO1~~LORA_IRQ~7~700~0~0~0~~~^^P~NRST~~LORA_NRST~8~800~0~0~0~~~^^P~RFIO~~RF_ANT~9~900~0~0~0~~~",
+    "LIB~300~1800~package~SMA_EDGE~Ref~J3~value~SMA Edge Mount~description~915MHz antenna SMA edge connector - 50 ohm controlled impedance trace~spicePre~~importFlag~1~0~1~J3~0~~SMA_EDGE~#P~RF~~RF_ANT~0~0~0~0~0~~~^^P~GND~~GND~1~100~0~0~0~~~",
+    "LIB~1400~1900~package~C_NP~Ref~C30~value~100nF 0402~description~~spicePre~~importFlag~1~0~1~C_lora1~0~~C_NP~#P~A~~VCC3V3~0~0~0~0~0~~~^^P~B~~GND~1~100~0~0~0~~~",
+    "T~note~200~2230~0~0~default~12~0~1~Note: RF trace U5-RFIO to J3 must be 50Ohm controlled impedance (-0.9mm on 1.6mm FR4). 10mm copper-free keepout around antenna pad.~#880000~none",
+    "T~note~2700~1500~0~0~default~16~1~1~PYRO CHANNELS - 3x IRFZ44N MOSFET~#880000~none",
+    "R~2690~1480~0~0~3800~1200~#880000~1~2~#fff0f0~0",
+    "LIB~3100~1800~package~IRFZ44N~Ref~Q1~value~IRFZ44N D2PAK~description~Pyro channel 1 N-channel MOSFET~spicePre~~importFlag~1~0~1~Q1~0~~IRFZ44N~#P~G~~PYRO1_GATE~0~0~0~0~0~~~^^P~D~~PYRO1_D~1~100~0~0~0~~~^^P~S~~GND~2~200~0~0~0~~~",
+    "LIB~4100~1800~package~IRFZ44N~Ref~Q2~value~IRFZ44N D2PAK~description~Pyro channel 2 N-channel MOSFET~spicePre~~importFlag~1~0~1~Q2~0~~IRFZ44N~#P~G~~PYRO2_GATE~0~0~0~0~0~~~^^P~D~~PYRO2_D~1~100~0~0~0~~~^^P~S~~GND~2~200~0~0~0~~~",
+    "LIB~5100~1800~package~IRFZ44N~Ref~Q3~value~IRFZ44N D2PAK~description~Pyro channel 3 N-channel MOSFET~spicePre~~importFlag~1~0~1~Q3~0~~IRFZ44N~#P~G~~PYRO3_GATE~0~0~0~0~0~~~^^P~D~~PYRO3_D~1~100~0~0~0~~~^^P~S~~GND~2~200~0~0~0~~~",
+    "LIB~2900~1800~package~R~Ref~R20~value~100R 0402~description~Gate resistor Q1~spicePre~~importFlag~1~0~1~R_g1~0~~R~#P~A~~PYRO1_GATE~0~0~0~0~0~~~^^P~B~~PYRO1_GATE_R~1~100~0~0~0~~~",
+    "LIB~3900~1800~package~R~Ref~R21~value~100R 0402~description~Gate resistor Q2~spicePre~~importFlag~1~0~1~R_g2~0~~R~#P~A~~PYRO2_GATE~0~0~0~0~0~~~^^P~B~~PYRO2_GATE_R~1~100~0~0~0~~~",
+    "LIB~4900~1800~package~R~Ref~R22~value~100R 0402~description~Gate resistor Q3~spicePre~~importFlag~1~0~1~R_g3~0~~R~#P~A~~PYRO3_GATE~0~0~0~0~0~~~^^P~B~~PYRO3_GATE_R~1~100~0~0~0~~~",
+    "LIB~3000~2000~package~R~Ref~R23~value~10k 0402~description~Gate pull-down Q1~spicePre~~importFlag~1~0~1~R_gs1~0~~R~#P~A~~PYRO1_GATE_R~0~0~0~0~0~~~^^P~B~~GND~1~100~0~0~0~~~",
+    "LIB~4000~2000~package~R~Ref~R24~value~10k 0402~description~Gate pull-down Q2~spicePre~~importFlag~1~0~1~R_gs2~0~~R~#P~A~~PYRO2_GATE_R~0~0~0~0~0~~~^^P~B~~GND~1~100~0~0~0~~~",
+    "LIB~5000~2000~package~R~Ref~R25~value~10k 0402~description~Gate pull-down Q3~spicePre~~importFlag~1~0~1~R_gs3~0~~R~#P~A~~PYRO3_GATE_R~0~0~0~0~0~~~^^P~B~~GND~1~100~0~0~0~~~",
+    "LIB~2900~2300~package~SCREW_2~Ref~J6~value~Pyro CH1 E-Match~description~Pyro channel 1 screw terminal e-match output~spicePre~~importFlag~1~0~1~J6~0~~SCREW_2~#P~HV~~VBAT_ARMED~0~0~0~0~0~~~^^P~OUT~~PYRO1_D~1~100~0~0~0~~~",
+    "LIB~3900~2300~package~SCREW_2~Ref~J7~value~Pyro CH2 E-Match~description~Pyro channel 2 screw terminal e-match output~spicePre~~importFlag~1~0~1~J7~0~~SCREW_2~#P~HV~~VBAT_ARMED~0~0~0~0~0~~~^^P~OUT~~PYRO2_D~1~100~0~0~0~~~",
+    "LIB~4900~2300~package~SCREW_2~Ref~J8~value~Pyro CH3 E-Match~description~Pyro channel 3 screw terminal e-match output~spicePre~~importFlag~1~0~1~J8~0~~SCREW_2~#P~HV~~VBAT_ARMED~0~0~0~0~0~~~^^P~OUT~~PYRO3_D~1~100~0~0~0~~~",
+    "LIB~3100~2500~package~LED_BI~Ref~LED1~value~Bicolor LED 0805~description~Pyro CH1 continuity LED~spicePre~~importFlag~1~0~1~LED1~0~~LED_BI~#P~A~~PYRO1_CONT~0~0~0~0~0~~~^^P~K~~GND~1~100~0~0~0~~~",
+    "LIB~4100~2500~package~LED_BI~Ref~LED2~value~Bicolor LED 0805~description~Pyro CH2 continuity LED~spicePre~~importFlag~1~0~1~LED2~0~~LED_BI~#P~A~~PYRO2_CONT~0~0~0~0~0~~~^^P~K~~GND~1~100~0~0~0~~~",
+    "LIB~5100~2500~package~LED_BI~Ref~LED3~value~Bicolor LED 0805~description~Pyro CH3 continuity LED~spicePre~~importFlag~1~0~1~LED3~0~~LED_BI~#P~A~~PYRO3_CONT~0~0~0~0~0~~~^^P~K~~GND~1~100~0~0~0~~~",
+    "T~note~6800~400~0~0~default~16~1~1~I/O CONNECTORS~#444400~none",
+    "R~6790~380~0~0~1800~1400~#444400~1~2~#fffff0~0",
+    "LIB~7100~700~package~JST_GH_8~Ref~J1~value~JST-GH 8pin ASAM-1~description~Inter-board ribbon to ASAM-1~spicePre~~importFlag~1~0~1~J1~0~~JST_GH_8~#P~1~~VCC3V3~0~0~0~0~0~~~^^P~2~~GND~1~100~0~0~0~~~^^P~3~~UART0_TX~2~200~0~0~0~~~^^P~4~~UART0_RX~3~300~0~0~0~~~^^P~5~~I2C0_SDA~4~400~0~0~0~~~^^P~6~~I2C0_SCL~5~500~0~0~0~~~^^P~7~~SPI0_SCK~6~600~0~0~0~~~^^P~8~~PYRO1_GATE~7~700~0~0~0~~~",
+    "LIB~7100~1100~package~JST_GH_8~Ref~J2~value~JST-GH 8pin ASAM-2~description~Inter-board ribbon to ASAM-2~spicePre~~importFlag~1~0~1~J2~0~~JST_GH_8~#P~1~~VCC3V3~0~0~0~0~0~~~^^P~2~~GND~1~100~0~0~0~~~^^P~3~~UART0_TX~2~200~0~0~0~~~^^P~4~~UART0_RX~3~300~0~0~0~~~^^P~5~~I2C0_SDA~4~400~0~0~0~~~^^P~6~~I2C0_SCL~5~500~0~0~0~~~^^P~7~~SPI0_SCK~6~600~0~0~0~~~^^P~8~~PYRO2_GATE~7~700~0~0~0~~~",
+    "LIB~7100~1450~package~TC2030~Ref~SW1~value~TC2030 SWD 6pin~description~Tag-Connect TC2030 SWD debug and UART bootloader header~spicePre~~importFlag~1~0~1~SW1~0~~TC2030~#P~SWCLK~~SWCLK~0~0~0~0~0~~~^^P~SWDIO~~SWDIO~1~100~0~0~0~~~^^P~VCC~~VCC3V3~2~200~0~0~0~~~^^P~GND~~GND~3~300~0~0~0~~~^^P~UART_TX~~UART0_TX~4~400~0~0~0~~~^^P~UART_RX~~UART0_RX~5~500~0~0~0~~~"
+  ],
+  "netList": [],
+  "bom": [
+    {
+      "reference": "U1",
+      "quantity": 1,
+      "value": "RP2040",
+      "package": "QFN-56",
+      "description": "Primary MCU dual-core M0+ 133MHz"
+    },
+    {
+      "reference": "U2",
+      "quantity": 1,
+      "value": "W25Q128JVSIQ",
+      "package": "SOIC-8",
+      "description": "16MB QSPI Flash telemetry log"
+    },
+    {
+      "reference": "U3",
+      "quantity": 1,
+      "value": "ICM-42688-P",
+      "package": "LGA-14",
+      "description": "Primary IMU 6-axis SPI 32kHz"
+    },
+    {
+      "reference": "U4",
+      "quantity": 1,
+      "value": "BMP388",
+      "package": "LGA-8",
+      "description": "Primary barometer I2C 200Hz"
+    },
+    {
+      "reference": "U5",
+      "quantity": 1,
+      "value": "Ebyte E22-900M22S",
+      "package": "SMD Module",
+      "description": "LoRa 915MHz SX1268 22dBm"
+    },
+    {
+      "reference": "U6",
+      "quantity": 1,
+      "value": "TLV62569",
+      "package": "SOT-23-5",
+      "description": "3.3V 600mA buck converter"
+    },
+    {
+      "reference": "Q1-Q3",
+      "quantity": 3,
+      "value": "IRFZ44N",
+      "package": "D2PAK",
+      "description": "Pyro channel N-MOSFET"
+    },
+    {
+      "reference": "J1",
+      "quantity": 1,
+      "value": "JST-GH 8pin",
+      "package": "TH",
+      "description": "ASAM-1 ribbon"
+    },
+    {
+      "reference": "J2",
+      "quantity": 1,
+      "value": "JST-GH 8pin",
+      "package": "TH",
+      "description": "ASAM-2 ribbon"
+    },
+    {
+      "reference": "J3",
+      "quantity": 1,
+      "value": "SMA Edge Mount",
+      "package": "PCB",
+      "description": "915MHz antenna"
+    },
+    {
+      "reference": "J4",
+      "quantity": 1,
+      "value": "XT30-M",
+      "package": "TH",
+      "description": "1S 850mAh LiPo input"
+    },
+    {
+      "reference": "J5",
+      "quantity": 1,
+      "value": "2-pin header",
+      "package": "TH",
+      "description": "Physical arm switch"
+    },
+    {
+      "reference": "J6-J8",
+      "quantity": 3,
+      "value": "2-pin screw terminal",
+      "package": "TH",
+      "description": "Pyro e-match outputs CH1-3"
+    },
+    {
+      "reference": "LED1-3",
+      "quantity": 3,
+      "value": "Bicolor LED",
+      "package": "0805",
+      "description": "Pyro continuity indicators"
+    },
+    {
+      "reference": "SW1",
+      "quantity": 1,
+      "value": "TC2030",
+      "package": "SMD 6-pin",
+      "description": "SWD debug + UART boot"
+    },
+    {
+      "reference": "C1",
+      "quantity": 1,
+      "value": "47uF 10V",
+      "package": "Radial",
+      "description": "Input bulk cap"
+    },
+    {
+      "reference": "C2",
+      "quantity": 1,
+      "value": "22uF 6.3V",
+      "package": "0805",
+      "description": "Buck output cap"
+    },
+    {
+      "reference": "C10-C11",
+      "quantity": 2,
+      "value": "100nF / 10uF",
+      "package": "0402",
+      "description": "MCU decoupling"
+    },
+    {
+      "reference": "C20-C21",
+      "quantity": 2,
+      "value": "100nF",
+      "package": "0402",
+      "description": "IMU decoupling"
+    },
+    {
+      "reference": "C30",
+      "quantity": 1,
+      "value": "100nF",
+      "package": "0402",
+      "description": "LoRa module decoupling"
+    },
+    {
+      "reference": "R1",
+      "quantity": 1,
+      "value": "10k",
+      "package": "0402",
+      "description": "RESET pull-up"
+    },
+    {
+      "reference": "R10-R11",
+      "quantity": 2,
+      "value": "4.7k",
+      "package": "0402",
+      "description": "I2C pull-ups"
+    },
+    {
+      "reference": "R20-R22",
+      "quantity": 3,
+      "value": "100R",
+      "package": "0402",
+      "description": "Pyro gate resistors"
+    },
+    {
+      "reference": "R23-R25",
+      "quantity": 3,
+      "value": "10k",
+      "package": "0402",
+      "description": "Pyro gate pull-downs"
+    }
+  ]
+}

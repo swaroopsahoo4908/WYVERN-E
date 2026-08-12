@@ -1,0 +1,6 @@
+2026-08-07 16:04:27[Info] :  Start Design Rule Checking.
+2026-08-07 16:04:28[Warn] :  Found some components Pins floating, suggest placing No Connect Flag on the Pins : U1.49,U3.5,U3.17,U4.5,U5.3,U5.5,U7.9,U8.7,U8.8,U9.7,U9.8,U10.2,U10.3,U13.7,U13.8,U14.6,U14.9,U14.10,U14.12,U14.13,U15.1,U15.5,U15.6,U15.7,U15.8,U15.12,U15.13,U15.21,U15.22,U15.23
+2026-08-07 16:04:28[Warn] :  Found some components Pins floating, suggest placing No Connect Flag on the Pins : U15.24,U15.26,U15.27,U18.4,U18.5,U18.8,U18.9,U18.10,U18.11,U18.12,U18.13,U18.16,U18.23,U18.26,U18.27,U18.28,U18.29,U18.39,U18.40,U18.41,U18.42,U18.43,U18.44,U18.45,U18.46,U18.47,U18.48,U18.49,U18.50,U18.51
+2026-08-07 16:04:28[Warn] :  Found some components Pins floating, suggest placing No Connect Flag on the Pins : U18.52,U18.60,U18.61,U18.62,U18.63,U18.64,U18.65,U18.66,U18.67,U18.68,U18.69,U18.70,U18.72,CARD1.3,CARD1.4,CARD1.6,CARD1.8,USBC1.B8,USBC1.B7,USBC1.B6,USBC1.A8,USBC1.B4A9,USBC1.4,USBC1.3,USBC1.2,USBC1.1,U22.3,U22.4,U16.3,U16.4
+2026-08-07 16:04:28[Warn] :  Found some components Pins floating, suggest placing No Connect Flag on the Pins : X2.1,X2.3
+2026-08-07 16:04:28[Info] :  Finish Design Rule Checking. Fatal Error: 0, Error: 0, Warning: 4, Info: 0.

@@ -1,0 +1,11 @@
+{
+  "apogee_ft": 1015,
+  "staging_ft": 42,
+  "vmax_ms": 58.1,
+  "liftoff_g": 1289,
+  "tvc_burn_s": 4.7,
+  "margin_cal": [
+    1.9,
+    2.3
+  ]
+}

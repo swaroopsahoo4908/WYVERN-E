@@ -1,0 +1,21 @@
+%% WYVERN-E 3.0 — TVC control split across Pi 5 (high-level) and Teensy 4.0 (real-time hardware PWM)
+flowchart TD
+    subgraph PI[Raspberry Pi 5 — Linux, high-level]
+      A[State machine: phase = stabilize / maneuver] --> B[Compute setpoint profile]
+      B --> C[Stream arm + phase + setpoint over USB-serial @100 Hz]
+      L[Log commanded vs actual gimbal, attitude, video] 
+    end
+    subgraph TE[Teensy 4.0 — bare-metal, deterministic 500 Hz]
+      C --> D[Read gimbal BNO085 quaternion + rates]
+      D --> E[PID: u = Kp*e + Ki integral e + Kd e-dot]
+      E --> F[Clamp to plus/minus 5 deg gimbal limit]
+      F --> G{TVC system}
+      G -->|A solenoid| H[FlexPWM hardware PWM -> 3x IRF520 -> 50N solenoids]
+      G -->|B servo| I[PWM -> PCA9685 / direct -> 3x DS3235 servos]
+      H --> J[Telemetry: actual angle, current]
+      I --> J
+    end
+    J -->|USB-serial| L
+    J --> K{burnout?}
+    K -->|no| D
+    K -->|yes| M[Neutralize gimbal; Pi hands off to recovery]

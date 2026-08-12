@@ -1,0 +1,11 @@
+%% WYVERN-E 3.0 — Power distribution
+flowchart LR
+    BATT[3S Li-ion 11.1V 3000mAh\n(USB-C PD via IP2368)] --> SW[Master switch + fuse]
+    SW --> B5[5V / 5A buck]
+    SW --> B6[6V UBEC]
+    SW --> DIR[11.1V direct bus]
+    B5 --> PI[Raspberry Pi 5 + sensors 3V3]
+    B6 --> SERVO[DS3235 servo rail - System B]
+    DIR --> SOL[50N solenoid bus - System A]
+    DIR --> RRC[RRC3+ pyro/ignition]
+    USBC[USB-C charger / 12V 2A bench] -.charge.-> BATT

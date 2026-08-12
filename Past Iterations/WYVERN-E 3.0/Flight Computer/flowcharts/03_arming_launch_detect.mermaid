@@ -1,0 +1,12 @@
+%% WYVERN-E 3.0 — Arming + launch detection + pyro safety
+flowchart TD
+    P[Power on at pad, RBF jumper INSERTED] --> Q[GPIO17 reads SAFE\nPYRO_INHIBIT active: RRC3+ AUX/DROGUE/MAIN masked]
+    Q --> R[Sensors logging, camera recording, both uSD writing]
+    R --> S{RBF pulled on the rail?}
+    S -->|no| R
+    S -->|yes| T[GPIO17 = ARMED, clear PYRO_INHIBIT]
+    T --> U[Prime launch-detect: 50 ms window, |a| > 3g sustained]
+    U --> V{Threshold met on LSM6DSO32/BNO085 INT -> GPIO27?}
+    V -->|no| U
+    V -->|yes| W[Latch LIFTOFF t0, start flight timers + state machine]
+    W --> X[BOOST]
