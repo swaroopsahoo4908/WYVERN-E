@@ -1,9 +1,4 @@
-# GTR70E WYVERN
-
-**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
-**Date:** 2026-08-12  
-**Program:** GTR70E WYVERN
-
+# GTR70 WYVERN-E
 
 A single-stage, 70 mm, finned active-TVC sustainer built around a **Raspberry Pi Pico 2 W (RP2350)**
 flight computer, powered by an **Estes F15-4**. 
@@ -38,15 +33,15 @@ Zoning follows thermal exposure and structural role, not a single blanket materi
 
 | | value |
 |---|---|
-| Liftoff / dry mass | **698 g / 638 g** (finned 87 mm, no ballast) |
-| T/W | 2.10 avg / 3.70 peak |
-| CG / gimbal pivot / control arm | 50.1 cm / 62 cm / 11.9 cm from nose |
-| Pitch inertia Iyy | 0.0262 kg·m² |
-| Burnout | 3.45 s · 74.0 m · 36.3 m/s |
-| Apogee | ~439 ft / 133.7 m, +1.31 cal margin, @ 6.87 s (RK4+Barrowman) |
-| Recovery | F15-4 motor ejection; deploys t≈7.45 s (+0.58 s past apogee) @ ~5.7 m/s; 24″ chute → 4.7 m/s descent |
+| Liftoff / dry mass | **729 g / 627 g** (finned 87 mm, no ballast) |
+| T/W | 2.01 avg / 3.54 peak |
+| CG / gimbal pivot / control arm | 50.8 cm / 62 cm / 11.2 cm from nose |
+| Pitch inertia Iyy | 0.0257 kg·m² |
+| Burnout | 3.45 s · 68.7 m · 33.7 m/s |
+| Apogee | ~397 ft / 121.1 m, +1.20 cal margin, @ 6.67 s (RK4+Barrowman) |
+| Recovery | F15-4 motor ejection; deploys t≈7.45 s (+0.78 s past apogee) @ ~7.7 m/s; 24″ chute → 4.8 m/s descent |
 | TVC | gimbal stays within ±8°; control authority positive throughout the burn |
-| FAA class | Class 1, no waiver (698 g < 1500 g, F-class motor) |
+| FAA class | Class 1, no waiver (729 g < 1500 g, F-class motor) |
 
 ## Repository structure
 
