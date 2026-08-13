@@ -1,7 +1,6 @@
 # GTR70E WYVERN, PCB1 Engineering Change Order 1 — power monitor and SD card fixes
 
 **Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
-**Date:** 2026-08-12  
 **Program:** GTR70E WYVERN
 
 

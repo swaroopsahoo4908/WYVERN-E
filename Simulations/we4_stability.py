@@ -2,26 +2,10 @@
 """GTR70E WYVERN, fin sizing and passive-stability trade study (Barrowman), remass, re-trajectory,
 rail-exit, weathercock, flutter, drift -> plots4/.
 
-REWRITTEN 2026-08. The previous version of this file was internally inconsistent in four ways,
-every one of which propagated into the documentation:
-
-  1. It reported `fin_span_mm: 35.0` while the variable it actually evaluated was `s35=0.055`
-     -- i.e. it labelled a 55 mm fin as 35 mm. README's "35 mm fins are unstable (-0.52 cal)"
-     and this file's own "+0.91 cal" were therefore both quoting the same mislabelled run.
-  2. It hardcoded `CG0=0.45`, a pre-ASA-Aero, pre-i3-camera value, against the canonical
-     CG=0.484 m used by we4_flightsim.py, wyvern_datagen/core.py and the proposal.
-  3. It never evaluated the 72 mm fin that the vehicle actually flies.
-  4. It carried two fin-mass functions, one of which (`fin_mass`) had a unit error its own
-     inline comment flagged but never fixed.
-
-This version evaluates the real trade: static margin vs. fin semispan for the canonical mass
-stack, with the historical 35 mm candidate and the flown fin configuration both marked.
-
-UPDATED 2026-08-10: the airframe re-zoned to ASA-Aero (upper body) / PETG-CF (lower body + fins) /
-PC-FR (TVC assembly). The lighter foamed-ASA upper body plus heavier PETG-CF fins moved CG aft from
-48.4 to 50.4 cm against an unchanged 56.8 cm CP, dropping margin to 0.92 cal, under the 1.0 cal
-floor. Fin span was increased 72 -> 87 mm to restore margin; this file now reproduces the canonical
-CG/CP/margin (50.8 cm / 59.3 cm / +1.20 cal) at 87 mm.
+Evaluates the real trade: static margin vs. fin semispan for the canonical mass stack (ASA-Aero
+upper body, PETG-CF lower body + fins, PC-FR TVC assembly), with the rejected 35 mm candidate and
+the flown 87 mm fin configuration both marked. Reproduces the canonical CG/CP/margin (50.1 cm /
+59.3 cm / +1.31 cal) at 87 mm.
 """
 import os, json, numpy as np
 _TRAPZ = getattr(np, "trapezoid", getattr(np, "trapz", None)) # NumPy 2.x renamed trapz
@@ -39,7 +23,7 @@ CG_FLOWN = 0.5083 # m from nose, flown config
 SPAN_FLOWN = 0.087 # m semispan
 PROP = 0.060; TB = 3.45
 CD_NOMINAL = 0.539 # componentwise Barrowman buildup, shared with we4_flightsim/core.py
-FIN_RHO = 1300.0 # kg/m^3, PETG-CF (lower body + fins zone, 2026-08-10 re-zoning)
+FIN_RHO = 1300.0 # kg/m^3, PETG-CF (lower body + fins zone)
 FIN_T = 0.003 # m fin thickness
 cr, ct, swLE = 0.070, 0.035, 0.025 # root chord, tip chord, LE sweep
 
@@ -223,10 +207,9 @@ ax.set_xlabel("crosswind (m/s)"); ax.set_ylabel("weathercock angle (deg)"); ax.g
 ax.set_title(f"GTR70E WYVERN · weathercock vs wind (rail-exit {v_rail_1p5:.1f} m/s off a 1.5 m rail)",
              fontweight='bold'); sv(fig, "16_weathercock")
 
-# ---- ballast trade (replaces the orphaned config_optimized.json / config_finned_ballast.json) ---
-# Those two files carried the superseded 58.4 mm / 708 g / 431 ft and 150 g-ballast configurations
-# and were written by no surviving script, so they could never be refreshed. The trade is now a
-# first-class output of this file.
+# ---- ballast trade ----
+# First-class output of this file: for each candidate ballast mass, the smallest fin span that
+# still holds the target static margin, and the resulting apogee.
 def ballast_case(ball_kg, x_ball=0.05, target=1.0):
     """Smallest fin span holding `target` cal at this ballast, and the resulting apogee."""
     lo, hi = 0.02, 0.14

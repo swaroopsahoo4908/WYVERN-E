@@ -47,12 +47,12 @@ sys.path.insert(0, os.path.join(HERE, "wyvern_datagen"))
 # ---- canonical predictions this flight is scored against (single source: the sim suite) --------
 PRED = dict(
     cd_nominal = 0.539, # we4_flightsim componentwise Barrowman buildup
-    xcp_m = 0.568, # Barrowman CP from nose
-    xcg_m = 0.484, # liftoff CG from nose
+    xcp_m = 0.593, # Barrowman CP from nose
+    xcg_m = 0.501, # liftoff CG from nose
     diameter_m = 0.070,
-    margin_cal = 1.20,
-    m_lift_kg = 0.7292,  # canonical mass 2026-08-11, was 0.792
-    m_dry_kg = 0.6272,  # was 0.690
+    margin_cal = 1.31,
+    m_lift_kg = 0.698,  # canonical mass
+    m_dry_kg = 0.638,
     burn_s = 3.45,
     deploy_s = 7.45,
     apogee_m = 98.9,

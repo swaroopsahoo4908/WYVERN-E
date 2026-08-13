@@ -6,9 +6,8 @@ _TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None)) # NumPy 2.x renamed trap
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 OUT=os.path.join(os.path.dirname(os.path.abspath(__file__)),"plots4"+os.environ.get("WYVERN_RUN_TAG","")); os.makedirs(OUT,exist_ok=True)
 g=9.80665; rho0=1.225; D=0.070; Rb=D/2; A=np.pi*Rb**2; Lnose=0.12; Ltot=0.74
-m_lift=0.698; m_dry=0.638; PROP=0.060; tb=3.45; CG=0.5011 # 2026-08-12 recompute: finned 87mm, zoned ASA-Aero (upper+lower)/PETG-CF (fins+bulkhead)/PC-FR (TVC), NO ballast
-# --- Barrowman aero (nose + 4x 87 mm fins, PETG-CF; span increased 72->87mm 2026-08-10 to hold margin ---
-# --- after the ASA-Aero/PETG-CF/PC-FR material re-zoning shifted CG aft) ---
+m_lift=0.698; m_dry=0.638; PROP=0.060; tb=3.45; CG=0.5011 # finned 87mm, zoned ASA-Aero (upper+lower)/PETG-CF (fins+bulkhead)/PC-FR (TVC), NO ballast
+# --- Barrowman aero (nose + 4x 87 mm fin span, PETG-CF, sized to hold margin against the zoned mass stack) ---
 def barrowman_cp():
     CNn=2.0; Xn=0.333*Lnose; cr,ct,sw,sp=0.070,0.035,0.025,0.087; Rb_=0.035 # ellipsoid nose, 87mm fins
     Lf=np.sqrt(sp**2+(sw+(ct-cr)/2)**2); k=1+Rb_/(sp+Rb_)

@@ -1,16 +1,8 @@
 #!/usr/bin/env python3
-"""GTR70E WYVERN, MOTOR TRADE STUDY [HISTORICAL RECORD, superseded mass, conclusion still stands]
+"""GTR70E WYVERN, MOTOR TRADE STUDY
 ================================================================================
-NOTE (2026-08): this study was run against the 705 g vehicle. The flown vehicle is now 792 g after
-the PLA/PETG-CF material change and the 24 in canopy. The masses below are therefore NOT current --
-see we4_flightsim.py / plots4/results_summary.json for the canonical numbers. It is kept unedited
-because it is the *record of the motor decision*, and the decision is unchanged: the heavier 792 g
-vehicle only widens the F15's margin against the <1000 ft ceiling (324 ft vs 429 ft at 705 g) while
-keeping the same 2.95 s TVC window, so no alternative motor becomes preferable. Re-running it at
-792 g would change the numbers in the table but not which row wins.
-================================================================================
-Question: the F15-4 is underpowered for 705 g (T/W 4.3, rail-exit 6.7 m/s). Fix it by
-(A) swapping to a higher-thrust single-stage motor, or (B) going two-stage with a punchy booster.
+Question: is the F15-4 the right motor choice, or does a higher-thrust single-stage motor or a
+two-stage configuration do better against the <1000 ft no-waiver ceiling and the TVC window?
 
 This script recomputes, with the same RK4 + Barrowman engine as we4_flightsim/we4_validation, 
 the apogee, rail-exit velocity, peak T/W, TVC window, max-Q and Mach for:

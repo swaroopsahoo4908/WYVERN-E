@@ -1,9 +1,10 @@
-# STALE, pre-2026-08-12 architecture: this OpenRocket exporter still models the PLA body / 4x 72mm
-# fin / 324ft-apogee 3.0-era geometry, not the current ASA-Aero/PETG-CF/PC-FR zoned, 87mm-fin,
-# 439ft airframe (see Documentation/WYVERN_E4_Mathematics.md for current numbers). It is NOT part
-# of the documented cascade (core.py -> we4_flightsim.py -> docs); only the avionics mass-component
-# labels below have been spot-fixed to name the current custom PCB1 stack. Re-derive full geometry
-# against current CAD before treating the exported .ork file as authoritative.
+# This OpenRocket exporter models a simplified PLA body / 4x 72mm fin geometry for quick
+# cross-checks in OpenRocket's own solver, not the full ASA-Aero/PETG-CF/PC-FR zoned, 87mm-fin
+# airframe (see Documentation/WYVERN_E4_Mathematics.md for the current vehicle numbers). It is
+# NOT part of the documented mass cascade (core.py -> we4_flightsim.py -> docs); the avionics
+# mass-component labels below do name the current custom PCB1 stack. Re-derive full geometry
+# against current CAD before treating the exported .ork file as authoritative for stability or
+# apogee.
 import zipfile,uuid,os
 OUT=os.path.dirname(os.path.abspath(__file__))
 def mc(name,off,mass,frm="top"): return f'<masscomponent><name>{name}</name><id>{uuid.uuid4()}</id><axialoffset method="{frm}">{off}</axialoffset><position type="{frm}">{off}</position><packedlength>0.03</packedlength><packedradius>0.03</packedradius><radialposition>0.0</radialposition><radialdirection>0.0</radialdirection><mass>{mass}</mass><masscomponenttype>masscomponent</masscomponenttype></masscomponent>'

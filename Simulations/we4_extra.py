@@ -5,7 +5,7 @@ import os,json,numpy as np
 _TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None)) # NumPy 2.x renamed trapz
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 OUT=os.path.join(os.path.dirname(os.path.abspath(__file__)),"plots4"+os.environ.get("WYVERN_RUN_TAG",""))
-g=9.80665;rho0=1.225;D=0.070;A=np.pi*(D/2)**2;m_lift=0.698;m_dry=0.638;tb=3.45  # canonical mass 2026-08-12
+g=9.80665;rho0=1.225;D=0.070;A=np.pi*(D/2)**2;m_lift=0.698;m_dry=0.638;tb=3.45  # canonical mass
 # F15 thrust curve CORRECTED 2026-08. The digitized shape integrated to 41.97 N.s, so the
 # 49.6 N.s renormalization below scaled the whole curve by 1.1817 and pushed peak thrust to
 # 29.9 N -- against Estes' published 25.3 N peak, and against the 3.26 peak T/W quoted

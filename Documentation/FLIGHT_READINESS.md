@@ -1,15 +1,13 @@
 # GTR70E WYVERN Flight Computer, Flight-Readiness Document
 
 **Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
-**Date:** 2026-08-12  
 **Program:** GTR70E WYVERN
 
 
-**Reconciled 2026-08-12** against the fabricated PCB1 netlist/BOM/schematic (§1 below now matches
-`01_FlightComputer_Spec.md` and the real firmware in `firmware/wyvern4_tvc/`). Flight hardware is a
-custom **PCB1** (bare RP2350B, Ø62 mm, no Pico/Pico-W module), with **one shared I²C bus, no mux**,
-a body **BNO055** plus an external **BNO085** (STEMMA-QT, bulkhead-boundary mount), and no onboard
-radio chip.
+Flight hardware is a custom **PCB1** (bare RP2350B, Ø62 mm, no Pico/Pico-W module), with **one
+shared I²C bus, no mux**, a body **BNO055** plus an external **BNO085** (STEMMA-QT,
+bulkhead-boundary mount), and no onboard radio chip. §1 below matches `01_FlightComputer_Spec.md`
+and the real firmware in `firmware/wyvern4_tvc/`.
 
 This is the top-level readiness summary for the custom-PCB1 flight-computer firmware. Read
 `CONFLICTS.md` first, it's the frozen parameter table and the record of the resolved design
@@ -106,7 +104,7 @@ the same folder. Open `wyvern4_tvc/wyvern4_tvc.ino` in the IDE and every file be
 |---|---|
 | `wyvern4_tvc/wyvern4_tvc.ino` | Main sketch: pin map, dual-core ownership, state machine, setup/loop |
 | `wyvern4_tvc/wyvern_pid.h` | Dual-axis PID: anti-windup, filtered derivative, slew limit, bumpless reset. Frozen gains: Kp=0.10/Ki=0.40/Kd=0.18 (margin-verified retune, §2 item 1) |
-| `wyvern4_tvc/i2c_mux.h` | **Retired 2026-08-11, not included by any active file** — PCB1 has no PCA9548A, one shared bus, kept only in case a future board rev adds a mux |
+| `wyvern4_tvc/i2c_mux.h` | **Not included by any active file** — PCB1 has no PCA9548A, one shared bus, kept only in case a future board rev adds a mux |
 | `wyvern4_tvc/imu_grv.h` | Dual-IMU driver (body BNO055 + external BNO085, different chip families), quaternion/Euler math, 2-of-2 voting, body accelerometer |
 | `wyvern4_tvc/baro.h` | BME680 driver (no BMP388 populated on this board rev; that code path degrades gracefully rather than being deleted) |
 | `wyvern4_tvc/battery.h` | INA226 rail monitor on the shared I²C bus — reads the buck's VBUCK output, not raw pack voltage, see §2 item 3; voltage snapshotted cross-core into every log row |

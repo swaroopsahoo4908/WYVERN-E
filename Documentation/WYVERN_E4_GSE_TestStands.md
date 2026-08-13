@@ -1,14 +1,13 @@
 # GTR70E WYVERN, Ground Test Stands & Motor Plan
 
 **Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
-**Date:** 2026-08-12  
 **Program:** GTR70E WYVERN
 
 
-**2026-08-10: full project spec restored.** Four independent ground-test rigs, one per research
-question that needs physical validation before flight: static fire (RQ2 materials + calibration),
-servo TVC stand (RQ1/RQ5), magnetic TVC stand (RQ1/RQ5), wind tunnel (RQ3/RQ4). Jetvane testing,
-dropped in the 2026-08 scope cut, is back on the static-fire stand under a new protocol (below).
+Four independent ground-test rigs, one per research question that needs physical validation before
+flight: static fire (RQ2 materials + calibration), servo TVC stand (RQ1/RQ5), magnetic TVC stand
+(RQ1/RQ5), wind tunnel (RQ3/RQ4). Jetvane testing runs on the static-fire stand as a materials
+screen, detailed below.
 
 ## 1. Static fire test stand, calibration, thrust curves, jetvane materials screen
 Axial-only load path (1x 5 kg cell + HX711) with a **steel blast deflector**, sized for the F15-0's
@@ -18,7 +17,7 @@ Axial-only load path (1x 5 kg cell + HX711) with a **steel blast deflector**, si
   F15-0, the reference curve both TVC stands are compared against.
 - **Stand/DAQ calibration**: known hanging masses calibrate the load cell before every firing
   campaign; E16-4 commissioning firings validate the calibrated chain against a published curve.
-- **RQ2 jetvane blast-shield screen (redefined 2026-08-10)**: this is a materials screen, not a
+- **RQ2 jetvane blast-shield screen**: this is a materials screen, not a
   vane-deflection test. A flat coupon plate of each candidate material, 5 mm thick and printed at
   100% infill, is mounted directly in the exhaust path like a blast shield and fired on. The motor
   runs straight into the plate; the response is melt-through, surface ablation depth, and slag
@@ -37,10 +36,9 @@ $$T=\sqrt{F_x^2+F_y^2+F_z^2},\quad \theta=\arctan\frac{\sqrt{F_x^2+F_y^2}}{F_z},
 \phi=\operatorname{atan2}(F_y,F_x)$$
 
 Sized for the small motors here: **F15 peak 25.3 N**, side force at ±8° ≈ **3.5 N** → a **5 kg
-axial + two 1 kg lateral** cells + 3× HX711 → one of the three custom RP2350B flight-computer PCBs
-(2026-08-10: repurposed from a bare Pico DAQ) at 80 SPS. Logging commanded vs
-measured (θ, φ) gives bandwidth, slew, overshoot, and steady-state error for the servo system,
-this is the rig the flight vehicle's actual TVC gets qualified on (`gtr70e_wyvern_gse_servo_rig`).
+axial + two 1 kg lateral** cells + 3× HX711 → a Raspberry Pi Pico / Pico 2 W DAQ at 80 SPS. Logging
+commanded vs measured (θ, φ) gives bandwidth, slew, overshoot, and steady-state error for the servo
+system, this is the rig the flight vehicle's actual TVC gets qualified on (`wyvern4_gse_servo_rig`).
 
 ## 3. Magnetic TVC test stand
 A second, physically separate rig (`gtr70e_wyvern_gse_solenoid_rig`) using the same three-load-cell

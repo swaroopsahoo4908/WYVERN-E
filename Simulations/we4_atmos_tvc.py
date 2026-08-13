@@ -21,7 +21,7 @@ BLU,RED,GRN,ORG,PUR,GRY="#2a6f97","#bc4749","#386641","#e09f3e","#6d597a","#8d99
 
 # ---------------- vehicle (mirror we4_flightsim.py) ----------------
 g=9.80665; D=0.070; A=np.pi*(D/2)**2; Ltot=0.74; a0=343.0
-m_lift,m_dry,PROP,tb=0.698,0.638,0.060,3.45 # canonical mass 2026-08-12, was 0.7292/0.6272
+m_lift,m_dry,PROP,tb=0.698,0.638,0.060,3.45 # canonical mass
 # CANONICAL stability constants (we4_flightsim.py / we4_stability.py / wyvern_datagen/core.py).
 # These were CG=0.467 / Xcp=0.537 / x_gimbal=0.72 -- the pre-ASA-Aero, pre-i3-camera vehicle --
 # so the aero restoring stiffness k = q*A*CN*(Xcp-CG) and the control moment arm (x_gimbal-CG)

@@ -2,7 +2,7 @@
 // ===============================================================================================
 // Toolchain: Arduino-Pico core (earlephilhower), board "WeAct RP2350B" (weact_rp2350b) -- the bare-
 // silicon RP2350B target (48 GPIO, QFN-80, external QSPI flash), NOT any Pico/Pico-W module profile.
-// This board (PCB1, fabricated 2026-08-11) carries a standalone RP2350B (U1), not a Pico 2 module,
+// This board (PCB1) carries a standalone RP2350B (U1), not a Pico 2 module,
 // so board profiles built around a module (rpipico2w, rpipico2) assume the wrong GPIO count, the
 // wrong ADC-capable pin range, and a WiFi radio chip that isn't populated here.
 //
@@ -84,12 +84,8 @@
 #include "wifi_telemetry.h"
 #endif
 
-// ---------- pin map (custom RP2350B PCB1) — CONFIRMED 2026-08-11 by tracing every pin in
-// Netlist_PCB1_2026-08-11.tel against the labeled pinout in SCH_Schematic1_1-P1_2026-08-11.svg
-// (not read off scrambled PDF text-extraction order, which produced a wrong H1/address guesses in
-// an earlier pass the same day -- see imu_grv.h and launch_status.h file headers for what changed).
-// This replaces the retired ../CONFLICTS.md section 5 table built for a different, never-fabricated
-// board layout.
+// ---------- pin map (custom RP2350B PCB1) — CONFIRMED by tracing every pin in the netlist against
+// the labeled schematic pinout -- see imu_grv.h and launch_status.h file headers for the detail.
 #define SDA0 0
 #define SCL0 1             // ONE shared I2C bus -> body BNO055, external BNO085 (STEMMA-QT), BME680,
                             // INA226, LIS3MDL -- no mux, no second bus (core 0 owned)
@@ -247,9 +243,8 @@ void setup() {
 
   Serial.println("SELFTEST:BEGIN");
 
-  // RECONCILED 2026-08-11: real PCB has exactly 2 physical BNO085s (one onboard "body", one
-  // external via the single STEMMA-QT port), not 3 -- see imu_grv.h's file header. mask bit0 =
-  // external, bit1 = body; bit2 ("recovery") is retired and will never be set.
+  // PCB1 has exactly 2 physical IMUs (onboard body BNO055, external BNO085 via the single
+  // STEMMA-QT port) -- see imu_grv.h's file header. mask bit0 = external, bit1 = body.
   uint8_t imu_mask = g_imu.begin();
   g_imu_init_mask = imu_mask;
   Serial.printf("SELFTEST:IMU_EXTERNAL:%s\n", (imu_mask & 0x01) ? "PASS" : "FAIL");
@@ -549,10 +544,8 @@ void setup1() {
                 (unsigned long)g_dropped_log_frames);
 
   // Aggregate everything into one PASS/FAIL the BOOT state machine on core 0 actually gates on.
-  // RECONCILED 2026-08-11: 2 physical IMUs (external=bit0, body=bit1), both required -- see
-  // imu_grv.h file header and the SELFTEST:IMU_* prints in setup(). The old (mask&0x01)&&(mask&0x06)
-  // check required a nonexistent gimbal IMU (bit0) that could never be set, which would have left
-  // the vehicle stuck in BOOT forever on real hardware.
+  // 2 physical IMUs (external=bit0, body=bit1), both required -- see imu_grv.h file header and
+  // the SELFTEST:IMU_* prints in setup().
   bool core0_ready = (g_imu_init_mask & 0x03) == 0x03 && g_baro_init_ok;
   bool overall = core0_ready && sd_ok && !g_battery_critical && ring_moving;
   g_selftest_pass = overall;

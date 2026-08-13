@@ -5,7 +5,6 @@ updated_at: 2026-08-01
 # GTR70E WYVERN, Build, Bench and Range Guide
 
 **Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
-**Date:** 2026-08-12  
 **Program:** GTR70E WYVERN
 
 
@@ -228,12 +227,12 @@ deflection.** Log commanded vs measured throughout, that difference is the resul
 > reduce the linkage ratio, or move the servo rail to 6 V, or fit a higher-torque servo, in that
 > order. See `WYVERN_E4_BUILD_READINESS.md` §11.
 
-### E4 RQ2, zoned materials (Timeline Days 7 and 9), jetvane blast-shield screen restored 2026-08-10
+### E4 RQ2, zoned materials (Timeline Days 7 and 9), jetvane blast-shield screen
 
 RQ2 is the material justification for the zoning actually flown (ASA-Aero upper body, PETG-CF
-lower body and fins, PC-FR TVC assembly), plus a jetvane materials screen on the static-fire stand
-(reinstated 2026-08-10, redefined as a blast-shield coupon test, see `WYVERN_E4_GSE_TestStands.md`
-§1). Print three-point-bend coupons in all three flown materials plus the two extra RQ2 comparison
+lower body and fins, PC-FR TVC assembly), plus a jetvane materials screen on the static-fire stand,
+run as a blast-shield coupon test (see `WYVERN_E4_GSE_TestStands.md` §1). Print three-point-bend
+coupons in all three flown materials plus the two extra RQ2 comparison
 materials (ABS, PC), and six coupon plates for the blast-shield screen.
 
 - **Three-point bend** (Day 7, no motor needed): ASA-Aero, PETG-CF, and PC-FR coupons, identical
@@ -245,7 +244,7 @@ materials (ABS, PC), and six coupon plates for the blast-shield screen.
   ASA-Aero's lower HDT and PETG-CF's ~80 °C. The model predicts a wall temperature comfortably
   under PETG-CF's limit; if the measurement runs much higher, that is a finding worth reporting
   and it validates the zoning decision directly.
-- **Jetvane blast-shield screen** (static-fire campaign, redefined 2026-08-10): a flat coupon
+- **Jetvane blast-shield screen** (static-fire campaign): a flat coupon
   plate of each candidate material, 5 mm thick at 100% infill, mounted directly in the exhaust
   path like a blast shield and fired on. Six materials go through the screen: PLA, PETG-CF, ABS,
   ASA-Aero, PC, and PC-FR. Response measured is melt-through, ablation depth, and slag buildup, not

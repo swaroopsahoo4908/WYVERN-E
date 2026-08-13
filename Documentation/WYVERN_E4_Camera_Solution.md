@@ -1,7 +1,6 @@
 # GTR70E WYVERN, Camera Solution
 
 **Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
-**Date:** 2026-08-12  
 **Program:** GTR70E WYVERN
 
 
@@ -39,9 +38,7 @@ The i3 runs on its own battery, so no FC power rail is required, start it manual
 power-on-record mode) at the pad during the arming sequence. If you prefer bus power, it charges over
 USB-5 V; confirm its record-on-power behaviour on the bench first.
 Cut the viewport at the FC station in the **Upper BT** (nose end, alongside the camera/FC/battery
-stack, see `WYVERN_E4_Recovery.md` §1), lens flush with a thin PLA window or open port. **⚠ The old
-"≈38 cm from nose" figure was measured against the single-tube four-bay layout and has not been
-recomputed for the new two-BT geometry**, the Upper BT's exact length and the camera's position
-within it depend on the sim re-run flagged in `WYVERN_E4_Mathematics.md` §1, so treat 38 cm as stale
-until that cascade is re-run rather than cutting to it directly. The Pico logs an arm timestamp so
-video and sensor logs can be aligned in post.
+stack, see `WYVERN_E4_Recovery.md` §1), lens flush with a thin PLA window or open port. Confirm the
+exact viewport position against the Upper BT's built length before cutting rather than working from
+an approximate figure. The flight computer logs an arm timestamp so video and sensor logs can be
+aligned in post.

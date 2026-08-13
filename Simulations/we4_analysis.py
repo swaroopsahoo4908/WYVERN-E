@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """GTR70E WYVERN, engineering analysis suite (drag, structural/FEA, thermal, power, sensitivity,
-servo sizing) -> plots4/. Mirrors the 2.0/3.0 analysis set for the single-stage F15-4 TVC vehicle.
+servo sizing) -> plots4/, for the single-stage F15-4 TVC vehicle.
 
-STALE, pre-2026-08-12 architecture: this generator's structural/thermal component list (PLA body
-tube, 4x 72mm fins) predates the RQ2 zoned-materials pass (ASA-Aero/PETG-CF/PC-FR, 87mm fins) and
-the 2026-08-12 mass/avionics recompute. It is NOT part of the documented cascade
-(core.py -> we4_flightsim.py -> docs); only the power-budget labels below have been spot-fixed to
-name the current avionics stack. Re-derive the structural/thermal sections against current CAD
-geometry before treating this file's plots as authoritative."""
+The structural/thermal component list here (body tube, 4x fins) is a first-order model, not part of
+the documented mass cascade (core.py -> we4_flightsim.py -> docs) and not tied to the zoned
+ASA-Aero/PETG-CF/PC-FR CAD geometry. Re-derive the structural/thermal sections against current CAD
+geometry before treating this file's plots as authoritative for those two sections; the power-budget
+section names the current avionics stack directly."""
 import os,json,numpy as np
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 HERE=os.path.dirname(os.path.abspath(__file__)); OUT=os.path.join(HERE,"plots4"+os.environ.get("WYVERN_RUN_TAG","")); os.makedirs(OUT,exist_ok=True)

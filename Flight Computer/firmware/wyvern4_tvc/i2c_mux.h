@@ -1,12 +1,10 @@
-// GTR70E WYVERN — PCA9548A I2C mux driver. RETIRED 2026-08-11, NOT INCLUDED BY ANY ACTIVE FIRMWARE FILE.
+// GTR70E WYVERN — PCA9548A I2C mux driver. NOT INCLUDED BY ANY ACTIVE FIRMWARE FILE.
 // =====================================================================================================
-// The custom RP2350B PCB1 (2026-08-11 fab set) has no PCA9548A on it -- verified against the real
-// netlist/BOM (PCB/Netlist_PCB1_2026-08-11.tel, PCB/BOM_Board1_PCB1_2026-08-11.xlsx). Every onboard
+// The custom RP2350B PCB1 has no PCA9548A on it -- verified against the netlist/BOM. Every onboard
 // I2C device (BNO055, BME680, INA226, LIS3MDL) plus the external STEMMA-QT port share ONE bus
 // (GP0 SDA / GP1 SCL), differentiated purely by I2C address -- no channel switching, no mux fault
-// domain to isolate. `imu_grv.h` and `baro.h` were rewritten to talk directly to Wire and no longer
-// include this file. Kept in the tree (not deleted) as a record of the earlier, incorrect
-// architecture, in case a future board revision actually adds a mux and this becomes useful again.
+// domain to isolate. `imu_grv.h` and `baro.h` talk directly to Wire and do not include this file.
+// Kept in the tree in case a future board revision adds a mux and this becomes useful.
 #pragma once
 #include <Wire.h>
 

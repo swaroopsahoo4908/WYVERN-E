@@ -1,7 +1,6 @@
 # GTR70E WYVERN, Stability & Fin Sizing (RESOLVED: 87 mm fins, NO ballast)
 
 **Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
-**Date:** 2026-08-12  
 **Program:** GTR70E WYVERN
 
 
@@ -9,25 +8,21 @@
 
 ## Why fins, why no ballast
 TVC engages only **after the first ~0.5 s** (past the F15 ignition spike). For launch + that window
-the rocket must be **passively stable**, or it tumbles, which is why the historical finless
-variant posts a ~17 m "apogee" in OpenRocket. So fins are mandatory. **Ballast is not:** an apogee sweep shows every gram
-of nose ballast *lowers* apogee (dead weight costs more than the smaller fins it buys). So we drop
-ballast entirely and size the fins for the **minimum stable margin (1.0 cal)** to maximize altitude.
+the rocket must be **passively stable**, or it tumbles. So fins are mandatory. **Ballast is not:**
+an apogee sweep shows every gram of nose ballast *lowers* apogee (dead weight costs more than the
+smaller fins it buys). So we drop ballast entirely and size the fins for the **minimum stable
+margin (1.0 cal)** to maximize altitude.
 
 ## Apogee vs ballast (fins resized to hold 1.0 cal at each ballast, RK4 + Barrowman)
-Recomputed 2026-08-10 against the ASA-Aero/PETG-CF/PC-FR re-zoned mass stack. Every gram of nose
-ballast costs apogee: the smaller fins it buys never pay back the dead weight.
+Every gram of nose ballast costs apogee: the smaller fins it buys never pay back the dead weight.
+The relative trend below (every gram of ballast costs more apogee than the smaller fin buys back)
+is the reason ballast is dropped entirely; see "Chosen configuration" for the exact flown numbers.
 
-| Ballast | Fin span for 1.0 cal | Liftoff mass | Apogee |
-|---|---|---|---|
-| **0 g (chosen)** | **76.2 mm** → flown at **87 mm** for margin | **729 g*** | **~397 ft*** |
-| 60 g | 59.4 mm | 767 g* | ~352 ft* |
-| 150 g (old) | 46.9 mm | 846 g* | ~271 ft* |
-
-\* This ballast-sensitivity sweep still reflects the pre-2026-08-12 mass pass (729 g base case) —
-not re-run against the current 698 g airframe. The relative trend (every gram of ballast costs more
-apogee than the smaller fin buys back) is unaffected by the base mass and still holds; only the
-absolute numbers in this table are stale. See "Chosen configuration" below for the current numbers.
+| Ballast | Fin span for 1.0 cal | Trend |
+|---|---|---|
+| **0 g (chosen)** | **76.2 mm** → flown at **87 mm** for margin | baseline |
+| 60 g | 59.4 mm | smaller fin, but net apogee loss |
+| 150 g | 46.9 mm | smaller fin still, larger net apogee loss |
 
 The flown fin is 87 mm rather than the 76.2 mm minimum: 76.2 mm sits exactly on the 1.0 cal floor
 with no allowance for build tolerance, and the CG-tolerance sweep (`we4_deepsim.py` D) shows 1.0 cal
@@ -83,6 +78,6 @@ make it so passively stable that the TVC has little to do):
    still authority-limited on this ~2 T/W vehicle. At ≤6 m/s boost pitch stays under ~10° with the
    gimbal out of saturation.
 
-Net: the 1.04-cal fins give just enough passive stability to survive the rail + the 0.5 s pre-TVC
+Net: the 87 mm fins give just enough passive stability to survive the rail + the 0.5 s pre-TVC
 window; everything beyond that is handled by the (now higher-authority) TVC, which is exactly the
 behaviour the flight is meant to demonstrate and log.

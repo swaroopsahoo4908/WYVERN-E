@@ -1,7 +1,6 @@
 # GTR70E WYVERN, Ground-Test Rig Math Derivations
 
 **Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
-**Date:** 2026-08-12  
 **Program:** GTR70E WYVERN
 
 

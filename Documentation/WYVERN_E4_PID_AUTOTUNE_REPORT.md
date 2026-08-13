@@ -1,7 +1,6 @@
 # GTR70E WYVERN, PID Auto-Tune & First-Flight Gain Confirmation
 
 **Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
-**Date:** 2026-08-12  
 **Program:** GTR70E WYVERN
 
 

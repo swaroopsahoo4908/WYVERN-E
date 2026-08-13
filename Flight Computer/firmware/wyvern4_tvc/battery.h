@@ -1,10 +1,8 @@
 // GTR70E WYVERN — power-rail monitor via onboard INA226, shared I2C bus.
 // ===============================================================================
-// RECONCILED 2026-08-11 against the real PCB1 netlist/BOM, traced pin-by-pin (not assumed) against
-// Netlist_PCB1_2026-08-11.tel and the labeled pinout in SCH_Schematic1_1-P1_2026-08-11.svg. This
-// pass found two real problems with the original "INA226 = drop-in LiPo pack monitor" assumption --
-// both are hardware findings, not firmware bugs, and both need a bench check before this class's
-// output can be trusted for arm/no-arm decisions.
+// Netlist-traced against the real PCB1 (schematic + BOM), pin-by-pin, not assumed. INA226 is not a
+// drop-in LiPo pack monitor on this board -- two real hardware findings below, not firmware bugs,
+// both needing a bench check before this class's output can be trusted for arm/no-arm decisions.
 //
 // FINDING 1 -- this INA226 does not measure pack voltage, it measures the regulated buck rail.
 // U4's VBUS pin (pin 8) and VIN- (pin 9) both trace to the board's VBUCK net -- the OUTPUT of the

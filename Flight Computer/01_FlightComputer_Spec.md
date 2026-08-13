@@ -1,17 +1,14 @@
 # GTR70E WYVERN, Flight Computer Specification
 
 **Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
-**Date:** 2026-08-12  
 **Program:** GTR70E WYVERN
 
 
 ### Custom PCB1 (bare RP2350B, QFN-80, Ø62 mm board), flight computer *and* real-time TVC controller
 
-*Reconciled 2026-08-11/12 against the fabricated PCB1 netlist, BOM, and schematic
-(`PCB/Netlist_PCB1_2026-08-11.tel`, `PCB/SCH_Schematic1_2026-08-11.pdf`), traced pin-by-pin in
-`Flight Computer/firmware/wyvern4_tvc/`. Two earlier passes of this document assumed a mux'd
-dual-I2C, PCA9548A, 3× BNO085 architecture that was never actually fabricated — this version
-matches the real board.*
+*Traced pin-by-pin against the fabricated PCB1 netlist, BOM, and schematic
+(`PCB/Netlist_PCB1_2026-08-11.tel`, `PCB/SCH_Schematic1_2026-08-11.pdf`) and the firmware in
+`Flight Computer/firmware/wyvern4_tvc/`.*
 
 ## 1. Architecture
 

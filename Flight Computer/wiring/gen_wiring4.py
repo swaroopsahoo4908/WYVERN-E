@@ -28,13 +28,11 @@ def sch(title,mods):
 FLIGHT=[
  ("POWER",["VBAT: 2S LiPo 7.4V +","GND","TPS564201 buck -> intermediate rail","AP2112K-3.3 LDO -> 3V3 logic",
    "servo/expansion connectors (U8-U11) off buck rail"],62),
- # RECONCILED 2026-08-11, second pass, against the actual custom RP2350B PCB1 -- every pin traced
- # through Netlist_PCB1_2026-08-11.tel and cross-checked against SCH_Schematic1_1-P1_2026-08-11.svg's
- # labeled pin text (see CONFLICTS.md section 4 and firmware/gtr70e_wyvern_tvc/imu_grv.h's file header).
- # This board has NO PCA9548A mux, no second I2C bus, NO GP26 ADC battery divider (RP2350B's ADC
- # pins are GPIO40-47, not 26-29), NO WiFi radio chip, and NO SWDIO/SWCLK on H1 (an earlier pass
- # claimed that; it was a text-extraction-order artifact, not real). The INA226's own wiring has two
- # real problems, not just an unverified address -- see the block below.
+ # Every pin traced against the actual custom RP2350B PCB1 netlist and cross-checked against the
+ # labeled schematic pin text (see CONFLICTS.md section 4 and firmware/wyvern4_tvc/imu_grv.h's file
+ # header). This board has NO PCA9548A mux, no second I2C bus, NO GP26 ADC battery divider
+ # (RP2350B's ADC pins are GPIO40-47, not 26-29), NO WiFi radio chip, and NO SWDIO/SWCLK on H1. The
+ # INA226's own wiring has two real problems, not just an unverified address -- see the block below.
  ("INA226 POWER MONITOR (U4, shared I2C bus) -- WIRING PROBLEM, SEE CONFLICTS.md",[
    "VBUS/VIN-: trace to the ~5V BUCK OUTPUT rail, not pack voltage",
    "VIN+: traces to GND -- no real shunt in this path, current/power not meaningful",
@@ -54,7 +52,7 @@ FLIGHT=[
  ("BME680 (0x76 CONFIRMED, shared bus)",["SDO->GND, CSB->3V3 (I2C mode) -- pressure/temp/gas, no BMP388 populated"],48),
  ("LIS3MDL (0x1C CONFIRMED, shared bus)",["SDO/SA1->GND -- magnetometer, present on PCB1, unused by firmware"],48),
  ("STORAGE, microSD (CARD1, TF-01A) -- POSSIBLE DEFECT, SEE CONFLICTS.md",[
-   "MISO GP8 / CS GP9 / SCK GP10 / MOSI GP11 -- all confirmed (fixed a MOSI/CS swap from an earlier pass)",
+   "MISO GP8 / CS GP9 / SCK GP10 / MOSI GP11 -- all confirmed against the netlist",
    "pin4 (expected VDD) traces to GND in the netlist, not 3V3 -- bench-check before trusting SD logging",
    "3V3(?)/GND: full-rate flight log"],62),
  ("Action camera (self-contained)",["V(buck): gated by CAM_EN (GP36)","GND: records to own microSD"],54),

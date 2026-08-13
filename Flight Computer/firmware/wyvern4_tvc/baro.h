@@ -1,17 +1,17 @@
 // GTR70E WYVERN — barometric altitude driver: BME680 (0x76) on the shared I2C bus, BMP388 optional.
 // =================================================================================================
-// RECONCILED 2026-08-11 against the real PCB1 netlist/BOM: there is no PCA9548A mux and no second
-// I2C bus on this board. BME680 (U3) shares the single GP0/GP1 bus with everything else (see
-// imu_grv.h's file header for the full trace). The BOM has NO BMP388 -- only BME680 is physically
-// populated on this board rev. The BMP388 code path is left in place rather than deleted: it fails
-// closed (begin_I2C() returns false, bmp_ok_ stays false) and every accessor below already
-// degrades gracefully to "use whichever sensor is healthy," so this class works correctly whether
-// or not a BMP388 is ever added on a future rev or plugged in externally via the STEMMA-QT port.
+// There is no PCA9548A mux and no second I2C bus on this board. BME680 (U3) shares the single
+// GP0/GP1 bus with everything else (see imu_grv.h's file header for the full trace). The BOM has
+// NO BMP388 -- only BME680 is physically populated on this board rev. The BMP388 code path is left
+// in place rather than deleted: it fails closed (begin_I2C() returns false, bmp_ok_ stays false)
+// and every accessor below already degrades gracefully to "use whichever sensor is healthy," so
+// this class works correctly whether or not a BMP388 is ever added on a future rev or plugged in
+// externally via the STEMMA-QT port.
 //
-// Address 0x76 is CONFIRMED, not a datasheet-default guess: tracing U3's pins against
-// Netlist_PCB1_2026-08-11.tel shows CSB (pin2) tied to the 3V3 net (selects I2C mode over SPI) and
-// SDO (pin5) tied to the GND net (the SDO level sets the low address bit -- GND gives 0x76, VDDIO
-// would give 0x77). SDI/SCK (pins 3/4) carry SDA0/SCL0, the same shared bus as everything else.
+// Address 0x76 is CONFIRMED, not a datasheet-default guess: tracing U3's pins against the netlist
+// shows CSB (pin2) tied to the 3V3 net (selects I2C mode over SPI) and SDO (pin5) tied to the GND
+// net (the SDO level sets the low address bit -- GND gives 0x76, VDDIO would give 0x77). SDI/SCK
+// (pins 3/4) carry SDA0/SCL0, the same shared bus as everything else.
 //
 // Both are read every cycle on core 1 (baro is not control-loop-critical at 500 Hz; it's used for:
 // ground datum at BOOT, launch-detect cross-check, apogee/landing detection during DESCENT, and the

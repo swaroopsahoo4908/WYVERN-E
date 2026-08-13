@@ -7,37 +7,26 @@
 
 // ---------------------------------------------------------------------------------------------
 // Launch detect: |a| > 2g sustained for >= 50 ms on the body IMU's accelerometer, per
-// flowcharts/01_flight_state_machine.mermaid ("ARMED --> BOOST: |a|>2g"). The body sensor is now a
-// Bosch BNO055 (imu_grv.h), read via getEvent(VECTOR_ACCELEROMETER) rather than an SH2 report -- see
-// that file's header for the full IMU reconciliation. A hardware inertial switch on GP37 (LAUNCH_IRQ)
-// is OR'd in as a redundant trigger.
+// flowcharts/01_flight_state_machine.mermaid ("ARMED --> BOOST: |a|>2g"). The body sensor is a
+// Bosch BNO055 (imu_grv.h), read via getEvent(VECTOR_ACCELEROMETER) rather than an SH2 report. A
+// hardware inertial switch on GP37 (LAUNCH_IRQ) is OR'd in as a redundant trigger.
 //
-// RECONCILED 2026-08-11: GP7 does not exist as a general digital I/O on the real PCB1 (RP2350B has
-// no header pin routed there) -- see wyvern4_tvc.ino's pin-map comment. Corrected AGAIN in a second
-// pass the same day after actually tracing Netlist_PCB1_2026-08-11.tel pin-by-pin instead of reading
-// the schematic's text extraction out of order: the real H1 header is a 14-pin debug/expansion
-// connector with NO SWDIO/SWCLK on it at all (an earlier pass claimed it did -- that was wrong, an
-// artifact of scrambled PDF text-extraction order, not something in the actual netlist). H1's real
-// pinout, CONFIRMED against the netlist: pin1/5=3V3, pin2/6/11/14=GND, pin3/4=QSPI flash signals
-// (U1 pins 34/33, not general-purpose GPIO -- shared with the external flash chip, not usable here),
-// pin7=GPIO37, pin8=GPIO36, pin9=GPIO35, pin10=GPIO34, pin12=VBUCK (the ~5V buck rail, power not
-// signal), pin13=GPIO12. That leaves exactly 4 confirmed-usable general-purpose GPIOs on H1: 37, 36,
-// 35, 34 (plus 12, spare -- see the RBF note below, since RBF no longer uses it).
-// LAUNCH_IRQ/CAM_EN/STATUS_LED/BUZZ below are assigned across GPIO37/36/35/34 in that order. WHICH
-// signal rides which of the 4 pins is still our own firmware-side choice (the schematic doesn't
-// name a function per pin), but which 4 GPIOs are actually present and usable is now confirmed, not
-// guessed.
+// H1 is a 14-pin debug/expansion connector, netlist-traced pin-by-pin: pin1/5=3V3,
+// pin2/6/11/14=GND, pin3/4=QSPI flash signals (U1 pins 34/33, not general-purpose GPIO -- shared
+// with the external flash chip, not usable here), pin7=GPIO37, pin8=GPIO36, pin9=GPIO35,
+// pin10=GPIO34, pin12=VBUCK (the ~5V buck rail, power not signal), pin13=GPIO12. That leaves
+// exactly 4 confirmed-usable general-purpose GPIOs on H1: 37, 36, 35, 34 (plus 12, spare -- see
+// the RBF note below).
+// LAUNCH_IRQ/CAM_EN/STATUS_LED/BUZZ below are assigned across GPIO37/36/35/34 in that order. Which
+// signal rides which of the 4 pins is a firmware-side choice (the schematic doesn't name a
+// function per pin); which 4 GPIOs are actually present and usable is netlist-confirmed.
 // ---------------------------------------------------------------------------------------------
 class LaunchDetect {
 public:
-  // THRESHOLD LOWERED 3.0 -> 2.0 g (2026-08b). At the time, liftoff mass had gone 705 -> 792 g,
-  // dropping peak specific force from 3.67 g to 3.27 g and leaving only an 11 ms margin against
-  // the old 3.0 g/50 ms sustain requirement -- any accelerometer noise, a slightly weak motor, or
-  // a few more grams of build mass and launch detect NEVER FIRES. The 2026-08-10 material
-  // re-zoning (ASA-Aero/PETG-CF/PC-FR) since brought liftoff mass to the current canonical 729 g,
-  // which raises peak specific force further, to 3.54 g (CONFLICTS.md section 5) -- this only
-  // WIDENS the margin the 2.0 g threshold already has, so the lowered threshold remains valid
-  // and conservative; not something that needs re-raising as mass has changed since.
+  // 2.0 g / 50 ms sustain is chosen with margin against the vehicle's peak specific force
+  // (3.70 g at 698 g liftoff, CONFLICTS.md section 5) -- comfortable headroom against
+  // accelerometer noise, a slightly weak motor, or extra build mass, without being so low that
+  // ground handling could falsely trigger launch detect.
   static constexpr float THRESHOLD_G = 2.0f;
   static constexpr unsigned long SUSTAIN_MS = 50;
   static constexpr uint8_t PIN_LAUNCH_IRQ = 37;  // H1 header pin7, confirmed-usable GPIO -- see file header

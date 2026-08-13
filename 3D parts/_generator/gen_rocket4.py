@@ -3,42 +3,37 @@
 two-body-tube separation at a single bulkhead joint, NO bypass tube) + 3-axis TVC balance
 (servo test stand) + static thrust stand + static deflector.
 
-Architecture as of 2026-08-12 (`Documentation/WYVERN_E4_Recovery.md`, `CONFLICTS.md` §6/§8,
+Architecture (`Documentation/WYVERN_E4_Recovery.md`, `CONFLICTS.md` §6/§8,
 `Documentation/WYVERN_E4_Mathematics.md`):
 
   Upper BT (ASA-Aero, foamed 0.65 g/cm3): nose + recovery wadding/FC bay (avionics housing,
-            no motor heat, no ejection-gas load -- lightest zone in the stack). Now also carries
-            4x M3 standoff bosses sized for the Ø62 mm custom PCB1 board (added 2026-08-12).
-  Lower BT (ASA-Aero, foamed 0.65 g/cm3, changed from PETG-CF 2026-08-12): chute+cord+wadding
-            zone + TVC bay, ONE continuous tube. Re-derived hoop stress under the 140 kPa
-            ejection pulse (`WYVERN_E4_FEA_Structural.md` §4.1 load): sigma = p*r/t = 2.93 MPa,
-            SF ~10x vs solid-ASA yield (30 MPa), ~6x even under a conservative 60%-strength-
-            retention assumption for the foamed variant -- comfortable positive margin, same
-            logic as the >>1 flight-load SF elsewhere in that doc, and the change alone recovers
-            ~94 g (188.3 g at 1.30 g/cm3 -> ~94.2 g at 0.65 g/cm3) toward T/W. Fin bond and
-            ejection-gas thermal exposure unaffected by this swap (fins are a separate PETG-CF
-            part bonded to the tube's solid outer perimeter shell, and the bulkhead -- the actual
-            direct-gas-exposure part per FEA_Structural.md §4.2 -- stays PETG-CF, untouched).
-  TVC assembly (PC-FR, 1.20 g/cm3): motor mount + gimbal only. PC-FR is already the LIGHTER of
-            the two non-foamed materials here (1.20 vs PETG-CF's 1.30 g/cm3) and is the one
-            picked for its thermal role next to the nozzle -- swapping it to PETG-CF would add
-            mass, not save it, so it stays PC-FR.
+            no motor heat, no ejection-gas load -- lightest zone in the stack). Carries 4x M3
+            standoff bosses sized for the Ø62 mm custom PCB1 board.
+  Lower BT (ASA-Aero, foamed 0.65 g/cm3): chute+cord+wadding zone + TVC bay, ONE continuous
+            tube. Hoop stress under the 140 kPa ejection pulse (`WYVERN_E4_FEA_Structural.md`
+            §4.1 load): sigma = p*r/t = 2.93 MPa, SF ~10x vs solid-ASA yield (30 MPa), ~6x even
+            under a conservative 60%-strength-retention assumption for the foamed variant --
+            comfortable positive margin, same logic as the >>1 flight-load SF elsewhere in that
+            doc. Fin bond and ejection-gas thermal exposure are unaffected by the tube material
+            (fins are a separate PETG-CF part bonded to the tube's solid outer perimeter shell,
+            and the bulkhead -- the actual direct-gas-exposure part per FEA_Structural.md §4.2 --
+            is PETG-CF).
+  TVC assembly (PC-FR, 1.20 g/cm3): motor mount + gimbal only. PC-FR is the LIGHTER of the two
+            non-foamed materials here (1.20 vs PETG-CF's 1.30 g/cm3) and is picked for its
+            thermal role next to the nozzle.
   Bulkhead joint (PETG-CF): the ONE bulkhead between Upper BT and Lower BT, a friction-fit/
             shear-pin RELEASE joint, NOT gas-sealed. Direct ejection-gas-exposure part per
-            FEA_Structural.md §4.2 -- kept PETG-CF, not lightened.
+            FEA_Structural.md §4.2.
   Fins (PETG-CF): 87 mm span, root 70 / tip 35 / LE-sweep 25 / thickness 3, all mm.
 
 --------------------------------------------------------------------------------------------
-DFM PASS, 2026-08-11: this file went from proof-of-concept blocks (zero fastener holes, zero
-insert bosses, zero fit tolerances -- mating surfaces were often modeled at EXACTLY the same
-radius, which does not fit in real life) to print-ready geometry. What changed:
-  - Every mating tube/disk/ring interface now carries an explicit slip-fit or press-fit
-    tolerance (FIT_SLIP / FIT_PRESS below), named, not accidental.
+DFM practices used throughout this file:
+  - Every mating tube/disk/ring interface carries an explicit slip-fit or press-fit tolerance
+    (FIT_SLIP / FIT_PRESS below), named, not accidental.
   - Every bolted joint uses an M3 heat-set-insert boss (pilot hole sized for the standard
     knurled brass insert) instead of a bare hole into raw plastic.
-  - The gimbal's pivot "pins" were solid bosses fused onto both halves of a joint that's
-    supposed to rotate, which cannot print as a working hinge. Replaced with through-holes for
-    a real metal pivot pin/screw.
+  - The gimbal's pivot points are through-holes sized for a real metal pivot pin/screw, so the
+    joint can actually rotate once assembled.
   - Hardware interface dimensions (servo mounting flange, load-cell body/hole spacing, HX711
     board) are TYPICAL-CLASS figures for the specific purchased parts (EMAX ES08MA II, Adafruit
     5kg/1kg strain-gauge cells, Adafruit HX711), not measured off the actual bench hardware.
@@ -130,7 +125,7 @@ def upper_bt():
     # bulkhead's rim, 8mm in from the aft face (clear of the bulkhead's own edge chamfer).
     b = tube(P["R"], P["RI"], P["UPPER_L"])
     b = b.cut(retention_screws(P["R"], P["RI"], 8.0, n=3))
-    # PCB1 standoff bosses (added 2026-08-12): 4x M3 heat-set insert bosses on a bolt circle
+    # PCB1 standoff bosses: 4x M3 heat-set insert bosses on a bolt circle
     # sized 4mm inside the Ø62mm PCB1 board edge (typical mounting-hole inset), so the board
     # drops onto real standoffs instead of floating loose in the bore. Placed mid-bay, clear of
     # the bulkhead retention screws (z=8) and the fwd end.
@@ -144,8 +139,8 @@ def lower_bt():
     # Lower BT: chute+cord+wadding zone AND the TVC bay, ONE continuous tube. Fwd end
     # (z=LOWER_L, mates to bulkhead) gets the matching 3x M3 retention screws; aft end gets 2x
     # M3 retention screws into the motor mount's aft centering ring (see motor_mount()).
-    # MATERIAL CHANGE 2026-08-12: PETG-CF (1.30 g/cm3) -> ASA-Aero (0.65 g/cm3) to recover mass
-    # for T/W. Hoop stress under the 140 kPa ejection pulse is 2.93 MPa (module docstring), SF
+    # Tube material is ASA-Aero (0.65 g/cm3), chosen over PETG-CF (1.30 g/cm3) to hold T/W.
+    # Hoop stress under the 140 kPa ejection pulse is 2.93 MPa (module docstring), SF
     # ~6-10x on ASA-Aero -- comfortable positive margin. The motor mount and gimbal keep PC-FR
     # for thermal duty next to the nozzle; the bulkhead keeps PETG-CF as the direct-gas-exposure
     # part (FEA_Structural.md §4.2). This tube itself sees neither the nozzle heat nor a direct

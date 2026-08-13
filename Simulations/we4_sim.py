@@ -9,39 +9,32 @@ g=9.80665; rho0=1.225; OD=0.070; A=np.pi*(OD/2)**2
 # ---------- 1. MASS / CG / INERTIA (station = m from nose tip; two-body-tube architecture) ----------
 # (name, mass_kg, station_m)
 #
-# REBUILT 2026-08-12 for the current two-BT architecture (Upper BT + Lower BT + ONE bulkhead,
-# replacing the old four-bay single-tube layout this list previously described) and the current
-# custom-PCB1 avionics stack (replacing the old Pico 2 W / 3x BNO085 stack this list previously
-# described -- see CONFLICTS.md/COMPATIBILITY.md for why that stack is stale).
+# Two-BT architecture: Upper BT + Lower BT + ONE bulkhead, with the custom-PCB1 avionics stack.
 #
 # Structural masses (first 8 rows) are real, from 3D parts/_generator/mass_report.json (current
-# CAD run, `gen_rocket4.py`) -- not estimates. Two material changes from the prior pass:
-#   - Lower BT tube: PETG-CF -> ASA-Aero (188.3 g -> 94.2 g), hoop-stress-checked at SF ~6-10x
-#     under the 140 kPa ejection pulse (gen_rocket4.py docstring). Motor mount/gimbal keep PC-FR
-#     (thermal duty next to the nozzle); bulkhead keeps PETG-CF (direct gas-exposure part).
-#   - Upper BT tube now carries 4x M3 PCB1 standoff bosses (Ø62 mm board), +0.6 g vs before.
+# CAD run, `gen_rocket4.py`) -- not estimates. The Lower BT tube is ASA-Aero, hoop-stress-checked
+# at SF ~6-10x under the 140 kPa ejection pulse (gen_rocket4.py docstring). Motor mount/gimbal use
+# PC-FR (thermal duty next to the nozzle); bulkhead uses PETG-CF (direct gas-exposure part). Upper
+# BT tube carries 4x M3 PCB1 standoff bosses (Ø62 mm board).
 # Station values for non-structural items (recovery/avionics/actuation) are placement estimates
-# within the new two-BT geometry (aft=0/nose=740mm converted to from-nose stations), not
-# CAD-extracted centroids -- same "confirmed vs. best-effort" caveat this project applies
-# elsewhere. Custom PCB1 assembly mass is a self-estimate (bare Ø62mm FR4 board ~8.9 g + populated
-# components ~5.2 g ~= 14 g); no bench scale weight exists for it or the LiPo pack yet.
+# within the two-BT geometry (aft=0/nose=740mm converted to from-nose stations), not CAD-extracted
+# centroids -- same "confirmed vs. best-effort" caveat this project applies elsewhere. Custom PCB1
+# assembly mass is a self-estimate (bare Ø62mm FR4 board ~8.9 g + populated components ~5.2 g
+# ~= 14 g); no bench scale weight exists for it or the LiPo pack yet.
 ITEMS=[
  # ---- printed structure (real, mass_report.json) --------------------------------------------
  ("Nose cone (ASA-Aero)",0.0209,0.060),
  ("Upper BT tube (ASA-Aero, incl. PCB1 standoffs)",0.0449,0.215),
- ("Lower BT tube (ASA-Aero, was PETG-CF)",0.0942,0.529),
+ ("Lower BT tube (ASA-Aero)",0.0942,0.529),
  ("Bulkhead joint (PETG-CF)",0.0172,0.316),
  ("Motor mount (PC-FR)",0.0577,0.670),
  ("TVC gimbal assy (PC-FR)",0.1056,0.620),
  ("4 fins (PETG-CF, 87 mm)",0.0708,0.700),
  ("Rail buttons x2 (PETG-CF)",0.0012,0.550),
  # ---- recovery (motor ejection; no RRC3/9V/e-match) ------------------------------------------
- # Re-itemized 2026-08-12: 70 g total, down from the old 137 g bay-lump that CONFLICTS.md/
- # Mathematics.md had already flagged as "very likely an overstatement" (sized for a
- # sealed-bulkhead architecture that no longer applies).
  ("Chute (24 in) + cord + swivel",0.058,0.340),("Nomex chute protector",0.006,0.340),
  ("Recovery wadding",0.006,0.300),
- # ---- avionics (custom PCB1, not Pico 2 W) ---------------------------------------------------
+ # ---- avionics (custom PCB1) -----------------------------------------------------------------
  # No separate UBEC line: the onboard TPS564201 buck (on PCB1) is the "2S LiPo -> one 5V UBEC"
  # the project brief describes -- there's no second physical regulator module to weigh.
  ("Custom PCB1 assembly (Ø62mm, self-estimated)",0.014,0.290),
@@ -100,10 +93,8 @@ res=dict(m_lift_g=round(m_lift*1000,1),m_dry_g=round(m_dry*1000,1),prop_g=PROP*1
  deploy_v=round(V[dep],1),deploy_t=round(T_DEPLOY,2))
 # ---------- 4. TVC PITCH CONTROL (rigid body, gimbal lag, PID) ----------
 Iyy=Iyy_lift; th=0.02; q=0.0; dt2=2e-3; gim=0.0; lim=np.radians(8) # ±8° gimbal (matches firmware OUT_LIM_DEG)
-# Gains frozen by the 24-point phase/gain-margin sweep (CONFLICTS.md 5, PID_TUNING_REPORT.md).
-# Previously this file hard-coded the never-simulated Kp=8.0/Ki=1.5/Kd=1.2 design-pass values,
-# which CONFLICTS.md 1 explicitly records as superseded and unstable -- so this plot disagreed
-# with the firmware, with pid_reference.py, and with every other sim in the repo.
+# Gains frozen by the 24-point phase/gain-margin sweep (CONFLICTS.md 5, PID_TUNING_REPORT.md),
+# matching the firmware and every other sim in the repo.
 KP,KI,KD=0.10,0.40,0.18; integ=0; prev=0; TH=[];GI=[];SP=[];TT=[]
 def setp(t): return 0.0 if t<2.0 else np.radians(4)*np.sin((t-2.0)*np.pi/1.2)
 tau_servo=0.04 # 1st-order servo lag (~0.04s -> fast digital micro)

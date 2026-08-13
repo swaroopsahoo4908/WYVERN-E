@@ -5,25 +5,14 @@ updated_at: 2026-08-01
 # GTR70E WYVERN, 14-Day Build-to-Flight Timeline
 
 **Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
-**Date:** 2026-08-12  
 **Program:** GTR70E WYVERN
 
 
-**⚠ Predates the 2026-08-12 custom-PCB1/mass-recompute pass.** This schedule was written against the
-never-fabricated Pico 2 W + GP26 divider + BMP388 architecture; only the flight-computer references
-below have been spot-fixed to name PCB1. The procurement line items (BMP388, GP26 divider resistors,
-etc.) are stale against the real board — cross-check against `01_FlightComputer_Spec.md` and
-`WYVERN_E4_BOM.xlsx` before ordering off this table.
-
-##### Day 0 = Saturday 2026-08-01 · paper writing starts Day 15 (Saturday 2026-08-15)
-
-> ⚠ **Superseded pacing, 2026-08-10.** This 14-day order-to-flight sprint plan is dated and its
-> "Day 0" has already passed. The project now runs on `WYVERN_E4_Timeline_3Month.md`, a 15-week
-> schedule targeting the Nov 21–22 / Nov 28–29 launch weekends with the full five-research-question
-> scope (wind tunnel and jetvane testing in scope, see `CONFLICTS.md` §6). Treat *this* document as
-> a reference for procedure-level detail within any given work session (what a static-fire day
-> actually involves, etc.), not as the governing schedule, and not as an accurate RQ count (it
-> still says "four research questions," reflecting the since-reversed 2026-08 consolidation).
+This is a procedure-level reference for what each build session actually involves — what a
+static-fire day looks like, what the bench-bring-up sequence covers, and so on. The governing
+calendar for the full five-research-question program is `WYVERN_E4_Timeline_3Month.md`, targeting
+the Nov 21–22 / Nov 28–29 launch weekends; use that for pacing and this document for procedure
+detail within any given session.
 
 ---
 
@@ -96,8 +85,8 @@ on Day 10.
 
 | Day | Task | Output | Gate |
 |---|---|---|---|
-| **0** | **PLACE THE ENTIRE ORDER, including the 14 items in `WYVERN_E4_Cart_Gap_Analysis.md` that the current cart is missing.** Five of them are flight-blocking (BMP388, microSD SPI breakout, PLA filament, the GP26 divider resistors, the decoupling kit). Separately, **re-source the M2 linkage rod ends and the servos**, both currently deliver after the bench gate. | Priority shipping on: Pico 2 W, 3 × BNO085, BMP388, servos, HX711 × 4 + load cells, PLA + PETG-CF filament, all motors. Order **spares** of the Pico, one BNO085 and one servo, they are cheap and each is a single point of failure. | Order confirmations, ETA per line | **Gate 0** |
-| 0 | Flash the fixed firmware to any Pico you already have, or run the SIL. Read §5 of `CONFLICTS.md`, the frozen parameter table is the contract the firmware is written against. | — | |
+| **0** | **PLACE THE ENTIRE ORDER, including the items in `WYVERN_E4_Cart_Gap_Analysis.md` that the current cart is missing.** The flight-blocking ones are the BME680, microSD SPI breakout, airframe filament, and the decoupling kit. Separately, **re-source the M2 linkage rod ends and the servos**, both currently deliver after the bench gate. | Priority shipping on: PCB1 fab, BNO085, servos, HX711 × 4 + load cells, ASA-Aero + PETG-CF filament, all motors. Order **spares** of the PCB1 fab, one BNO085, and one servo, they are cheap and each is a single point of failure. | Order confirmations, ETA per line | **Gate 0** |
+| 0 | Flash the firmware to PCB1, or run the SIL. Read §5 of `CONFLICTS.md`, the frozen parameter table is the contract the firmware is written against. | — | |
 | 1 | Slice every print. Airframe, gimbal, both stands. Confirm plate layout, material assignment (PLA vs PETG-CF, see the zoning table), and total print hours. **This is the schedule's hidden long pole.** | Print queue with hour estimates | |
 | 1 | `python3 we4_flight_reduce.py --selftest`, confirm the reduction pipeline passes on your machine. | `SELFTEST: PASS` | |
 | 2 | Run the full sim suite end to end so every number in the paper is regenerable on demand. Read the go/no-go gates in `plots_val/validation_summary.json`. | 10/13 gates, 7/8 deep checks (the flag is servo torque, see §11 of the build-readiness report) | |
@@ -114,7 +103,7 @@ on Day 10.
 | Day | Task | Gate |
 |---|---|---|
 | 5 | Print airframe: nose, Upper BT, Lower BT, separation bulkhead, motor mount, gimbal, 4 × fins, rail buttons. ~20 h of printer time, start the longest plate overnight Day 4. | |
-| 6 | Solder the FC on perfboard per the regenerated schematic. **Include the GP26 battery divider** (100 k / 62 k), it was missing from every schematic until this pass. Keep the servo feed and VSYS feed as separate star runs off the UBEC. | |
+| 6 | Populate and bring up PCB1 per the schematic. Confirm the onboard TPS564201 buck rail and INA226 monitor per `01_FlightComputer_Spec.md` §4. Keep the servo feed and logic feed as separate star runs off the buck output. | |
 | 7 | Bench bring-up: `t1_i2c_scan` → `t2_imu_grv_deflection` → `t3_servo_sweep` → `t4_sensors_sdlog`, then `selftest.py`. Full procedure in `WYVERN_E4_Build_Guide.md` §B. | **Gate 2: `>>> PREFLIGHT GO <<<`** |
 | 7 | **Calibrate `SERVO_LINKAGE_RATIO`** in `t3` and copy it into `wyvern4_tvc.ino`. Do not skip, the flight code assumes the nozzle actually reaches ±8°. | |
 | 8 | Assemble the airframe. Route servo/STEMMA-QT cables through the bulkhead pass-through, join the two body tubes at the bulkhead joint, install rail buttons, mount the gimbal and servos. | |
@@ -172,7 +161,7 @@ the vehicle actually does:
 | Surface wind | **< 5 m/s** (hard stop 7 m/s) | Rail exit is only 11.5 m/s; weathercock reaches 35° at 5 m/s and 63° at 10 m/s |
 | Gusts | < 2 m/s above mean | Gust response is the RQ4 signal; large gusts swamp the gain comparison |
 | Ceiling | > 300 m | Apogee is 98.9 m; you must be able to see it |
-| Precipitation | None | Foamed ASA is not sealed, and the electronics are on open perfboard |
+| Precipitation | None | Foamed ASA is not sealed, and the electronics bay is not weatherproofed |
 
 ---
 

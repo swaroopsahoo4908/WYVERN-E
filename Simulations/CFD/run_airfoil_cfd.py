@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """GTR70E WYVERN -- 2D airfoil CFD (vortex panel method) for the fin profiles.
 
-Restored 2026-08-10 (deleted during the 2026-08 wind-tunnel-removal scope change,
-see CONFLICTS.md sec7). RQ numbering below uses the current five-RQ scheme: fin
-aerofoil selection is RQ3, wind-tunnel-vs-flight calibration is RQ4.
+RQ numbering below uses the project's five-RQ scheme: fin aerofoil selection is
+RQ3, wind-tunnel-vs-flight calibration is RQ4.
 
 A constant-strength vortex-panel method (Kuethe & Chow, *Foundations of
 Aerodynamics*) solves the inviscid incompressible flow about each RQ3 fin

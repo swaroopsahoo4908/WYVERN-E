@@ -1,7 +1,6 @@
 # GTR70E WYVERN, Component Compatibility Audit
 
 **Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
-**Date:** 2026-08-12  
 **Program:** GTR70E WYVERN
 
 
@@ -12,10 +11,7 @@ static thrust stand), cross-checked against the BOM part list and the frozen pin
 
 **Sources examined:** `Flight Computer/firmware/wyvern4_tvc/*.{ino,h}`, `Flight Computer/wiring/gen_wiring4.py` + `gen_connected_sch.py` (+ resulting `.kicad_sch`), `Flight Computer/test_code/*`, `Flight Computer/flowcharts/*.mermaid`, `Flight Computer/01_FlightComputer_Spec.md`, `PCB/Netlist_PCB1_2026-08-11.tel`, and all files under `Documentation/`.
 
-**Reconciled 2026-08-12** against the fabricated PCB1 netlist/BOM/schematic, traced pin-by-pin. Two
-earlier passes of this audit were written against a never-fabricated architecture (PCA9548A mux,
-dual I2C bus, a Pico 2 W module, tri-IMU, GP26 ADC divider) — every section below now matches the
-real board.
+Every pairing below is traced pin-by-pin against the fabricated PCB1 netlist, BOM, and schematic.
 
 **What this audit can and cannot verify:** the audit is a *static* review of source, wiring generators, and documentation, it confirms what is wired, coded, and internally consistent, and flags what is not. It cannot confirm bench-measured current draw, actual signal levels on a physical harness, or I2C bus electrical margin (capacitance, pull-up value, rise time), those require a meter and an oscilloscope on real hardware. Every current-draw figure below is a **datasheet/vendor-typical estimate**, explicitly labeled, not a measurement.
 
@@ -28,18 +24,18 @@ real board.
 | 1a | I2C0 shared bus, address map (no mux) | **PASS** | No address collisions; body BNO055 (0x28), external BNO085 (0x4A), BME680 (0x76) coexist on one bus by address |
 | 1b | INA226 (U4) power monitor | **DEFECT, bench-confirm before trusting** | Reads the buck's VBUCK output, not pack voltage; address strap not cleanly wired to a documented option |
 | 1c | I2C bus speed vs. device max rate | **PASS** (default Wire.begin() clock, see note) | Arduino-Pico default 100 kHz is within all device families' rated range |
-| 1d | VL53L4CD ToF ranging | **RESOLVED, removed (2026-07)** | ToF sensors deleted from the BOM and design entirely; gimbal deflection is measured by the 3-axis load balance, so no ToF driver/XSHUT plan is needed |
+| 1d | VL53L4CD ToF ranging | **N/A, not part of the design** | Gimbal deflection is measured by the 3-axis load balance; no ToF hardware, driver, or XSHUT plan is needed |
 | 2 | SPI0 microSD (GP8/9/10/11) | **PASS** | Dedicated 4-wire bus, no sharing, no conflicting CS |
 | 2b | HX711 (ground rig) mislabeled as SPI | **CAUTION, terminology** | HX711 uses a proprietary 2-wire DT/SCK protocol, not SPI |
 | 3 | PWM servo outputs (GP2/GP3) | **PASS** | Two independent PWM slices, standard hobby-servo timing, travel-limited in software |
 | 3b | Ground-rig solenoid PWM via IRF520 | **CAUTION** | No PWM frequency/flyback-diode spec found in provided docs |
-| 4 | RBF sense (GP12) | **OPEN, not wired to any switch on this board rev** | GP12 floats HIGH as fabricated; arming safety is currently the U13 power switch alone |
+| 4 | RBF sense (GP12) | **OPEN, not wired to any switch** | GP12 floats HIGH as fabricated; arming safety is currently the U13 power switch alone |
 | 4b | Load cells (ground rig) vs. PCB1 ADC | **PASS (non-issue)** | HX711 has its own 24-bit ADC; consumes 0 RP2350B ADC channels |
-| 5a | Recovery = F15-4 motor ejection separating the two BTs at the bulkhead joint | **PASS, no recovery electronics** | Motor's own charge; no RRC3+, no UART tap, no recovery battery, no pyro driven by the FC |
-| 5b | (retired) BSS138 level shifter | **N/A** | Was only for the RRC3+ UART tap, which is removed; drop from BOM if still listed |
+| 5a | Recovery = F15-4 motor ejection separating the two BTs at the bulkhead joint | **PASS, no recovery electronics** | Motor's own charge; no UART tap, no recovery battery, no pyro driven by the FC |
+| 5b | BSS138 level shifter | **N/A, not needed** | No 5 V→3.3 V UART line in this design; drop from BOM if still listed |
 | 5c | 2S LiPo → onboard TPS564201 buck → shared 5 V rail (servos + camera), no discrete UBEC | **PASS w/ decoupling** | Onboard buck drives the servo/camera rail; 3.3 V logic comes off the board's LDO stage |
-| 6a | Ground-rig DAQ board | **RESOLVED (2026-07)** | Both rig wiring blocks specify a Raspberry Pi Pico / Pico 2 W DAQ — separate bench hardware, not the flight computer |
-| 6b | Ground-rig GPIO budget (Pico substitution scenario) | **CAUTION, provisional, no VL53L4CD ring assumed** | Fits comfortably without ToF ring; tight/unresolved if VL53L4CD ring is added without a mux |
+| 6a | Ground-rig DAQ board | **PASS** | Both rig wiring blocks specify a Raspberry Pi Pico / Pico 2 W DAQ — separate bench hardware, not the flight computer |
+| 6b | Ground-rig GPIO budget (Pico substitution scenario) | **PASS, comfortable margin** | 10 of 26 GPIO pins consumed |
 
 ---
 
@@ -47,12 +43,12 @@ real board.
 
 ### 1a. I2C0, single shared bus (GP0 SDA / GP1 SCL, no mux), PASS
 
-Netlist-confirmed: this board has **no PCA9548A** and **no second I2C controller**. Every I2C device
-shares one bus, differentiated purely by address:
+This board carries **no PCA9548A** and **no second I2C controller**. Every I2C device shares one
+bus, differentiated purely by address:
 
-- body **BNO055** (U2), `0x28` — COM3/ADR pin traces to GND (netlist-confirmed)
+- body **BNO055** (U2), `0x28` — COM3/ADR pin traces to GND
 - external **BNO085** (STEMMA-QT, CN2), `0x4A` — Adafruit breakout default
-- **BME680** (U3), `0x76` — CSB tied 3V3 (I2C mode), SDO tied GND (address-select, netlist-confirmed)
+- **BME680** (U3), `0x76` — CSB tied 3V3 (I2C mode), SDO tied GND (address-select)
 - **INA226** (U4), address strap not cleanly wired — see §1b
 - **LIS3MDL** magnetometer part is present in the BOM/schematic device list but is not currently
   driven by any firmware file; not a collision risk, just unused hardware
@@ -83,19 +79,16 @@ bench-confirmed.** See `CONFLICTS.md` §3.
 `wyvern4_tvc.ino` initializes the bus with `Wire.setSDA(SDA0); Wire.setSCL(SCL0); Wire.begin();`,
 **no explicit `setClock()` call is present**, so the bus runs at the Arduino-Pico core's default of
 100 kHz (standard mode). BNO055, BNO085, BME680, and INA226 all support both 100 kHz and 400 kHz per
-their datasheets, so 100 kHz is safely within spec, **PASS**, though the single shared bus is now
-carrying every sensor's traffic (2 IMUs + baro + power monitor) at only 100 kHz — a design headroom
-choice, not a defect. If bench timing margin ever becomes tight at 500 Hz control-loop rate, an
-explicit `Wire.setClock(400000)` is the lever to pull.
+their datasheets, so 100 kHz is safely within spec, **PASS**, though the single shared bus carries
+every sensor's traffic (2 IMUs + baro + power monitor) at only 100 kHz — a design headroom choice,
+not a defect. If bench timing margin ever becomes tight at 500 Hz control-loop rate, an explicit
+`Wire.setClock(400000)` is the lever to pull.
 
-### 1d. VL53L4CD ToF, RESOLVED, removed from the design (2026-07)
+### 1d. VL53L4CD ToF ranging, N/A
 
-**The VL53L4CD Time-of-Flight sensors have been removed entirely** from the BOM and the design.
-Gimbal deflection on the solenoid balance rig is taken from the 3-axis load balance (thrust vector)
-plus the gimbal BNO085, so no ToF ring, driver, or XSHUT/address plan is required. No VL53L4CD
-driver/include or "XSHUT" reference exists anywhere in the repo, consistent with this removal.
-`MATH_DERIVATIONS.md` still carries the ToF-ring math as a historical record — strip it if you want
-the removal reflected there too.
+Time-of-Flight ranging is not part of this design. Gimbal deflection on the solenoid balance rig is
+taken from the 3-axis load balance (thrust vector) plus the gimbal BNO085, so no ToF ring, driver,
+or XSHUT/address plan is required, and none exists anywhere in the repo.
 
 ---
 
@@ -103,12 +96,11 @@ the removal reflected there too.
 
 ### 2. SPI0 microSD (GP8 MISO / GP9 CS / GP10 SCK / GP11 MOSI), PASS
 
-`sd_logger.h` pins are unambiguous and netlist-confirmed against CARD1's actual pinout: MISO=GP8
-(DAT0/D0), CS=GP9 (DAT3), SCK=GP10 (CLK), MOSI=GP11 (CMD/DI) — an earlier pass of this file had
-MOSI and CS swapped, since fixed. This is the sole SPI0 device on the flight computer, no bus
-sharing, no second CS line to arbitrate, and core-1's FIFO-drain/burst-write architecture is built
-specifically so SD writes can stall for milliseconds without ever jittering the control loop on
-core 0. **Verdict PASS.**
+`sd_logger.h` pins are unambiguous and confirmed against CARD1's actual pinout: MISO=GP8 (DAT0/D0),
+CS=GP9 (DAT3), SCK=GP10 (CLK), MOSI=GP11 (CMD/DI). This is the sole SPI0 device on the flight
+computer, no bus sharing, no second CS line to arbitrate, and core-1's FIFO-drain/burst-write
+architecture is built specifically so SD writes can stall for milliseconds without ever jittering
+the control loop on core 0. **Verdict PASS.**
 
 ### 2b. HX711 (ground rig), CAUTION, terminology only
 
@@ -146,7 +138,7 @@ error.
 
 ## 4. GPIO / Arming
 
-### 4. RBF sense (GP12, H1 pin13), OPEN — not wired to any switch on this board rev
+### 4. RBF sense (GP12, H1 pin13), OPEN — not wired to any switch
 
 There is **no software-readable remove-before-flight pin on PCB1 as fabricated**. U13 (the physical
 slide switch near the power path) traces to nothing on U1 in the netlist — both its terminals sit in
@@ -159,8 +151,8 @@ power switch.** **Verdict: OPEN, action item, not a PASS** — see `FLIGHT_READI
 
 The HX711 modules each carry their **own onboard 24-bit ADC** for the strain-gauge bridge and
 consume **zero** channels of RP2350B's onboard ADC. There is no shared/contended ADC resource
-between flight and ground-rig hardware, and the flight side does not use its ADC for battery
-monitoring anymore (that moved to the INA226 on the shared I2C bus, §1b).
+between flight and ground-rig hardware, and battery monitoring on the flight side runs through the
+INA226 on the shared I2C bus (§1b), not the ADC.
 
 ---
 
@@ -174,11 +166,10 @@ pressurizing the Lower BT and separating the two body tubes at the bulkhead join
 pyro or deploy hardware whatsoever, it only logs baro/IMU; telemetry is log-only, not streamed.
 **Verdict: PASS.**
 
-### 5b. (retired) BSS138 level shifter
+### 5b. BSS138 level shifter, N/A
 
-The BSS138 existed in the BOM only as the candidate level-shifter for a UART tap on a since-removed
-recovery computer. With that removed, there is no 5 V→3.3 V UART line to shift; the part is no
-longer needed and should be dropped from the BOM if still listed. **N/A.**
+The BSS138 has no function in this design — there is no 5 V→3.3 V UART line anywhere in the
+architecture to shift. Drop it from the BOM if still listed. **N/A.**
 
 ### 5c. 2S LiPo → onboard TPS564201 buck → shared 5 V rail, no discrete UBEC, PASS with required decoupling
 
@@ -187,15 +178,13 @@ The power tree is a **2S LiPo (7.4 V, ~450 mAh) → PCB1's XT30 input → onboar
 **no discrete UBEC module** in this design — the project brief's "one 5 V UBEC" language describes
 this onboard buck, not an added part.
 
-- **Shared-rail decoupling remains the real design trade** of driving servos and logic off one
-  onboard rail: bulk capacitance and hold-up protection at the servo feed and the logic feed are
-  needed so a ~1 A servo-stall transient can't sag the board's own supply enough to reset the MCU —
-  confirm the actual bulk-cap/Schottky placement against the fabricated board (PCB1), not assumed
-  from a harness-level design that predates the custom board.
-- The isolated 9 V recovery rail from an earlier design is **removed entirely** (recovery is motor-driven).
+- **Shared-rail decoupling is the real design trade** of driving servos and logic off one onboard
+  rail: bulk capacitance and hold-up protection at the servo feed and the logic feed are needed so a
+  ~1 A servo-stall transient can't sag the board's own supply enough to reset the MCU — confirm the
+  actual bulk-cap/Schottky placement against the fabricated board.
+- Recovery carries no isolated battery or deploy rail of its own, since it is entirely motor-driven.
 
-**Verdict PASS**, contingent on bench-confirming the onboard decoupling is adequate — this is now a
-board-level property of PCB1, not a harness addition to verify separately.
+**Verdict PASS**, contingent on bench-confirming the onboard decoupling is adequate.
 
 ### Power budget, datasheet estimates only (explicitly not bench-measured)
 
@@ -216,7 +205,7 @@ write), watching the 5 V rail on a scope during a servo stall to confirm it hold
 
 ## 6. Ground-Test Rig GPIO Budget & DAQ Board
 
-### 6a. Ground-rig DAQ board, RESOLVED (2026-07): Raspberry Pi Pico / Pico 2 W
+### 6a. Ground-rig DAQ board, PASS: Raspberry Pi Pico / Pico 2 W
 
 Both ground-rig wiring blocks in `gen_wiring4.py` specify a **Raspberry Pi Pico / Pico 2 W** DAQ,
 matching `WYVERN_E4_GSE_TestStands.md` and the BOM — this is separate, off-the-shelf bench hardware
@@ -224,9 +213,9 @@ running the ground rigs' DAQ, entirely distinct from the flight computer (custom
 boards are 3.3 V-logic RP2040/RP2350 parts, native-compatible with the HX711 DT/SCK lines and
 STEMMA-QT I2C at 3.3 V; there is no 5 V↔3.3 V level-shift needed. **Verdict PASS.**
 
-### 6b. Ground-rig GPIO budget under a Pico substitution, CAUTION, provisional
+### 6b. Ground-rig GPIO budget, PASS
 
-A first-pass GPIO budget for a Pico/Pico 2 W-based ground rig (26 usable GPIO pins):
+A GPIO budget for the Pico/Pico 2 W-based ground rig (26 usable GPIO pins):
 
 | Function | GPIO pins consumed |
 |---|---|
@@ -236,8 +225,7 @@ A first-pass GPIO budget for a Pico/Pico 2 W-based ground rig (26 usable GPIO pi
 | Servo PWM x2 (Actuator-B variant only, mutually exclusive with the 2 solenoid PWM above) | 2 |
 | **Subtotal** | **10 of 26** |
 
-Fits with wide GPIO margin, **PASS** for this configuration; the earlier VL53L4CD-ring budget line
-is dropped since ToF is removed from the design entirely (§1d).
+Fits with wide GPIO margin. **Verdict PASS.**
 
 ---
 
@@ -245,19 +233,18 @@ is dropped since ToF is removed from the design entirely (§1d).
 
 1. **INA226 (U4) wiring defect.** Reads VBUCK, not pack voltage; address strap ambiguous. Needs a
    board revision for a true fix; `battery.h`'s rail-sag workaround is interim only. See §1b.
-2. **RBF sense (GP12) is not wired to any switch on this board rev.** Arming safety is currently the
-   U13 power switch alone. See §4.
-3. **BSS138 level shifter is retired.** Drop it from the BOM if still listed. See §5b.
-4. **IRF520 solenoid drive (ground rig) has no documented PWM frequency or confirmed flyback-diode
+2. **RBF sense (GP12) is not wired to any switch.** Arming safety is currently the U13 power switch
+   alone. See §4.
+3. **IRF520 solenoid drive (ground rig) has no documented PWM frequency or confirmed flyback-diode
    adequacy** for the 50N/12V solenoid's inductive turn-off transient in the provided documentation.
-5. **All power-budget figures in Section 5 are datasheet/vendor estimates, not bench measurements.**
+4. **All power-budget figures in Section 5 are datasheet/vendor estimates, not bench measurements.**
    A current-clamp/multimeter session per rail under worst-case simultaneous load is required.
-6. **LIS3MDL is present in the BOM/schematic but not driven by any firmware file.** Decide whether
+5. **LIS3MDL is present in the BOM/schematic but not driven by any firmware file.** Decide whether
    it's a future-use part or should be dropped, and update the BOM/notes accordingly.
 
 ---
 
-*Audit compiled from static review of the provided GTR70E WYVERN firmware/wiring/documentation bundle and the given BOM. No physical hardware was measured; all "PASS" verdicts reflect internal design/documentation consistency, not bench validation.*
+*Audit compiled from static review of the GTR70E WYVERN firmware/wiring/documentation bundle and the BOM. No physical hardware was measured; all "PASS" verdicts reflect internal design/documentation consistency, not bench validation.*
 
 ## References
 

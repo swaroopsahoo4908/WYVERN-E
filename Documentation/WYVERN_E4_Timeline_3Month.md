@@ -1,7 +1,6 @@
 # GTR70E WYVERN, 3-Month Project Timeline (2026-08-10 → 2026-12-01)
 
 **Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
-**Date:** 2026-08-12  
 **Program:** GTR70E WYVERN
 
 

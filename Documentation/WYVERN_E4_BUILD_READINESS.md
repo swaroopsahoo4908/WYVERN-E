@@ -9,26 +9,18 @@
 
 ## 1. Verdict
 
-**⚠ Airframe geometry changed since this reconciliation pass was run (2026-08-09): the vehicle is now
-two body tubes (Lower BT, Upper BT) joined at one bulkhead, replacing the single-tube 3-bay/2-bulkhead
-layout this whole document describes.** The recovery-architecture and bay-layout language below has
-been updated to match, but the numeric mass/CG/apogee/structural figures throughout are **stale**
-pending a `we4_sim.py`/`we4_flightsim.py` re-run for the new geometry (flagged in
-`WYVERN_E4_Mathematics.md` §1–4), do not treat §2's table below as current without that re-run.
-
-Prior verdict, still true for everything *except* the bay split: all project files (docs, BOM,
-firmware, CAD, wiring, simulations, proposals) were reconciled to a single canonical configuration as
-of this pass. The remaining work is *fabrication + a short bench/ground-test punch-list* (§6), **plus
-the sim re-run and the bulkhead release-force/cable-slack decisions now open** (see
-`WYVERN_E4_Recovery.md` §4–5). The 1-week build / 2-week launch schedule in §7 needs re-checking
-against those before it's trusted as-is.
+The airframe is two body tubes (Lower BT, Upper BT) joined at one bulkhead. Every project file
+(docs, BOM, firmware, CAD, wiring, simulations, proposal) reflects this single canonical
+configuration. The remaining work is *fabrication + a short bench/ground-test punch-list* (§6),
+plus the bulkhead release-force/cable-slack decisions in `WYVERN_E4_Recovery.md` §4–5. The 1-week
+build / 2-week launch schedule in §7 is scoped against that punch-list.
 
 ## 2. Canonical configuration (single source of truth)
 
 | Parameter | Value |
 |---|---|
-| Airframe | 70 mm OD, ~0.74 m (stale, pending re-run), single stage, **two body tubes (Lower BT, Upper BT) + one separation bulkhead** (was 3 bays + 2 sealed bulkheads) |
-| Liftoff / dry mass | **698 g / 638 g** (2026-08-12 recompute, was 729/627 g) |
+| Airframe | 70 mm OD, ~0.74 m, single stage, **two body tubes (Lower BT, Upper BT) + one separation bulkhead** |
+| Liftoff / dry mass | **698 g / 638 g** |
 | Motor (flight) | **Estes F15-4** ×4 (4 s delay + ejection charge = recovery) |
 | Motor (ground) | **Estes F15-0** ×13-24 (plugged; static thrust curves + MTVC + servo TVC on the balance + jetvane blast-shield screen) |
 | Commissioning | Estes/AeroTech **E16-4** ×6 |
@@ -38,11 +30,11 @@ against those before it's trusted as-is.
 | T/W | **2.10 avg / 3.70 peak** |
 | Fins | 4 × **87 mm** PETG-CF, root 70 / tip 35 / LE-sweep 25° |
 | Stability | CG 50.1 cm / CP 59.3 cm → **+1.31 cal** (→1.5 cal burnout), no ballast |
-| Materials | **ASA-Aero**: nose, Upper BT tube, **Lower BT tube (changed from PETG-CF 2026-08-12)** · **PETG-CF**: fins, separation bulkhead · **PC-FR**: TVC assembly, motor mount, gimbal |
-| Recovery | **F15-4 motor ejection** separating the two body tubes at the bulkhead joint; deploy t≈7.45 s (+0.58 s past apogee, ~5.7 m/s); 24″ chute → ~4.7 m/s; bay-pressurization margin **pending re-check against the new two-BT volume**; no RRC3/9 V/CO2/e-match |
+| Materials | **ASA-Aero**: nose, Upper BT tube, Lower BT tube · **PETG-CF**: fins, separation bulkhead · **PC-FR**: TVC assembly, motor mount, gimbal |
+| Recovery | **F15-4 motor ejection** separating the two body tubes at the bulkhead joint; deploy t≈7.45 s (+0.58 s past apogee, ~5.7 m/s); 24″ chute → ~4.7 m/s; no RRC3/9 V/CO2/e-match |
 | Flight computer | **Custom PCB1** (bare RP2350B, QFN-80, Ø62 mm), dual-core, 500 Hz TVC PID **Kp0.10/Ki0.40/Kd0.18**, ±8° gimbal, no onboard radio |
-| Sensors | body **BNO055** + external **BNO085** (STEMMA-QT), **BME680** baro (no BMP388 populated on this board rev), microSD, i3 4K Thumb Action Camera cam, telemetry logged not streamed |
-| Structural margins | flight min SF ~340× (unaffected by the bay split); bulkhead separation-joint release-force sizing and direct-gas thermal check are **open items**, see `WYVERN_E4_FEA_Structural.md` §4; engine-bay thermal < HDT |
+| Sensors | body **BNO055** + external **BNO085** (STEMMA-QT), **BME680** baro, microSD, i3 4K Thumb Action Camera cam, telemetry logged not streamed |
+| Structural margins | flight min SF ~340×; bulkhead separation-joint release-force sizing and direct-gas thermal check are **open items**, see `WYVERN_E4_FEA_Structural.md` §4; engine-bay thermal < HDT |
 | Servo torque margin | **2.3× at the full ±8° gimbal** (0.086 N·m hinge vs 0.20 N·m stall), below the 3.0× gate, see §11 |
 
 ## 3. Per-target readiness

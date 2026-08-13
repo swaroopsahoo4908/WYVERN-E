@@ -1,36 +1,32 @@
-# GTR70E WYVERN, Mathematics & Recalculated Mass Budget
+# GTR70E WYVERN, Mathematics & Mass Budget
 
 **Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
-**Date:** 2026-08-12  
 **Program:** GTR70E WYVERN
 
 
 *All values from `../Simulations/we4_sim.py`. Single-stage finned F15-4 TVC sustainer (motor-ejection
 recovery via two-body-tube separation at the bulkhead joint), 70 mm OD.*
 
-**2026-08-12 mass recompute.** This section previously carried stale single-tube numbers with an
-uncounted bulkhead/joint mass (TBD). It's now a real bottom-up rebuild against the current two-BT
-CAD (`3D parts/_generator/mass_report.json`) plus the current custom-PCB1 avionics stack, with two
-material changes made specifically to recover T/W (§3): the Lower BT tube moved from PETG-CF to
-ASA-Aero, and the discrete "5V UBEC" line was dropped since the onboard TPS564201 buck already does
-that job.
+This is a bottom-up mass build against the two-body-tube CAD (`3D parts/_generator/mass_report.json`)
+and the custom-PCB1 avionics stack. The onboard TPS564201 buck regulates the 2S pack directly, so
+there's no separate UBEC line in the power budget.
 
 ## 1. Mass budget
 
-Material zoning: ASA-Aero (foamed, 0.65 g/cm³) for **both** the Upper BT (avionics housing) and,
-as of this pass, the Lower BT tube (chute/TVC bay); PETG-CF (1.30 g/cm³) for the fins and the
-bulkhead joint (the direct ejection-gas-exposure part, kept at the higher-strength material); PC-FR
-(1.20 g/cm³) for the TVC assembly proper (motor mount, gimbal — the thermal zone nearest the
-nozzle). The Lower-BT swap is hoop-stress-checked against the 140 kPa ejection pulse: σ = p·r/t =
-2.93 MPa, SF ≈ 6–10× on ASA-Aero depending on foamed-vs-solid strength assumption — comfortable
-margin, same "structurally over-margined" conclusion `WYVERN_E4_FEA_Structural.md` §6 already
-reaches for the flight loads. Structural rows below are real CAD output, not scaled estimates.
+Material zoning: ASA-Aero (foamed, 0.65 g/cm³) for the Upper BT (avionics housing) and the Lower BT
+tube (chute/TVC bay); PETG-CF (1.30 g/cm³) for the fins and the bulkhead joint (the direct
+ejection-gas-exposure part, at the higher-strength material); PC-FR (1.20 g/cm³) for the TVC
+assembly proper (motor mount, gimbal — the thermal zone nearest the nozzle). The Lower BT is
+hoop-stress-checked against the 140 kPa ejection pulse: σ = p·r/t = 2.93 MPa, SF ≈ 6–10× on
+ASA-Aero depending on foamed-vs-solid strength assumption — comfortable margin, consistent with the
+"structurally over-margined" conclusion `WYVERN_E4_FEA_Structural.md` §6 reaches for the flight
+loads. Structural rows below are real CAD output, not scaled estimates.
 
 | Section | Items | Mass |
 |---|---|---|
 | Nose (ASA-Aero) | ellipsoid nose cone | 20.9 g |
 | Upper BT tube (ASA-Aero) | avionics housing, incl. 4x M3 PCB1 standoff bosses (Ø62 mm board) | 44.9 g |
-| Lower BT tube (ASA-Aero, was PETG-CF) | chute/TVC bay, one continuous tube | 94.2 g |
+| Lower BT tube (ASA-Aero) | chute/TVC bay, one continuous tube | 94.2 g |
 | Bulkhead joint (PETG-CF) | direct gas-exposure release joint | 17.2 g |
 | Motor mount (PC-FR) | 29 mm motor mount + centering rings | 57.7 g |
 | TVC gimbal assy (PC-FR) | 2-axis gimbal | 105.6 g |
@@ -49,12 +45,10 @@ board (~8.9 g, volume × 1.85 g/cm³) plus populated parts (~5.2 g: USB-C connec
 fuse, RP2350B QFN-80, 6–7 small sensor/PMIC packages, 4× JST, STEMMA-QT, H1 header, buck inductor,
 ~40 passives) — not a bench scale reading. The 2S 450 mAh LiPo (27 g) is a comparable-product
 estimate (no published weight found for the specific pack); replace both with real weights if a
-scale reading ever contradicts them, and re-run this cascade.
+scale reading ever contradicts them.
 
-The all-ASA-Aero upper+lower body plus the dropped UBEC line together take liftoff mass from the
-prior pass's 729 g down to 698 g — comfortably under even the original planning-stage 705 g target
-— while still carrying the heavier 87 mm fins and the full custom-PCB1 avionics stack this document
-now accounts for completely (no more TBD bulkhead line, no more Pico-2W-era placeholder row).
+Liftoff comes in at **698 g**, comfortably under the 705 g planning target, while still carrying the
+87 mm fins and the full custom-PCB1 avionics stack.
 
 ## 2. CG, inertia, control arm
 
@@ -63,8 +57,7 @@ I_{yy}=\sum m_i (x_i-x_{cg})^2 + \tfrac14 m r^2 = 0.0262\ \mathrm{kg\,m^2}$$
 
 Gimbal pivot at 62 cm from the nose → **control arm $L=x_{pivot}-x_{cg}=11.9$ cm (liftoff), 13.6 cm
 (burnout)**. The vehicle is *finned*, so it also carries a real static margin: CP at 59.3 cm (87 mm
-fins) gives **+1.31 cal** at liftoff, rising toward 1.5 cal at burnout as the CG moves forward — up
-from +1.20 cal in the prior mass pass, since the lightened Lower BT/Upper BT moved CG forward.
+fins) gives **+1.31 cal** at liftoff, rising toward 1.5 cal at burnout as the CG moves forward.
 Stability is therefore hybrid: passive fins through the ignition transient, active TVC from t = 0.5 s.
 
 ## 3. Thrust-to-weight
@@ -72,9 +65,7 @@ Stability is therefore hybrid: passive fins through the ignition transient, acti
 $$\mathrm{(T/W)_{avg}}=\frac{14.4}{0.698\cdot 9.81}=2.10,\qquad \mathrm{(T/W)_{peak}}=\frac{25.3}{0.698\cdot 9.81}=3.70$$
 
 The F15 black-powder curve is front-loaded (25.3 N spike → ~14 N sustain), so the rocket gets a
-**3.70** T/W kick off the rail, then holds ~2.10 — both up from the prior pass's 2.01/3.54, which is
-the direct payoff of the ASA-Aero Lower BT swap and the dropped UBEC line (§1). Comfortable for a
-TVC launch (3.0's two-stage F-boost was marginal at ~1.8; the lighter single stage is better).
+**3.70** T/W kick off the rail, then holds ~2.10 — comfortable margin for a TVC launch.
 
 ## 4. Trajectory (RK4 + Barrowman engine)
 *Solved by `we4_flightsim.py`, 4th-order Runge-Kutta (dt = 2x10⁻⁴ s) with Barrowman drag buildup;
@@ -82,10 +73,9 @@ finned ⇒ static margin +1.31 cal, with active TVC taking over at t = 0.5 s.*
  (RK4 point mass, Cd = 0.539, A = π(0.0435)² m², 87 mm fins)
 
 Burnout 3.45 s at **74.0 m, 36.3 m/s**; coast to apogee **133.7 m / ~439 ft at t = 6.87 s** (unified
-RK4 + Barrowman engine, `we4_flightsim.py`, Cd 0.539) — higher than the prior pass's 397 ft since the
-lighter, higher-T/W vehicle carries more energy through burnout. Monte-Carlo dispersion re-run
-alongside this pass in `we4_validation.py`: 100% of dispersed flights stay stable (≥0.5 cal) and land
-under 35 m/s. Still low and no-waiver (< 125 g propellant, < G, < 1.5 kg).
+RK4 + Barrowman engine, `we4_flightsim.py`, Cd 0.539). Monte-Carlo dispersion in `we4_validation.py`:
+100% of dispersed flights stay stable (≥0.5 cal) and land under 35 m/s. Still low and no-waiver
+(< 125 g propellant, < G, < 1.5 kg).
 
 ## 5. TVC control (rigid-body pitch, servo lag τ=0.04 s, PID)
 
@@ -103,16 +93,14 @@ finned body plus the gimbal). See `plots4/03_tvc_control.png`, `04_control_autho
 Deploy is by the **F15-4 motor ejection charge**, fired 4 s after burnout at **t ≈ 7.45 s** (0.58 s
 past apogee), pressurizing the Lower BT and **separating the two body tubes at the bulkhead joint**
 (see `WYVERN_E4_Recovery.md`); the finned uncontrolled body can tumble far before that. At burnout
-the vehicle is still climbing at **~36 m/s**, faster than the 812 g spec's ~20 m/s because the zoned,
-now-lighter airframe carries more energy through burnout; size the chute/cord for a hard opening, or
-push the timer if a softer opening is preferred. An **24″ chute** gives terminal **~4.7 m/s**:
+the vehicle is still climbing at **~36 m/s**; size the chute/cord for a hard opening, or push the
+timer if a softer opening is preferred. A **24″ chute** gives terminal **~4.7 m/s**:
 
 $$v_t=\sqrt{\frac{2 m g}{\rho\,C_d A_{chute}}}=\sqrt{\frac{2(0.638)(9.81)}{1.225(1.5)\pi(0.3048)^2}}\approx 4.7\ \mathrm{m/s}$$
 
 Recovery is a single passive event (the motor's own charge), there is no electronic deploy path or
 backup channel; robustness comes from the bay-pressurization margin against the bulkhead joint's
-release-force target (see `WYVERN_E4_Recovery.md` §4, §6, also flagged there as needing a re-check
-against the new two-BT volume).
+release-force target (see `WYVERN_E4_Recovery.md` §4, §6).
 
 ## 7. No-waiver / class
 

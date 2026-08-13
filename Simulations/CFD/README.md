@@ -1,10 +1,8 @@
 # CFD, Fin Airfoil Aerodynamics (RQ3/RQ4)
 
-> ⚠ Restored 2026-08-10 (was deleted from the repo during the 2026-08 wind-tunnel-removal scope
-> change, see `CONFLICTS.md` §6). Numbering below uses the current five-RQ scheme: RQ3 is fin
-> aerofoil selection, RQ4 is wind-tunnel-vs-flight calibration. The original text referred to this
-> as "RQ1," which predates even the 2026-08 consolidation (`WYVERN_E2_airfoil_polars.xlsx`'s
-> filename is a leftover from that earlier numbering), RQ1 is now magnetic-vs-servo TVC actuation.
+> Numbering below uses the project's five-RQ scheme: RQ3 is fin aerofoil selection, RQ4 is
+> wind-tunnel-vs-flight calibration. RQ1 is magnetic-vs-servo TVC actuation (`WYVERN_E2_airfoil_polars.xlsx`'s
+> filename is a legacy artifact and doesn't reflect the current numbering).
 
 A 2D vortex-panel-method solver for the four candidate fin cross-sections, in pure
 Python/numpy. Supports the wind-tunnel campaign (RQ3/RQ4) by predicting the lift curve

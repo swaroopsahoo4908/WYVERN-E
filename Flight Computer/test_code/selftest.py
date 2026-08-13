@@ -4,25 +4,24 @@
 Connects to the custom PCB1 (RP2350B) over USB serial, power-cycles or resets are NOT performed by this script
 (reset the board yourself, or it will simply listen to whatever the board is already printing), and
 tabulates the BOOT-state SELFTEST:* lines emitted by build/firmware/wyvern4_tvc.ino's setup()/
-setup1(). This replaces the old static checklist stub -- the table below is now generated from a
-live serial session via host_monitor.py, not printed unconditionally.
+setup1(). The table below is generated from a live serial session via host_monitor.py, not printed
+unconditionally.
 
 Checks performed by the firmware and reported here (see CONFLICTS.md for the frozen parameter
 table these depend on):
-  MUX PCA9548A @0x70 acknowledges on I2C0
-  IMU_GIMBAL BNO085 on I2C1 (dedicated bus) inits + GRV report enabled
-  IMU_BODY BNO085 on I2C0 mux ch0 inits + GRV report enabled (+ accel report)
-  IMU_RECOVERY BNO085 on I2C0 mux ch1 inits + GRV report enabled
-  IMU_MINIMUM gimbal AND (body OR recovery) all initialized -- flight-critical minimum
-  BARO_BMP BMP388 on mux ch3 (0x77) inits
-  BARO_BME BME680 on mux ch2 (0x76) inits
+  IMU_EXTERNAL BNO085 on the shared I2C bus (STEMMA-QT) inits + GRV report enabled
+  IMU_BODY BNO055 on the shared I2C bus inits + IMUPLUS mode enabled
+  IMU_MINIMUM both IMUs initialized -- flight-critical minimum
+  BARO_BME BME680 on the shared I2C bus (0x76) inits
   SERVO pitch/yaw sweep to the full +-8 deg limit completes without a hang
                  (visually confirm actual nozzle travel on the bench -- see test_code/t3)
   CORE0_READY core 0's own init sequence finished
-  BATTERY 2S LiPo voltage above CRITICAL_CUTOFF_V (see battery.h)
+  BATTERY rail voltage above CRITICAL_CUTOFF_V (see battery.h; reads the buck rail, not raw pack)
   SD microSD (SPI0) mounts and the flight-log file opens for write
-  WIFI bench WiFi association, only if WIFI_ENABLED is set in the .ino (SKIP otherwise)
-  RBF Remove-Before-Flight switch sensed pulled (PASS) or still inserted (WAIT)
+  WIFI bench WiFi association, only if WIFI_ENABLED is set in the .ino (SKIP otherwise -- PCB1 has
+                 no radio chip populated, so this stays SKIP in flight configuration)
+  RBF Remove-Before-Flight switch sensed pulled (PASS) or still inserted (WAIT) -- not wired to a
+                 physical switch on this board rev, see 01_FlightComputer_Spec.md section 3
   LOG_RING core 0 -> core 1 shared-RAM log ring is actually moving (core 1 draining), and
                  zero frames dropped during the boot window
 

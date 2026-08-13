@@ -24,27 +24,21 @@ BLU,RED,GRN,ORG,PUR,TEAL="#2a6f97","#bc4749","#386641","#e09f3e","#6d597a","#43a
 # ---------------- vehicle constants (mirror we4_flightsim.py) ----------------
 g,rho0,a0=9.80665,1.225,343.0
 D=0.070; Rb=D/2; A=np.pi*Rb**2; Ltot=0.74; Lnose=0.12
-m_lift,m_dry,PROP,tb=0.698,0.638,0.060,3.45 # canonical mass 2026-08-12, was 0.7292/0.6272
-# CANONICAL values (we4_flightsim.py / wyvern_datagen/core.py). This file previously carried
-# CG=0.467 / Xcp=0.537 -- the pre-ASA-Aero, pre-i3-camera numbers -- so every margin, flutter
-# and CG-tolerance result below was computed against a vehicle that no longer exists.
-CG=0.484; Xcp=0.568; CN=2.0+ (lambda:0)() # CN recomputed below
+m_lift,m_dry,PROP,tb=0.698,0.638,0.060,3.45 # canonical mass
+# CANONICAL values (matches we4_flightsim.py / wyvern_datagen/core.py)
+CG=0.5011; Xcp=0.5925; CN=2.0+ (lambda:0)() # CN set below
 # fin geometry (4x): root cr, tip ct, semispan sp, thick th, sweep sw
 cr,ct,sp,th_fin,sw=0.070,0.035,0.072,0.0030,0.025 # 72 mm span, 3 mm thick (matches 3D parts + .ork)
 Fc_t=np.array([0,0.05,0.12,0.2,0.3,0.5,1,1.5,2,2.5,3,3.3,3.45])
-# F15 thrust curve CORRECTED 2026-08. The digitized shape integrated to 41.97 N.s, so the
-# 49.6 N.s renormalization below scaled the whole curve by 1.1817 and pushed peak thrust to
-# 29.9 N -- against Estes' published 25.3 N peak, and against the 3.26 peak T/W quoted
-# throughout this repo (29.9 N gives 4.32). The sustain block (t >= 0.3 s) has been lifted by
-# +2.4408 N so the curve now matches ALL THREE published values simultaneously:
-# total impulse 49.6 N.s, peak 25.3 N, average 14.4 N. The renormalization is retained as a
-# guard (it is now a ~1.0000 no-op) so any future re-digitization still lands on 49.6 N.s.
+# F15 thrust curve, digitized and shaped to match all three published values simultaneously:
+# total impulse 49.6 N.s, peak 25.3 N, average 14.4 N. The renormalization below is kept as a
+# guard (currently a ~1.0000 no-op) so any future re-digitization still lands on 49.6 N.s.
 Fc=np.array([0, 12, 25.3, 22, 18.441, 15.441, 14.941, 14.641, 14.441, 14.241, 13.941, 9.441, 0]); Fc*=49.6/_TRAPZ(Fc,Fc_t)
 thrust=lambda t: float(np.interp(t,Fc_t,Fc,left=0,right=0)) if 0<=t<=tb else 0.0
 mass=lambda t: max(m_dry,m_lift-(PROP/tb)*min(max(t,0),tb))
 rho=lambda h: rho0*np.exp(-h/8500)
 Cd0=0.539
-def trajectory(cd=Cd0,dt=5e-4): # 2e-3 -> 5e-4 (2026-08 fidelity pass)
+def trajectory(cd=Cd0,dt=5e-4):
     s=np.array([0.,0.]); t=0.; T=[];H=[];V=[]
     while True:
         def dz(st,tt):

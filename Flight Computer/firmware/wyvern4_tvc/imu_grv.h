@@ -1,52 +1,43 @@
 // GTR70E WYVERN — dual-IMU attitude driver (onboard BNO055 + external BNO085) with 2-of-2 voting.
 // =====================================================================================================
-// RECONCILED 2026-08-11 against the ACTUAL fabricated PCB1 netlist/BOM/schematic
-// (PCB/Netlist_PCB1_2026-08-11.tel, PCB/BOM_Board1_PCB1_2026-08-11.xlsx,
-// PCB/SCH_Schematic1_2026-08-11.pdf) -- traced pin-by-pin, not assumed from prior documentation.
-// Two prior versions of this file were both wrong about the real hardware:
-//   1. The original tri-IMU (gimbal/body/recovery) design assumed a PCA9548A mux and 3x BNO085 --
-//      no mux chip exists on the real board at all.
-//   2. The first "fix" (2026-08-11a) assumed 2x BNO085 (one onboard via mux ch0, one external via
-//      a dedicated I2C1 bus) -- WRONG. The real onboard IMU (U2 in the BOM) is a Bosch BNO055, a
-//      completely different chip with a different register map, different I2C address, and no
-//      SH-2 report system, so the Adafruit_BNO08x driver cannot talk to it at all. There is also
-//      no PCA9548A mux and no second I2C bus: the schematic shows U1 (RP2350B) GPIO0/GPIO1 as ONE
-//      shared I2C bus carrying every onboard sensor (BNO055, BME680, INA226, LIS3MDL) AND the
-//      external STEMMA-QT connector (CN2), differentiated purely by I2C address.
+// Netlist-traced against the fabricated PCB1 (schematic + BOM in PCB/), pin-by-pin, not assumed
+// from datasheet defaults.
 //
-// Current, netlist-verified architecture:
+// Architecture:
 //   - body     : onboard Bosch BNO055 (U2), shared bus (Wire, GP0 SDA / GP1 SCL). Address CONFIRMED
 //                0x28: pin 17 (COM3, the address-select pin in I2C mode) traces to the board's GND
-//                net in Netlist_PCB1_2026-08-11.tel, and Bosch's COM3-low convention is 0x28. Also
-//                confirmed from the same trace: PS1 (pin5, floating -> internal pulldown = 0) and
-//                PS0 (pin6, tied GND = 0) select I2C mode (PS1:PS0 = 0:0); pins 26/27 (XIN32/XOUT32)
-//                are unpopulated, confirming no external 32kHz crystal, matching Bno055Body::begin()'s
-//                setExtCrystalUse(false) call below. One item worth a bench look: pin9 (CAP, the
-//                internal-regulator bypass pin per Bosch's reference design) shows no net membership
-//                in the extracted netlist at all -- verify against the board whether a cap is actually
-//                placed there; if Bosch's reference design requires one and none is populated, the
-//                chip's internal regulator may not be clean.
+//                net, and Bosch's COM3-low convention is 0x28. Also confirmed from the same trace:
+//                PS1 (pin5, floating -> internal pulldown = 0) and PS0 (pin6, tied GND = 0) select
+//                I2C mode (PS1:PS0 = 0:0); pins 26/27 (XIN32/XOUT32) are unpopulated, confirming no
+//                external 32kHz crystal, matching Bno055Body::begin()'s setExtCrystalUse(false) call
+//                below. One item worth a bench look: pin9 (CAP, the internal-regulator bypass pin
+//                per Bosch's reference design) shows no net membership in the extracted netlist at
+//                all -- verify against the board whether a cap is actually placed there; if Bosch's
+//                reference design requires one and none is populated, the chip's internal regulator
+//                may not be clean.
 //   - external : off-board Adafruit BNO085 breakout plugged into the STEMMA-QT port (CN2), SAME
 //                shared bus, address 0x4A (Adafruit board default -- CN2 is a plain 4-pin STEMMA-QT
 //                passthrough, GND/3V3/SDA/SCL, confirmed in netlist order). Mounted at the
 //                TVC-bay/electronics boundary near the bulkhead joint (Recovery.md #1), NOT on the
 //                gimbal.
-//   Both run accel+gyro fusion with no magnetometer reference (rocket motor/avionics fields make
-//   raw magnetic heading useless): BNO085 in SH2_GAME_ROTATION_VECTOR, BNO055 in OPERATION_MODE_IMUPLUS
-//   (Bosch's equivalent -- 6-axis fusion, mag excluded from the estimate).
+//   Only one shared I2C bus exists on this board (RP2350B GPIO0/GPIO1), carrying every onboard
+//   sensor (BNO055, BME680, INA226, LIS3MDL) plus the external STEMMA-QT connector (CN2),
+//   differentiated purely by I2C address -- there is no PCA9548A mux and no second I2C bus.
+//   Both IMUs run accel+gyro fusion with no magnetometer reference (rocket motor/avionics fields
+//   make raw magnetic heading useless): BNO085 in SH2_GAME_ROTATION_VECTOR, BNO055 in
+//   OPERATION_MODE_IMUPLUS (Bosch's equivalent -- 6-axis fusion, mag excluded from the estimate).
 //
-// CONSEQUENCE FOR DEFLECTION SENSING: unchanged from the prior pass -- there is no gimbal-mounted
-// IMU on this vehicle, so nozzle deflection (q_body^-1 (x) q_gimbal) is not computable in flight.
-// The control loop was already body-attitude-only (wyvern4_tvc.ino's BOOST case uses
-// body_pitch_rad/body_yaw_rad, never a deflection value), so this does not touch control math.
-// compute_deflection() remains a NaN stub for LogFrame/CSV schema compatibility.
+// CONSEQUENCE FOR DEFLECTION SENSING: there is no gimbal-mounted IMU on this vehicle, so nozzle
+// deflection (q_body^-1 (x) q_gimbal) is not computable in flight. The control loop is
+// body-attitude-only (wyvern4_tvc.ino's BOOST case uses body_pitch_rad/body_yaw_rad, never a
+// deflection value). compute_deflection() remains a NaN stub for LogFrame/CSV schema compatibility.
 //
-// Address confidence, resolved by tracing Netlist_PCB1_2026-08-11.tel pin-by-pin against the
-// labeled pinouts in SCH_Schematic1_1-P1_2026-08-11.svg (not assumed from datasheet defaults):
-// BNO055 0x28 -- CONFIRMED (COM3 -> GND). BME680 0x76 -- CONFIRMED (baro.h; SDO -> GND, CSB -> 3V3
-// selects I2C). LIS3MDL 0x1C -- CONFIRMED (SDO/SA1 -> GND), though the magnetometer itself is still
-// unused by firmware. INA226 -- NOT resolved this way; see battery.h's file header for a real wiring
-// concern found on that part's address-select pin, not just an unread datasheet default.
+// Address confidence, resolved by tracing the netlist pin-by-pin against the labeled schematic
+// pinouts (not assumed from datasheet defaults): BNO055 0x28 -- CONFIRMED (COM3 -> GND). BME680
+// 0x76 -- CONFIRMED (baro.h; SDO -> GND, CSB -> 3V3 selects I2C). LIS3MDL 0x1C -- CONFIRMED
+// (SDO/SA1 -> GND), though the magnetometer itself is still unused by firmware. INA226 -- NOT
+// resolved this way; see battery.h's file header for a real wiring concern found on that part's
+// address-select pin, not just an unread datasheet default.
 #pragma once
 #include <Wire.h>
 #include <Adafruit_BNO08x.h>

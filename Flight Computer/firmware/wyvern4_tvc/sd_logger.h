@@ -130,17 +130,15 @@ inline uint32_t log_pending() {
 
 class SdLogger {
 public:
-  // RECONCILED 2026-08-11 against the real PCB1 netlist: GP2-GP5 are NOT SD pins on this board --
-  // they're the four servo/JST connector signal lines (U8-U11, see wyvern4_tvc.ino's pin map). The
-  // microSD card (CARD1, TF-01A) is wired to a separate group of GPIOs entirely.
+  // GP2-GP5 are NOT SD pins on this board -- they're the four servo/JST connector signal lines
+  // (U8-U11, see wyvern4_tvc.ino's pin map). The microSD card (CARD1, TF-01A) is wired to a
+  // separate group of GPIOs entirely.
   //
-  // All four pins below are CONFIRMED (not best-effort): traced every CARD1 pin against
-  // Netlist_PCB1_2026-08-11.tel and matched against CARD1's schematic-labeled pinout (DAT2(RSV),
-  // DAT3(CS), CMD(DI), VDD, CLK, VSS, DAT0(D0), DAT1(RSV) -- standard TF-01A dual SD/SPI-mode
-  // labeling). Pin1 (DAT2) and pin8 (DAT1) are correctly unconnected -- both are reserved/unused in
-  // SPI mode, not an oversight. This also fixed a real bug in an earlier pass of this file: MOSI and
-  // CS had been swapped (CARD1's CMD/DI pin -- MOSI -- traces to GPIO11, not GPIO9; DAT3/CS traces
-  // to GPIO9, not GPIO11).
+  // All four pins below are CONFIRMED (not best-effort): traced every CARD1 pin against the
+  // netlist and matched against CARD1's schematic-labeled pinout (DAT2(RSV), DAT3(CS), CMD(DI),
+  // VDD, CLK, VSS, DAT0(D0), DAT1(RSV) -- standard TF-01A dual SD/SPI-mode labeling). Pin1 (DAT2)
+  // and pin8 (DAT1) are correctly unconnected -- both are reserved/unused in SPI mode, not an
+  // oversight.
   static constexpr uint8_t PIN_MISO = 8;    // CARD1 pin7, DAT0(D0)
   static constexpr uint8_t PIN_CS   = 9;    // CARD1 pin2, DAT3(CS)
   static constexpr uint8_t PIN_SCK  = 10;   // CARD1 pin5, CLK

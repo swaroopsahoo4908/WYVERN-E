@@ -1,7 +1,6 @@
 # GTR70E WYVERN
 
 **Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
-**Date:** 2026-08-12  
 **Program:** GTR70E WYVERN
 
 
@@ -33,9 +32,9 @@ runs on the ground (two matched three-axis load balances) rather than in flight,
 repeatable, directly-measured thrust vector instead of a single noisy flight-to-flight data point.
 
 **Materials.** ASA-Aero forms the upper body that houses avionics (nose, recovery bay tube, FC bay
-tube) and, as of the 2026-08-12 mass pass, the lower body tube (chute/TVC bay); PETG-CF forms the
-fins and the bulkhead joint; PC-FR forms the TVC assembly proper (motor mount, gimbal). Zoning
-follows thermal exposure and structural role, not a single blanket material.
+tube) and the lower body tube (chute/TVC bay); PETG-CF forms the fins and the bulkhead joint; PC-FR
+forms the TVC assembly proper (motor mount, gimbal). Zoning follows thermal exposure and structural
+role, not a single blanket material.
 
 ## Key numbers (see `Simulations/we4_sim.py` → `plots4/`)
 

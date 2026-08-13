@@ -4,12 +4,10 @@ Unlike the flat-netlist harness, every component is DRAWN and PHYSICALLY WIRED p
 orthogonal wire segments, junctions, power rails (2S LiPo -> buck -> LDO / GND) and net labels.
 No symbol library required, components are documentation rectangles with real pin stubs + wires.
 
-RECONCILED 2026-08-11 against the actual custom RP2350B PCB1 (netlist/BOM/schematic in PCB/,
-traced pin-by-pin -- see CONFLICTS.md section 4 and firmware/wyvern4_tvc/imu_grv.h's file header).
-This full rewrite replaces the prior generator, which was built for a never-fabricated board
-(Pico 2 W module, PCA9548A mux + dual I2C bus, GP26 ADC battery divider). The real board has ONE
+Traced pin-by-pin against the actual custom RP2350B PCB1 (netlist/BOM/schematic in PCB/ -- see
+CONFLICTS.md section 4 and firmware/wyvern4_tvc/imu_grv.h's file header). The board carries ONE
 bare RP2350B chip, ONE shared I2C bus carrying every sensor by address (no mux), and a real INA226
-power monitor in place of the ADC divider."""
+power monitor for rail sensing."""
 import os
 HERE=os.path.dirname(os.path.abspath(__file__))
 S=[] # s-expr item accumulator
@@ -105,10 +103,10 @@ sv2=Comp("SERVO 2 (yaw, JST U9)",250,112,58,18)
 sv2.pins("L",["SIG","+V","GND"])
 
 # ----- shared-bus sensors (all tap the same SDA0/SCL0 rails, differentiated by I2C address only) -----
-# RECONCILED 2026-08-11: no PCA9548A mux exists on the real PCB1 -- every onboard sensor plus the
-# external STEMMA-QT port shares ONE bus. body is now a BNO055 (different chip family/driver than
-# the external unit, see imu_grv.h); BMP388 is not populated on this board rev (baro.h keeps that
-# code path as a fails-closed no-op, so it's omitted from this wiring diagram, not drawn as present).
+# No PCA9548A mux exists on the real PCB1 -- every onboard sensor plus the external STEMMA-QT port
+# shares ONE bus. Body is a BNO055 (a different chip family/driver than the external unit, see
+# imu_grv.h); BMP388 is not populated on this board rev (baro.h keeps that code path as a
+# fails-closed no-op, so it's omitted from this wiring diagram, not drawn as present).
 body=Comp("BNO055 BODY 0x28",340,60,58,26,"onboard · addr CONFIRMED (COM3->GND)")
 body.pins("L",["SDA","SCL"]); body.pins("T",["3V3"]); body.pins("B",["GND"])
 ext=Comp("BNO085 EXTERNAL 0x4A",340,96,58,26,"STEMMA-QT · bulkhead-boundary mount, not gimbal")
@@ -121,11 +119,10 @@ mag=Comp("LIS3MDL (U5) 0x1C",340,206,58,24,"addr CONFIRMED (SD0/SA1->GND) · unu
 mag.pins("L",["SDA","SCL"]); mag.pins("T",["3V3"]); mag.pins("B",["GND"])
 
 # ----- R10 (in parallel with power switch U13, NOT a current shunt in series with pack current) -----
-# CORRECTED 2026-08-11 second pass: the first pass of this diagram drew R10 as a textbook shunt
-# feeding INA226's VIN+ from the battery -- that assumption turned out wrong once every pin was
-# actually traced. Real wiring: INA226 VIN+ -> GND directly, VIN- -> VBUCK directly, VBUS and the A1
-# address pin both -> the same node R10 bridges to VBUCK (in parallel with switch U13). None of this
-# spans real pack current. See battery.h and CONFLICTS.md section 3 for the full finding.
+# R10 does not feed INA226's VIN+ as a textbook current shunt would. Real wiring, traced pin-by-pin:
+# INA226 VIN+ -> GND directly, VIN- -> VBUCK directly, VBUS and the A1 address pin both -> the same
+# node R10 bridges to VBUCK (in parallel with switch U13). None of this spans real pack current.
+# See battery.h and CONFLICTS.md section 3 for the full finding.
 shunt=Comp("R10 (10mOhm, 2512) -- parallel w/ SW U13, not a shunt",42,168,70,18)
 shunt.pins("R",["to VBUCK"])
 a=ina.p("VIN+"); poly([a,(a[0]+10,a[1]),(a[0]+10,RAIL_GND)]); junc(a[0]+10,RAIL_GND)
@@ -146,8 +143,8 @@ def chan(a,b,cx,lbl=None):
     poly([a,(cx,a[1]),(cx,b[1]),b])
     if lbl: label(a[0]+ (4 if a[0]<cx else -4), a[1]-0.6, lbl)
 
-# SD interface, RP2350B -> microSD (4 nets) -- confirmed via netlist trace; an earlier pass had
-# MOSI/CS swapped (CARD1's CMD/DI pin, i.e. MOSI, actually traces to GP11, and DAT3/CS to GP9)
+# SD interface, RP2350B -> microSD (4 nets) -- confirmed via netlist trace (CARD1's CMD/DI pin,
+# i.e. MOSI, traces to GP11, and DAT3/CS to GP9)
 for pin,sdpin,cx,nm in [("GP8 MISO","MISO",226,"MISO"),("GP9 CS","CS",229,"CS"),
                         ("GP10 SCK","SCK",232,"SCK"),("GP11 MOSI","MOSI",235,"MOSI")]:
     chan(mcu.p(pin),sd.p(sdpin),cx,nm)
