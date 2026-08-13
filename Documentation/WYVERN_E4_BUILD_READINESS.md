@@ -40,8 +40,8 @@ against those before it's trusted as-is.
 | Stability | CG 50.1 cm / CP 59.3 cm → **+1.31 cal** (→1.5 cal burnout), no ballast |
 | Materials | **ASA-Aero**: nose, Upper BT tube, **Lower BT tube (changed from PETG-CF 2026-08-12)** · **PETG-CF**: fins, separation bulkhead · **PC-FR**: TVC assembly, motor mount, gimbal |
 | Recovery | **F15-4 motor ejection** separating the two body tubes at the bulkhead joint; deploy t≈7.45 s (+0.58 s past apogee, ~5.7 m/s); 24″ chute → ~4.7 m/s; bay-pressurization margin **pending re-check against the new two-BT volume**; no RRC3/9 V/CO2/e-match |
-| Flight computer | **Raspberry Pi Pico 2 W (RP2350)**, dual-core, 500 Hz TVC PID **Kp0.10/Ki0.40/Kd0.18**, ±8° gimbal |
-| Sensors | 3× BNO085 (GRV), BME680 + **BMP388** (Adafruit 3966) baro, microSD, i3 4K Thumb Action Camera cam, Wi-Fi bench telemetry |
+| Flight computer | **Custom PCB1** (bare RP2350B, QFN-80, Ø62 mm), dual-core, 500 Hz TVC PID **Kp0.10/Ki0.40/Kd0.18**, ±8° gimbal, no onboard radio |
+| Sensors | body **BNO055** + external **BNO085** (STEMMA-QT), **BME680** baro (no BMP388 populated on this board rev), microSD, i3 4K Thumb Action Camera cam, telemetry logged not streamed |
 | Structural margins | flight min SF ~340× (unaffected by the bay split); bulkhead separation-joint release-force sizing and direct-gas thermal check are **open items**, see `WYVERN_E4_FEA_Structural.md` §4; engine-bay thermal < HDT |
 | Servo torque margin | **2.3× at the full ±8° gimbal** (0.086 N·m hinge vs 0.20 N·m stall), below the 3.0× gate, see §11 |
 
@@ -216,7 +216,7 @@ Run `selftest.py` before every flight; it gates on all of the above that are obs
 **Week 1, fabricate & bench:**
 - Days 1–2: print airframe (PLA body/nose/fins; PETG-CF bulkheads/tube/engine bay/gimbal/mount)
   and both stands. Order-long-lead items already in BOM.
-- Days 3–4: assemble FC (Pico 2 W + sensors on perfboard), wire per the schematic, flash firmware,
+- Days 3–4: assemble FC (custom PCB1 + sensors), wire per the schematic, flash firmware,
   run `t1`–`t4` bench tests + `selftest.py`.
 - Days 5–7: assemble rocket; join the two body tubes at the bulkhead (route the servo/STEMMA-QT
   cables through the pass-through holes first), install recovery (chute + shock cord + Nomex);

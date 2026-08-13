@@ -5,7 +5,7 @@ orthogonal wire segments, junctions, power rails (2S LiPo -> buck -> LDO / GND) 
 No symbol library required, components are documentation rectangles with real pin stubs + wires.
 
 RECONCILED 2026-08-11 against the actual custom RP2350B PCB1 (netlist/BOM/schematic in PCB/,
-traced pin-by-pin -- see CONFLICTS.md section 4 and firmware/gtr70e_wyvern_tvc/imu_grv.h's file header).
+traced pin-by-pin -- see CONFLICTS.md section 4 and firmware/wyvern4_tvc/imu_grv.h's file header).
 This full rewrite replaces the prior generator, which was built for a never-fabricated board
 (Pico 2 W module, PCA9548A mux + dual I2C bus, GP26 ADC battery divider). The real board has ONE
 bare RP2350B chip, ONE shared I2C bus carrying every sensor by address (no mux), and a real INA226

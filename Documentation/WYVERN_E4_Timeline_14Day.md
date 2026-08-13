@@ -9,6 +9,12 @@ updated_at: 2026-08-01
 **Program:** GTR70E WYVERN
 
 
+**⚠ Predates the 2026-08-12 custom-PCB1/mass-recompute pass.** This schedule was written against the
+never-fabricated Pico 2 W + GP26 divider + BMP388 architecture; only the flight-computer references
+below have been spot-fixed to name PCB1. The procurement line items (BMP388, GP26 divider resistors,
+etc.) are stale against the real board — cross-check against `01_FlightComputer_Spec.md` and
+`WYVERN_E4_BOM.xlsx` before ordering off this table.
+
 ##### Day 0 = Saturday 2026-08-01 · paper writing starts Day 15 (Saturday 2026-08-15)
 
 > ⚠ **Superseded pacing, 2026-08-10.** This 14-day order-to-flight sprint plan is dated and its
@@ -186,7 +192,7 @@ the vehicle actually does:
 ## 8. Day-0 checklist, do these today
 
 - [ ] Place the full BOM order, priority shipping on the critical path
-- [ ] Add spares: 1 × Pico 2 W, 1 × BNO085, 1 × servo
+- [ ] Add spares: 1 × extra PCB1 fab (custom flight computer, not a Pico), 1 × BNO085, 1 × servo
 - [ ] Order 4 × F15-4, 10 × F15-0, 4 × E16-4
 - [ ] Confirm launch site and RSO for Day 11, hold Day 12 as backup
 - [ ] Slice all prints, total the hours, identify the longest plate

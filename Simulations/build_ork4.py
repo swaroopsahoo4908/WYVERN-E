@@ -1,3 +1,9 @@
+# STALE, pre-2026-08-12 architecture: this OpenRocket exporter still models the PLA body / 4x 72mm
+# fin / 324ft-apogee 3.0-era geometry, not the current ASA-Aero/PETG-CF/PC-FR zoned, 87mm-fin,
+# 439ft airframe (see Documentation/WYVERN_E4_Mathematics.md for current numbers). It is NOT part
+# of the documented cascade (core.py -> we4_flightsim.py -> docs); only the avionics mass-component
+# labels below have been spot-fixed to name the current custom PCB1 stack. Re-derive full geometry
+# against current CAD before treating the exported .ork file as authoritative.
 import zipfile,uuid,os
 OUT=os.path.dirname(os.path.abspath(__file__))
 def mc(name,off,mass,frm="top"): return f'<masscomponent><name>{name}</name><id>{uuid.uuid4()}</id><axialoffset method="{frm}">{off}</axialoffset><position type="{frm}">{off}</position><packedlength>0.03</packedlength><packedradius>0.03</packedradius><radialposition>0.0</radialposition><radialdirection>0.0</radialdirection><mass>{mass}</mass><masscomponenttype>masscomponent</masscomponenttype></masscomponent>'
@@ -24,7 +30,7 @@ xml=f'''<?xml version='1.0' encoding='utf-8'?>
 </subcomponents></bodytube>
 <bodytube><name>FC bay (PLA)</name><id>{uuid.uuid4()}</id><overridemass>0.051</overridemass><overridesubcomponentsmass>false</overridesubcomponentsmass><finish>normal</finish>
 <material type="bulk" density="1240.0">PLA</material><length>0.160</length><thickness>0.0016</thickness><radius>0.035</radius><subcomponents>
-{mc("Pico 2 W+IMUs+baro+cam",0.02,0.024)}{mc("2S LiPo + 5V UBEC",0.06,0.035)}
+{mc("Custom PCB1 (RP2350B)+IMUs+baro+cam",0.02,0.024)}{mc("2S LiPo (onboard buck, no discrete UBEC)",0.06,0.027)}
 </subcomponents></bodytube>
 <bodytube><name>Engine/TVC bay (PETG-CF)</name><id>{uuid.uuid4()}</id><overridemass>0.166</overridemass><overridesubcomponentsmass>false</overridesubcomponentsmass><finish>normal</finish>
 <material type="bulk" density="1300.0">PETG-CF</material><length>0.160</length><thickness>0.0016</thickness><radius>0.035</radius><subcomponents>

@@ -1,7 +1,13 @@
-# GTR70E WYVERN, Research Proposal
+# GTR70E WYVERN, Research Proposal (rev1, superseded)
 
 ### 70 mm Single-Stage Servo-TVC Sustainer
 ##### Allison Hong · Chris Liu · Swaroop K. Sahoo
+
+**⚠ This is the rev1 draft, kept as a historical record.** It predates the custom PCB1 flight
+computer (still describes a never-fabricated Pico 2 W concept), the ASA-Aero/PETG-CF/PC-FR material
+zoning, and the 2026-08-12 mass recompute (698 g/638 g). The current, actively-maintained proposal
+is `WYVERN_E4_Proposal_rev2.md` (and its rendered `.docx`/`.pdf`) — read that one for anything
+current. Numbers and hardware descriptions below are not updated.
 
 ## Executive Summary
 GTR70E WYVERN is a 70 mm, single-stage, **3D-printed active-thrust-vector-control (TVC)** research

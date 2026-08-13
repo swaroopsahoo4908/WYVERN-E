@@ -1,4 +1,7 @@
-// GTR70E WYVERN — optional WiFi/UDP bench telemetry broadcaster on the Pico 2 W's onboard CYW43439.
+// GTR70E WYVERN — optional WiFi/UDP bench telemetry broadcaster. INERT on PCB1 as fabricated: this
+// board has no CYW43439 or any other radio chip populated, so WIFI_ENABLED stays 0 (set in
+// wyvern4_tvc.ino) and this code path never runs in flight. Kept for a future board rev or an
+// external WiFi module, not deleted.
 // =====================================================================================================
 // Purpose: bench/preflight monitoring only -- a live readout of attitude/deflection/baro/battery
 // without a USB cable, e.g. while the vehicle is on the rail. Per 01_FlightComputer_Spec.md, this

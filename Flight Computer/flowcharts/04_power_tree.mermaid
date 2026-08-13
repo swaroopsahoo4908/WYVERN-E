@@ -1,10 +1,10 @@
-%% WYVERN-E — power (light 2S LiPo -> 5V UBEC; recovery is motor-driven, no recovery battery)
-%% Regenerated 2026-08. Pack is 450 mAh (Zeee 2S) -> ~40 flights/charge per we4_deepsim.py H.
+%% GTR70E WYVERN — power (2S LiPo -> onboard TPS564201 buck, no discrete UBEC; recovery is motor-driven, no recovery battery)
+%% Regenerated 2026-08-12 against the fabricated custom PCB1. Pack is 450 mAh (2S) -> ~40 flights/charge per we4_deepsim.py H.
 flowchart LR
-    B2[2S LiPo 7.4V ~450mAh] --> SW[arming switch + fuse]
-    SW --> BEC[5V/6V UBEC set 5V, 3A]
-    BEC --> RAIL[single 5V rail + decoupling: 1000uF bulk @ servos, 100uF + SS34 Schottky hold-up @ VSYS]
-    RAIL --> T[Pico 2 W VSYS 1.8-5.5V -> 3V3OUT -> 2x BNO085 + BMP388/BME680 + cam]
+    B2[2S LiPo 7.4V ~450mAh] --> SW[U13 power switch, XT30 into PCB1]
+    SW --> BUCK[onboard TPS564201 buck, U15 -> ~5V rail]
+    BUCK --> RAIL[5V servo/camera rail + onboard 3.3V logic LDO stage]
+    RAIL --> T[RP2350B (PCB1) 3V3 -> body BNO055 + external BNO085 + BME680]
     RAIL --> SV[2 TVC servos @ 5V ~1.8 kg-cm vs ~0.56 kg-cm demand]
-    B2 --> ADC[GP26/ADC0 100k/62k pack monitor]
+    BUCK --> INA[INA226 (U4) power monitor -- WIRING DEFECT: reads VBUCK output, not pack voltage; see CONFLICTS.md section 3]
     M[F15-4 motor] --> EJ[built-in ejection charge -> bulkhead joint -> chute]

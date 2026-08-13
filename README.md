@@ -1,7 +1,13 @@
-# GTR70 WYVERN-E
+# GTR70E WYVERN
 
-A single-stage, 70 mm, finned active-TVC sustainer built around a **Raspberry Pi Pico 2 W (RP2350)**
-flight computer, powered by an **Estes F15-4**. 
+**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
+**Date:** 2026-08-12  
+**Program:** GTR70E WYVERN
+
+
+A single-stage, 70 mm, finned active-TVC sustainer built around **PCB1**, a custom-designed
+Ø62 mm flight computer board carrying a bare **RP2350B** (QFN-80, no onboard radio), powered by an
+**Estes F15-4**.
 
 The vehicle answers five research questions, run across computational simulation, ground-based
 instrumented testing, and powered flight:
@@ -20,33 +26,36 @@ instrumented testing, and powered flight:
 
 ## Vehicle summary
 
-Single stage, single Pico 2 W as flight computer and real-time controller: dual-core, one core
-dedicated to the 500 Hz TVC loop, no Linux, native hardware PWM. The magnetic-vs-servo comparison
+Single stage, single custom PCB1 board as flight computer and real-time controller: dual-core
+RP2350B, one core dedicated to the 500 Hz TVC loop, no Linux, native hardware PWM, no onboard
+WiFi/BLE radio (telemetry is logged to microSD, not streamed). The magnetic-vs-servo comparison
 runs on the ground (two matched three-axis load balances) rather than in flight, since that gives a
 repeatable, directly-measured thrust vector instead of a single noisy flight-to-flight data point.
 
 **Materials.** ASA-Aero forms the upper body that houses avionics (nose, recovery bay tube, FC bay
-tube); PETG-CF forms the lower body and fins; PC-FR forms the TVC assembly (motor mount, gimbal).
-Zoning follows thermal exposure and structural role, not a single blanket material.
+tube) and, as of the 2026-08-12 mass pass, the lower body tube (chute/TVC bay); PETG-CF forms the
+fins and the bulkhead joint; PC-FR forms the TVC assembly proper (motor mount, gimbal). Zoning
+follows thermal exposure and structural role, not a single blanket material.
 
 ## Key numbers (see `Simulations/we4_sim.py` → `plots4/`)
 
 | | value |
 |---|---|
-| Liftoff / dry mass | **729 g / 627 g** (finned 87 mm, no ballast) |
-| T/W | 2.01 avg / 3.54 peak |
-| CG / gimbal pivot / control arm | 50.8 cm / 62 cm / 11.2 cm from nose |
-| Pitch inertia Iyy | 0.0257 kg·m² |
-| Burnout | 3.45 s · 68.7 m · 33.7 m/s |
-| Apogee | ~397 ft / 121.1 m, +1.20 cal margin, @ 6.67 s (RK4+Barrowman) |
-| Recovery | F15-4 motor ejection; deploys t≈7.45 s (+0.78 s past apogee) @ ~7.7 m/s; 24″ chute → 4.8 m/s descent |
+| Liftoff / dry mass | **698 g / 638 g** (finned 87 mm, no ballast) |
+| T/W | 2.10 avg / 3.70 peak |
+| CG / gimbal pivot / control arm | 50.1 cm / 62 cm / 11.9 cm from nose |
+| Pitch inertia Iyy | 0.0262 kg·m² |
+| Burnout | 3.45 s · 74.0 m · 36.3 m/s |
+| Apogee | ~439 ft / 133.7 m, +1.31 cal margin, @ 6.87 s (RK4+Barrowman) |
+| Recovery | F15-4 motor ejection; deploys t≈7.45 s (+0.58 s past apogee) @ ~5.7 m/s; 24″ chute → 4.7 m/s descent |
 | TVC | gimbal stays within ±8°; control authority positive throughout the burn |
-| FAA class | Class 1, no waiver (729 g < 1500 g, F-class motor) |
+| FAA class | Class 1, no waiver (698 g < 1500 g, F-class motor) |
+| PCB1 | Ø62 mm, 2 copper layers, 65 components, custom RP2350B (QFN-80) |
 
 ## Repository structure
 
 ```
-WYVERN Project/
+GTR70E WYVERN/
 ├── README.md ← this file
 ├── .gitignore
 ├── Documentation/ ← all engineering docs, BOM, and build readiness
@@ -65,7 +74,8 @@ WYVERN Project/
 │ ├── FLIGHT_READINESS.md
 │ ├── COMPATIBILITY.md
 │ └── CONFLICTS.md ← defect log and design-decision record
-├── Flight Computer/ ← Pico 2 W spec, firmware, wiring, GSE test rigs
+├── PCB/ ← PCB1 EasyEDA export (schematic, fab files, BOM, Gerbers)
+├── Flight Computer/ ← custom PCB1 spec, firmware, wiring, GSE test rigs
 │ └── README.md
 ├── Simulations/ ← Python RK4 suite, OpenRocket, dataset generator
 │ ├── we4_flight_reduce.py ← post-flight SD log → RQ3/RQ4 results (--selftest first)
@@ -85,7 +95,15 @@ WYVERN Project/
 Four purpose-built stands: a static-fire stand (thrust-curve calibration, engine-bay thermal
 verification, and the RQ2 jetvane blast-shield screen), a servo TVC stand, a physically separate
 magnetic TVC stand, and a bench wind tunnel for RQ3/RQ4 aerofoil work. See
-`Documentation/WYVERN_E4_GSE_TestStands.md` for the full build-out and instrumentation.
+`Documentation/WYVERN_E4_GSE_TestStands.md` for the full build-out and instrumentation. The ground
+rigs' own DAQ runs on off-the-shelf Raspberry Pi Pico/Pico 2 W boards — a separate, bench-only
+controller from the flight computer (PCB1).
 
 Design and decision history, including why specific numbers or scope changed, lives in
 `Documentation/CONFLICTS.md` rather than here.
+
+## References
+
+Raspberry Pi Ltd. (2024). *RP2350 datasheet*. https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf
+
+Estes Industries. (n.d.). *F15-4 engines* [Product specification]. Retrieved August 12, 2026, from https://estesrockets.com/products/f15-4-engines

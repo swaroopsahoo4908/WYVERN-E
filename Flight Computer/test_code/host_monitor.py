@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""GTR70E WYVERN host monitor, reads the Pico 2 W's USB-serial stream during BOOT self-test and
-flight, and tabulates results against the real line protocol emitted by build/firmware/wyvern4_tvc.ino.
+"""GTR70E WYVERN host monitor, reads the custom PCB1's (RP2350B) USB-serial stream during BOOT
+self-test and flight, and tabulates results against the real line protocol emitted by
+build/firmware/wyvern4_tvc.ino.
 
 Protocol (see wyvern4_tvc.ino setup()/setup1()/loop1() for the authoritative source):
     SELFTEST:BEGIN

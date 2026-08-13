@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 """GTR70E WYVERN, engineering analysis suite (drag, structural/FEA, thermal, power, sensitivity,
-servo sizing) -> plots4/. Mirrors the 2.0/3.0 analysis set for the single-stage F15-4 TVC vehicle."""
+servo sizing) -> plots4/. Mirrors the 2.0/3.0 analysis set for the single-stage F15-4 TVC vehicle.
+
+STALE, pre-2026-08-12 architecture: this generator's structural/thermal component list (PLA body
+tube, 4x 72mm fins) predates the RQ2 zoned-materials pass (ASA-Aero/PETG-CF/PC-FR, 87mm fins) and
+the 2026-08-12 mass/avionics recompute. It is NOT part of the documented cascade
+(core.py -> we4_flightsim.py -> docs); only the power-budget labels below have been spot-fixed to
+name the current avionics stack. Re-derive the structural/thermal sections against current CAD
+geometry before treating this file's plots as authoritative."""
 import os,json,numpy as np
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 HERE=os.path.dirname(os.path.abspath(__file__)); OUT=os.path.join(HERE,"plots4"+os.environ.get("WYVERN_RUN_TAG","")); os.makedirs(OUT,exist_ok=True)
@@ -44,7 +51,7 @@ fig,ax=plt.subplots(figsize=(8.5,5)); ax.plot(t,Twall,c="#bc4749",lw=2); ax.axhl
 ax.axvline(burn,ls=':',c='g',label="burnout"); ax.set_xlabel("t (s)"); ax.set_ylabel("engine-bay wall °C"); ax.legend()
 ax.set_title(f"GTR70E WYVERN · engine-bay thermal soak (peak ~{Twall.max():.0f} °C, with phenolic liner)",fontweight='bold'); ax.grid(alpha=.3); sv(fig,"09_thermal")
 # 10 power budget
-loads={"Pico 2 W":0.15,"2× servo (active avg)":3.0,"3× BNO085":0.25,"BME680+BMP388":0.05,"camera":1.5,"BEC loss":0.4}
+loads={"Custom PCB1 (RP2350B)":0.15,"2× servo (active avg)":3.0,"BNO055+BNO085":0.25,"BME680":0.05,"camera":1.5}
 Ptot=sum(loads.values()); E=2*3.7*0.45*0.9 # 2S 450mAh usable Wh
 add["power_active_W"]=round(Ptot,2); add["batt_Wh"]=round(E,2); add["endurance_min"]=round(E/Ptot*60,0)
 fig,ax=plt.subplots(figsize=(8.5,5)); ax.bar(loads.keys(),loads.values(),color="#2a6f97"); ax.set_ylabel("W")

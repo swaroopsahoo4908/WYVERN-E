@@ -56,8 +56,11 @@ Run these in order. **Do not skip ahead**; each test assumes the previous one pa
 ### B1 Toolchain
 
 Arduino IDE → Board Manager → install **Arduino-Pico (earlephilhower)**. Select
-*Raspberry Pi Pico 2 W*. Library Manager → install `Adafruit_BNO08x`, `Adafruit_BMP3XX`,
-`Adafruit_BME680`. `Servo`, `Wire`, `SPI`, `SD`, `WiFi` ship with the core.
+**"WeAct RP2350B"** (`weact_rp2350b`) — the bare-silicon RP2350B target this custom board (PCB1)
+actually uses, **not** any Pico/Pico 2 W module profile (those assume the wrong GPIO count and a
+radio chip that isn't populated here). Library Manager → install `Adafruit_BNO08x`,
+`Adafruit_BNO055`, `Adafruit_BME680`. `Servo`, `Wire`, `SPI`, `SD` ship with the core; `WiFi` is
+only needed if `WIFI_ENABLED` is ever flipped on for a future board rev with a radio chip.
 
 ```
 cd "Flight Computer/test_code"

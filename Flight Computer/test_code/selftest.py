@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """GTR70E WYVERN preflight self-test runner.
 
-Connects to the Pico 2 W over USB serial, power-cycles or resets are NOT performed by this script
+Connects to the custom PCB1 (RP2350B) over USB serial, power-cycles or resets are NOT performed by this script
 (reset the board yourself, or it will simply listen to whatever the board is already printing), and
 tabulates the BOOT-state SELFTEST:* lines emitted by build/firmware/wyvern4_tvc.ino's setup()/
 setup1(). This replaces the old static checklist stub -- the table below is now generated from a

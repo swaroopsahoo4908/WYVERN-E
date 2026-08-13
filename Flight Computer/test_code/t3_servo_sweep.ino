@@ -1,4 +1,4 @@
-// GTR70E WYVERN · T3 — TVC servo sweep to the FULL +-8 deg gimbal limit (Pico 2 W, GP14 pitch / GP15 yaw).
+// GTR70E WYVERN · T3 — TVC servo sweep to the FULL +-8 deg gimbal limit (custom PCB1/RP2350B, GP2 pitch / GP3 yaw).
 // ================================================================================================
 // REWRITTEN 2026-08 to exercise the SAME signal path the flight firmware uses.
 //
@@ -19,7 +19,7 @@
 //   6. Type 's' for the continuous sweep and watch/listen for binding or buzz at the extremes.
 #include <Servo.h>
 
-static const int   PIN_SERVO_P = 14, PIN_SERVO_Y = 15;
+static const int   PIN_SERVO_P = 2, PIN_SERVO_Y = 3;   // matches wyvern4_tvc.ino's PIN_SERVO_P/PIN_SERVO_Y
 static const float OUT_LIM_DEG          = 8.0f;    // MUST match wyvern_pid.h OUT_LIM_DEG
 static const float SERVO_US_NEUTRAL     = 1500.0f;
 static const float SERVO_US_PER_DEG     = 10.0f;
