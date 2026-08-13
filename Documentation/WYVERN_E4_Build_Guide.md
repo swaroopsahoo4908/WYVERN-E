@@ -2,9 +2,13 @@
 updated_at: 2026-08-01
 ---
 
-# WYVERN-E, Build, Bench and Range Guide
+# GTR70E WYVERN, Build, Bench and Range Guide
 
-### A Skylight Rocketry Venture
+**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
+**Date:** 2026-08-12  
+**Program:** GTR70E WYVERN
+
+
 ##### Companion to `WYVERN_E4_Timeline_14Day.md`. Sections map to timeline days.
 
 Every parameter below is the frozen value from `CONFLICTS.md` §4. If this guide and that table ever
@@ -257,7 +261,7 @@ materials (ABS, PC), and six coupon plates for the blast-shield screen.
 - [ ] Ejection test passed (Gate 3)
 - [ ] `selftest.py` → **PREFLIGHT GO** in flight configuration
 - [ ] Battery > 7.4 V
-- [ ] Mass 729 ± 15 g, CG 50.8 ± 1 cm from nose, **measured, not assumed**
+- [ ] Mass 698 ± 15 g, CG 50.1 ± 1 cm from nose, **measured, not assumed**
 - [ ] SD card inserted, empty, seated
 - [ ] Camera charged, lens clean
 - [ ] RSO briefed, range clear, ≥ 3 m standoff
@@ -320,7 +324,7 @@ and **record which gain set is on the vehicle**, mixing this up loses RQ4 entire
 | Symptom | Likely cause | Action |
 |---|---|---|
 | CSV has only a header | Log ring not draining | Check `LOG_RING` in self-test. Do not refly until it passes. |
-| No BOOST in the log | Launch detect never fired | Check accel report enabled; check the 2 g threshold against actual peak specific force ~3.54 g (T/W ≈3.54) |
+| No BOOST in the log | Launch detect never fired | Check accel report enabled; check the 2 g threshold against actual peak specific force ~3.70 g (T/W ≈3.70) |
 | Gimbal never moved | TVC inhibited | Check state reached BOOST and t ≥ 0.5 s; check servo power |
 | Deflection clipped at 5° | The old ±5° clamp is back | Confirm you flashed the fixed `wyvern4_tvc.ino` |
 | Chute didn't deploy | Ejection path blocked | **Do not refly.** Repeat Gate 3 ground ejection test. |
@@ -332,9 +336,9 @@ and **record which gain set is on the vehicle**, mixing this up loses RQ4 entire
 
 | Parameter | Value |
 |---|---|
-| Liftoff / dry mass | 729 g / 627 g |
-| CG / CP / margin | 50.8 cm / 59.3 cm / +1.20 cal |
-| Apogee | 121.1 m (397 ft) @ 6.67 s |
+| Liftoff / dry mass | 698 g / 638 g |
+| CG / CP / margin | 50.1 cm / 59.3 cm / +1.31 cal |
+| Apogee | 133.7 m (439 ft) @ 6.87 s |
 | Burnout | 3.45 s, 68.7 m, 33.7 m/s |
 | v_max / Mach | 34.5 m/s / M0.101 |
 | Deploy | t = 7.45 s, +0.78 s past apogee, 7.7 m/s |

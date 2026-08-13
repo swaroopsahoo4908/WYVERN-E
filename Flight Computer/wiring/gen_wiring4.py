@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E wiring, KiCad-7 .kicad_sch (flat netlist via global labels). Raspberry Pi Pico 2 W
+"""GTR70E WYVERN wiring, KiCad-7 .kicad_sch (flat netlist via global labels). Raspberry Pi Pico 2 W
 flight harness + 3-axis TVC-balance harness. No symbol library required (documentation schematic)."""
 import os
 HERE=os.path.dirname(os.path.abspath(__file__))
@@ -19,8 +19,8 @@ def sch(title,mods):
         t,h=box(x,y,m[0],m[1],m[2] if len(m)>2 else 48); items+=t; y+=h+8
         if y>250: y=20; x+=72
     body="\n ".join(items)
-    return f'''(kicad_sch (version 20230121) (generator "wyvern4_wiring") (paper "A2")
-  (title_block (title "{esc(title)}") (company "Skylight Rocketry") (rev "4.0"))
+    return f'''(kicad_sch (version 20230121) (generator "gtr70e_wyvern_wiring") (paper "A2")
+  (title_block (title "{esc(title)}") (company "Skylight Industries") (rev "4.0"))
   (lib_symbols)
   {body}
   (sheet_instances (path "/" (page "1"))))'''
@@ -29,7 +29,7 @@ FLIGHT=[
    "servo/expansion connectors (U8-U11) off buck rail"],62),
  # RECONCILED 2026-08-11, second pass, against the actual custom RP2350B PCB1 -- every pin traced
  # through Netlist_PCB1_2026-08-11.tel and cross-checked against SCH_Schematic1_1-P1_2026-08-11.svg's
- # labeled pin text (see CONFLICTS.md section 4 and firmware/wyvern4_tvc/imu_grv.h's file header).
+ # labeled pin text (see CONFLICTS.md section 4 and firmware/gtr70e_wyvern_tvc/imu_grv.h's file header).
  # This board has NO PCA9548A mux, no second I2C bus, NO GP26 ADC battery divider (RP2350B's ADC
  # pins are GPIO40-47, not 26-29), NO WiFi radio chip, and NO SWDIO/SWCLK on H1 (an earlier pass
  # claimed that; it was a text-extraction-order artifact, not real). The INA226's own wiring has two
@@ -78,8 +78,8 @@ BAL_SOLENOID=[
  ("GIMBAL BNO085 (I2C0 0x4A)",["Game Rotation Vector + gyro rate -> deflection from 3-axis load balance"],48),
  ("SOLENOIDS x4 via IRF520 (+ 1N4007 flyback EACH)",["PITCH+: GP16","PITCH-: GP17","YAW+: GP18","YAW-: GP19","V12: coil supply"],62),
 ]
-open("WYVERN_E4_flight_harness.kicad_sch","w").write(sch("WYVERN-E, RPi Pico 2 W flight harness",FLIGHT))
-open("WYVERN_E4_tvc_balance_servo_harness.kicad_sch","w").write(sch("WYVERN-E, TVC balance harness (servo rig, Pico)",BAL_SERVO))
-open("WYVERN_E4_tvc_balance_solenoid_harness.kicad_sch","w").write(sch("WYVERN-E, TVC balance harness (solenoid rig, Pico)",BAL_SOLENOID))
+open("WYVERN_E4_flight_harness.kicad_sch","w").write(sch("GTR70E WYVERN, RPi Pico 2 W flight harness",FLIGHT))
+open("WYVERN_E4_tvc_balance_servo_harness.kicad_sch","w").write(sch("GTR70E WYVERN, TVC balance harness (servo rig, Pico)",BAL_SERVO))
+open("WYVERN_E4_tvc_balance_solenoid_harness.kicad_sch","w").write(sch("GTR70E WYVERN, TVC balance harness (solenoid rig, Pico)",BAL_SOLENOID))
 for f in ("WYVERN_E4_flight_harness.kicad_sch","WYVERN_E4_tvc_balance_servo_harness.kicad_sch","WYVERN_E4_tvc_balance_solenoid_harness.kicad_sch"):
     s=open(f).read(); print(f,"parens",s.count("("),"==",s.count(")"),"OK" if s.count("(")==s.count(")") else "BAD")

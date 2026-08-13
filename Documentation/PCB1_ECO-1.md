@@ -1,4 +1,9 @@
-# WYVERN-E, PCB1 Engineering Change Order 1 — power monitor and SD card fixes
+# GTR70E WYVERN, PCB1 Engineering Change Order 1 — power monitor and SD card fixes
+
+**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
+**Date:** 2026-08-12  
+**Program:** GTR70E WYVERN
+
 
 Six net changes on PCB1, all downstream of the 2026-08-11 netlist trace in `CONFLICTS.md` sections
 3 and 4. Every change below is a rewire, not a redesign: no new parts, no footprint changes, same

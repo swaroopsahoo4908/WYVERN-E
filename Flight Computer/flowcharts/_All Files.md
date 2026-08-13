@@ -9,7 +9,7 @@ updated_at: 2026-08-02
 
 ## Files
 
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Flight Computer/flowcharts/01_flight_state_machine.mermaid]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Flight Computer/flowcharts/02_tvc_control_loop.mermaid]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Flight Computer/flowcharts/03_recovery_logic.mermaid]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Flight Computer/flowcharts/04_power_tree.mermaid]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Flight Computer/flowcharts/01_flight_state_machine.mermaid]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Flight Computer/flowcharts/02_tvc_control_loop.mermaid]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Flight Computer/flowcharts/03_recovery_logic.mermaid]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Flight Computer/flowcharts/04_power_tree.mermaid]]

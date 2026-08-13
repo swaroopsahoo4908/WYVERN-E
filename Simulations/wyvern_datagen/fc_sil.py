@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-WYVERN-E, Flight-Computer Software-in-the-Loop (SIL) digital twin.
+GTR70E WYVERN, Flight-Computer Software-in-the-Loop (SIL) digital twin.
 
 Steps the *actual flight-computer processes* at 500 Hz against a simulated vehicle + atmosphere:
 

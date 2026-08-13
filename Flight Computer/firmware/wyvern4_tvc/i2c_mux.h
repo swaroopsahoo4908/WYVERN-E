@@ -1,4 +1,4 @@
-// WYVERN-E — PCA9548A I2C mux driver. RETIRED 2026-08-11, NOT INCLUDED BY ANY ACTIVE FIRMWARE FILE.
+// GTR70E WYVERN — PCA9548A I2C mux driver. RETIRED 2026-08-11, NOT INCLUDED BY ANY ACTIVE FIRMWARE FILE.
 // =====================================================================================================
 // The custom RP2350B PCB1 (2026-08-11 fab set) has no PCA9548A on it -- verified against the real
 // netlist/BOM (PCB/Netlist_PCB1_2026-08-11.tel, PCB/BOM_Board1_PCB1_2026-08-11.xlsx). Every onboard

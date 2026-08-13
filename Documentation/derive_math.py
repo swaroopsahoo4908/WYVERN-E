@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E ground-test-rig math derivations: reproduces every number in MATH_DERIVATIONS.md.
+"""GTR70E WYVERN ground-test-rig math derivations: reproduces every number in MATH_DERIVATIONS.md.
 
   1. Load-cell 3x3 cross-axis calibration matrix (both TVC-balance rigs) -- least-squares pinv fit.
      This resolves the full thrust vector (and hence gimbal deflection) directly from the balance.
@@ -132,7 +132,7 @@ ax[2].set_xlabel("true gimbal deflection θ (deg)"); ax[2].set_ylabel("θ error 
 ax[2].set_title(f"Deflection-angle resolution\n1σ {th_err.std():.4f}° (N={N_MC})", fontsize=10)
 ax[2].grid(alpha=.3)
 
-fig.suptitle("WYVERN-E, 3-axis balance calibration validation (least-squares fit + Monte-Carlo resolve)",
+fig.suptitle("GTR70E WYVERN, 3-axis balance calibration validation (least-squares fit + Monte-Carlo resolve)",
              fontweight="bold")
 fig.tight_layout()
 _p = os.path.join(HERE, "phase0_math_validation.png")

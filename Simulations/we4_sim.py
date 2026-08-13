@@ -1,45 +1,57 @@
 #!/usr/bin/env python3
-"""WYVERN-E, single-stage F15-4 finned TVC sustainer (motor-ejection recovery): mass/CG/inertia,
+"""GTR70E WYVERN, single-stage F15-4 finned TVC sustainer (motor-ejection recovery): mass/CG/inertia,
 trajectory, TVC control authority + maneuver, recovery, dispersion -> plots4/."""
 import os, json, numpy as np
 _TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None)) # NumPy 2.x renamed trapz
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 HERE=os.path.dirname(os.path.abspath(__file__)); OUT=os.path.join(HERE,"plots4"+os.environ.get("WYVERN_RUN_TAG","")); os.makedirs(OUT,exist_ok=True)
 g=9.80665; rho0=1.225; OD=0.070; A=np.pi*(OD/2)**2
-# ---------- 1. MASS / CG / INERTIA (station = m from nose tip; ASA-Aero upper body, PETG-CF lower body + fins, PC-FR TVC assembly) ----------
+# ---------- 1. MASS / CG / INERTIA (station = m from nose tip; two-body-tube architecture) ----------
 # (name, mass_kg, station_m)
+#
+# REBUILT 2026-08-12 for the current two-BT architecture (Upper BT + Lower BT + ONE bulkhead,
+# replacing the old four-bay single-tube layout this list previously described) and the current
+# custom-PCB1 avionics stack (replacing the old Pico 2 W / 3x BNO085 stack this list previously
+# described -- see CONFLICTS.md/COMPATIBILITY.md for why that stack is stale).
+#
+# Structural masses (first 8 rows) are real, from 3D parts/_generator/mass_report.json (current
+# CAD run, `gen_rocket4.py`) -- not estimates. Two material changes from the prior pass:
+#   - Lower BT tube: PETG-CF -> ASA-Aero (188.3 g -> 94.2 g), hoop-stress-checked at SF ~6-10x
+#     under the 140 kPa ejection pulse (gen_rocket4.py docstring). Motor mount/gimbal keep PC-FR
+#     (thermal duty next to the nozzle); bulkhead keeps PETG-CF (direct gas-exposure part).
+#   - Upper BT tube now carries 4x M3 PCB1 standoff bosses (Ø62 mm board), +0.6 g vs before.
+# Station values for non-structural items (recovery/avionics/actuation) are placement estimates
+# within the new two-BT geometry (aft=0/nose=740mm converted to from-nose stations), not
+# CAD-extracted centroids -- same "confirmed vs. best-effort" caveat this project applies
+# elsewhere. Custom PCB1 assembly mass is a self-estimate (bare Ø62mm FR4 board ~8.9 g + populated
+# components ~5.2 g ~= 14 g); no bench scale weight exists for it or the LiPo pack yet.
 ITEMS=[
- # ---- printed structure ----------------------------------------------------------------------
- # MATERIAL CHANGE 2026-08-10: three-zone split by section rather than by thermal exposure alone.
- # ASA-Aero (foamed, 0.65 g/cm3) upper body -- nose, recovery bay tube, FC bay tube -- the section
- # that houses avionics. Lightest zone, no motor heat or gas load.
- # PETG-CF (1.30 g/cm3) lower body and fins -- engine/TVC bay tube, 4 fins, both bulkheads,
- # ejection plenum/nose retention.
- # PC-FR (1.20 g/cm3) TVC assembly proper -- motor mount/retention and the gimbal assembly.
- # Fin span increased 72 -> 87 mm in the same pass: the lighter ASA-Aero upper body plus the heavier
- # PETG-CF fins moved CG aft to 50.4 cm against an unchanged 56.8 cm CP, dropping margin to 0.92 cal,
- # under the 1.0 cal floor. 87 mm fins restore +1.20 cal (see we4_stability.py span sweep).
- # Masses below come from 3D parts/_generator/mass_report.json geometry, rescaled per item from the
- # prior PLA/PETG-CF stack by (old_mass / old_density) * new_density -- same volume, new material.
- ("Nose cone (ASA-Aero)",0.0157,0.06),
- ("Recovery bay tube (ASA-Aero)",0.0304,0.24),
- ("FC bay tube (ASA-Aero)",0.0267,0.40),
- ("Engine/TVC bay tube (PETG-CF)",0.071,0.60),
- ("4 fins (PETG-CF, 87 mm)",0.0713,0.70),
- ("Bulkhead A (PETG-CF, sealed)",0.017,0.50),
- ("Bulkhead B (PETG-CF, sealed)",0.017,0.30),
- ("Motor mount/retention (PC-FR)",0.0434,0.64),
- ("TVC gimbal assy (PC-FR)",0.1006,0.60),
- ("Ejection plenum + nose retention (PETG-CF)",0.008,0.31),
- # ---- recovery (motor ejection; no RRC3/9V/e-match) ----
- # Chute is now 24 in (was 18 in) -- larger canopy, +8 g, and a slower descent (see section 5).
- ("Chute (24 in) + cord + swivel",0.058,0.24),("Nomex chute protector",0.006,0.24),
- # ---- avionics ----
- ("RPi Pico 2 W (FC)",0.006,0.38),("BNO085 (FC body)",0.003,0.38),("BNO085 (recovery vote)",0.003,0.22),
- ("BNO085 (gimbal)",0.003,0.58),("baro (BMP/BME)",0.003,0.39),("microSD",0.001,0.38),
- ("i3 4K thumb cam",0.036,0.42),("2S LiPo + 5V UBEC",0.040,0.355),
- ("2x TVC servo",0.030,0.56),
- ("Wiring/connectors",0.022,0.45)]
+ # ---- printed structure (real, mass_report.json) --------------------------------------------
+ ("Nose cone (ASA-Aero)",0.0209,0.060),
+ ("Upper BT tube (ASA-Aero, incl. PCB1 standoffs)",0.0449,0.215),
+ ("Lower BT tube (ASA-Aero, was PETG-CF)",0.0942,0.529),
+ ("Bulkhead joint (PETG-CF)",0.0172,0.316),
+ ("Motor mount (PC-FR)",0.0577,0.670),
+ ("TVC gimbal assy (PC-FR)",0.1056,0.620),
+ ("4 fins (PETG-CF, 87 mm)",0.0708,0.700),
+ ("Rail buttons x2 (PETG-CF)",0.0012,0.550),
+ # ---- recovery (motor ejection; no RRC3/9V/e-match) ------------------------------------------
+ # Re-itemized 2026-08-12: 70 g total, down from the old 137 g bay-lump that CONFLICTS.md/
+ # Mathematics.md had already flagged as "very likely an overstatement" (sized for a
+ # sealed-bulkhead architecture that no longer applies).
+ ("Chute (24 in) + cord + swivel",0.058,0.340),("Nomex chute protector",0.006,0.340),
+ ("Recovery wadding",0.006,0.300),
+ # ---- avionics (custom PCB1, not Pico 2 W) ---------------------------------------------------
+ # No separate UBEC line: the onboard TPS564201 buck (on PCB1) is the "2S LiPo -> one 5V UBEC"
+ # the project brief describes -- there's no second physical regulator module to weigh.
+ ("Custom PCB1 assembly (Ø62mm, self-estimated)",0.014,0.290),
+ ("External BNO085 (STEMMA-QT breakout+cable)",0.004,0.320),
+ ("microSD",0.0005,0.290),
+ ("i3 4K thumb cam",0.036,0.180),
+ ("2S LiPo (450mAh, comparable-product estimate)",0.027,0.250),
+ ("Wiring/connectors",0.008,0.400),
+ # ---- actuation --------------------------------------------------------------------------------
+ ("2x TVC servo (EMAX ES08MA II, 12g ea, datasheet)",0.024,0.600)]
 MOTOR=("Estes F15-4 (loaded)",0.102,0.68); PROP=0.060; Ln=0.74; PIVOT=0.62 # gimbal pivot station
 dry=ITEMS; m_dry=sum(m for _,m,_ in dry); m_lift=m_dry+MOTOR[1]
 def cg(items): 
@@ -124,23 +136,23 @@ def save(fig,n): fig.tight_layout(); fig.savefig(f"{OUT}/{n}.png",dpi=130); plt.
 fig,ax=plt.subplots(figsize=(9,5)); ax.plot(T,H,c="#2a6f97",label="altitude (m)"); ax.set_xlabel("t (s)"); ax.set_ylabel("altitude (m)",color="#2a6f97")
 ax2=ax.twinx(); ax2.plot(T,V,c="#bc4749",label="velocity"); ax2.set_ylabel("velocity (m/s)",color="#bc4749")
 ax.axvline(3.45,ls=':',c='g'); ax.axvline(T_DEPLOY,ls='--',c='k'); ax.text(3.46,5,"burnout"); ax.text(T_DEPLOY+.05,H[ap]*0.6,f"motor eject {T_DEPLOY:.2f}s")
-ax.set_title(f"WYVERN-E · F15-4 trajectory · apogee {res['apogee_ft']:.0f} ft @ {res['apogee_t']}s",fontweight='bold'); ax.grid(alpha=.3); save(fig,"01_trajectory")
+ax.set_title(f"GTR70E WYVERN · F15-4 trajectory · apogee {res['apogee_ft']:.0f} ft @ {res['apogee_t']}s",fontweight='bold'); ax.grid(alpha=.3); save(fig,"01_trajectory")
 fig,ax=plt.subplots(figsize=(9,5)); tt2=np.linspace(0,3.45,200); ax.plot(tt2,[thrust(x) for x in tt2],c="#386641")
 ax.fill_between(tt2,[thrust(x) for x in tt2],alpha=.2,color="#a7c957"); ax.set_xlabel("t (s)"); ax.set_ylabel("thrust (N)")
 ax.set_title(f"Estes F15-4 thrust curve · {Itot if False else 49.6:.1f} N·s · avg 14.4 N / peak 25.3 N",fontweight='bold'); ax.grid(alpha=.3); save(fig,"02_f15_thrust")
 fig,ax=plt.subplots(figsize=(9,5)); ax.plot(TT,SP,'k:',label="setpoint"); ax.plot(TT,TH,c="#2a6f97",label="pitch θ"); ax.plot(TT,GI,c="#bc4749",label="gimbal δ")
 ax.axhline(5,ls='--',c='r',lw=.7); ax.axhline(-5,ls='--',c='r',lw=.7); ax.set_xlabel("burn time (s)"); ax.set_ylabel("deg"); ax.legend()
-ax.set_title("WYVERN-E · TVC pitch control, stabilize then maneuver (δ within ±8°)",fontweight='bold'); ax.grid(alpha=.3); save(fig,"03_tvc_control")
+ax.set_title("GTR70E WYVERN · TVC pitch control, stabilize then maneuver (δ within ±8°)",fontweight='bold'); ax.grid(alpha=.3); save(fig,"03_tvc_control")
 fig,ax=plt.subplots(figsize=(9,5)); ax.plot(tb,M_ctrl*1000,lw=2,c="#386641",label="restoring @±8° gimbal"); ax.plot(tb,M_dist*1000,lw=2,c="#bc4749",label="disturbance @2°")
 ax.fill_between(tb,M_ctrl*1000,M_dist*1000,where=(M_ctrl>=M_dist),color="#a7c957",alpha=.3,label="margin"); ax.set_xlabel("burn time (s)"); ax.set_ylabel("pitch moment (mN·m)"); ax.legend()
-ax.set_title(f"WYVERN-E · TVC control authority (min margin {res['ctrl_margin_min_mNm']} mN·m)",fontweight='bold'); ax.grid(alpha=.3); save(fig,"04_control_authority")
+ax.set_title(f"GTR70E WYVERN · TVC control authority (min margin {res['ctrl_margin_min_mNm']} mN·m)",fontweight='bold'); ax.grid(alpha=.3); save(fig,"04_control_authority")
 # mass/CG stack
 fig,ax=plt.subplots(figsize=(10,3.2))
 for n,m,x in dry+[MOTOR]:
     ax.barh(0,0.02,left=x,height=min(0.8,m*6),align='center',color="#5a7d9a",alpha=.7)
 ax.axvline(cg_lift,c='r',lw=2,label=f"CG {cg_lift*100:.1f} cm"); ax.axvline(PIVOT,c='g',ls='--',label=f"gimbal pivot {PIVOT*100:.0f} cm")
 ax.set_xlim(0,Ln); ax.set_yticks([]); ax.set_xlabel("station from nose (m)"); ax.legend(loc='upper left')
-ax.set_title(f"WYVERN-E mass stack · liftoff {m_lift*1000:.0f} g · CG {cg_lift*100:.1f} cm · control arm {arm_lift*100:.1f} cm",fontweight='bold'); save(fig,"05_mass_cg")
+ax.set_title(f"GTR70E WYVERN mass stack · liftoff {m_lift*1000:.0f} g · CG {cg_lift*100:.1f} cm · control arm {arm_lift*100:.1f} cm",fontweight='bold'); save(fig,"05_mass_cg")
 # dispersion (apogee Monte Carlo on mass+Cd)
 rng=np.random.default_rng(4); aps=[]
 for _ in range(1000): # 400 -> 1000 draws (2026-08 fidelity pass; dt=5e-4 makes each draw ~4x costlier)
@@ -152,7 +164,7 @@ for _ in range(1000): # 400 -> 1000 draws (2026-08 fidelity pass; dt=5e-4 makes 
     aps.append(h*3.281)
 fig,ax=plt.subplots(figsize=(8.5,5)); ax.hist(aps,bins=30,color="#2a6f97",alpha=.8); ax.axvline(np.mean(aps),c='r',label=f"mean {np.mean(aps):.0f} ft")
 ax.axvspan(204,401,color="#a7c957",alpha=.2,label="spec range 204–401 ft"); ax.set_xlabel("apogee (ft)"); ax.set_ylabel("count"); ax.legend()
-ax.set_title("WYVERN-E · apogee dispersion, N=1000 (±5% mass, ±15% Cd)",fontweight='bold'); ax.grid(alpha=.3); save(fig,"06_dispersion")
+ax.set_title("GTR70E WYVERN · apogee dispersion, N=1000 (±5% mass, ±15% Cd)",fontweight='bold'); ax.grid(alpha=.3); save(fig,"06_dispersion")
 res["apogee_disp_ft"]=[round(np.percentile(aps,5),0),round(np.percentile(aps,95),0)]
 json.dump(res,open(f"{OUT}/results_summary.json","w"),indent=1)
 print(json.dumps(res,indent=1))

@@ -9,8 +9,8 @@ updated_at: 2026-08-02
 
 ## Files
 
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots_motor/01_apogee_overlay.png]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots_motor/02_railexit_tw.png]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots_motor/03_tradetable.png]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots_motor/_trade_montage.png]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots_motor/motor_tradestudy.json]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Simulations/plots_motor/01_apogee_overlay.png]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Simulations/plots_motor/02_railexit_tw.png]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Simulations/plots_motor/03_tradetable.png]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Simulations/plots_motor/_trade_montage.png]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Simulations/plots_motor/motor_tradestudy.json]]

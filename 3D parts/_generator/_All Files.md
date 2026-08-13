@@ -9,6 +9,6 @@ updated_at: 2026-08-02
 
 ## Files
 
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/_generator/gen_rocket4.py]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/_generator/mass_report.json]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/3D parts/_generator/wcad.py]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/3D parts/_generator/gen_rocket4.py]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/3D parts/_generator/mass_report.json]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/3D parts/_generator/wcad.py]]

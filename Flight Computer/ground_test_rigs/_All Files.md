@@ -9,5 +9,5 @@ updated_at: 2026-08-02
 
 ## Subfolders
 
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Flight Computer/ground_test_rigs/wyvern4_gse_servo_rig/_All Files.md|wyvern4_gse_servo_rig/]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Flight Computer/ground_test_rigs/wyvern4_gse_solenoid_rig/_All Files.md|wyvern4_gse_solenoid_rig/]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Flight Computer/ground_test_rigs/gtr70e_wyvern_gse_servo_rig/_All Files.md|gtr70e_wyvern_gse_servo_rig/]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Flight Computer/ground_test_rigs/gtr70e_wyvern_gse_solenoid_rig/_All Files.md|gtr70e_wyvern_gse_solenoid_rig/]]

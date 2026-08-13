@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-WYVERN-E, dataset loading + plot building (backend-agnostic, no Tk).
+GTR70E WYVERN, dataset loading + plot building (backend-agnostic, no Tk).
 
 These are pure functions so they can be unit-tested headless; the GUI embeds the returned
 matplotlib Figure with FigureCanvasTkAgg. Reads Parquet (pyarrow) or (gzip-)CSV, samples large

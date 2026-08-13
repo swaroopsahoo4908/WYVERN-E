@@ -7,15 +7,15 @@
  ],
  [
   "02_upper_bt_avionics_ASAAero",
-  68.2,
-  44.3,
+  69.0,
+  44.9,
   "ASAAERO"
  ],
  [
-  "03_lower_bt_chute_tvc_PETGCF",
+  "03_lower_bt_chute_tvc_ASAAero",
   144.9,
-  188.3,
-  "PETGCF"
+  94.2,
+  "ASAAERO"
  ],
  [
   "04_bulkhead_joint_PETGCF",

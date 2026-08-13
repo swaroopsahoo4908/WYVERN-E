@@ -1,4 +1,4 @@
-// WYVERN-E — custom RP2350B flight computer (PCB1) + real-time TVC controller.
+// GTR70E WYVERN — custom RP2350B flight computer (PCB1) + real-time TVC controller.
 // ===============================================================================================
 // Toolchain: Arduino-Pico core (earlephilhower), board "WeAct RP2350B" (weact_rp2350b) -- the bare-
 // silicon RP2350B target (48 GPIO, QFN-80, external QSPI flash), NOT any Pico/Pico-W module profile.

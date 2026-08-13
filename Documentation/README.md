@@ -1,4 +1,9 @@
-# WYVERN-E, Documentation
+# GTR70E WYVERN, Documentation
+
+**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
+**Date:** 2026-08-12  
+**Program:** GTR70E WYVERN
+
 
 Five research questions, each addressed by at least two independent methods: RQ1 magnetic-vs-servo
 TVC (two separate physical test stands), RQ2 zoned materials and jetvane blast-shield screen, RQ3
@@ -7,7 +12,7 @@ gain sensitivity. `WYVERN_E4_Timeline_3Month.md` has the build-to-flight schedul
 weekends around Thanksgiving, all data collected by Dec 1.
 
 - `WYVERN_E4_Mathematics.md`, mass/CG/inertia, T/W, trajectory, TVC, recovery, no-waiver.
-- `WYVERN_E4_Stability_FinSizing.md`, Barrowman fin sizing: flown 87 mm fins give +1.20 cal, no ballast.
+- `WYVERN_E4_Stability_FinSizing.md`, Barrowman fin sizing: flown 87 mm fins give +1.31 cal, no ballast.
 - `WYVERN_E4_FEA_Structural.md`, first-order structural + thermal margins.
 - `WYVERN_E4_Camera_Solution.md`, i3 4K Thumb Action Camera offload solution (OV2640 SPI can't do 720p30).
 - `WYVERN_E4_Recovery.md`, F15-4 motor-ejection recovery via two-body-tube separation at the bulkhead joint (finned vehicle, custom PCB in the upper BT).
@@ -15,7 +20,7 @@ weekends around Thanksgiving, all data collected by Dec 1.
 - `WYVERN_E4_Timeline_3Month.md`, build-to-flight schedule at 3 man-hrs/week (excludes print time, includes CAD/post-processing), two launch weekends bracketing Thanksgiving, all data by Dec 1.
 - `WYVERN_E4_Timeline_14Day.md`, day-by-day procedure-level reference for what happens inside each build session.
 - `WYVERN_E4_Build_Guide.md`, print / bench / assembly / ground-test / range procedures with go-no-go cards.
-- `WYVERN_E4_BOM.xlsx`, master BOM with purchase links, reconciled against the live Amazon/Adafruit/Estes/Bambu carts plus custom PCB fab. Total program spend **$1,653.26** (net out-of-pocket $1,173.99 + $479.27 already acquired; custom PCB fab $207.01 for 3 boards, updated 2026-08-11). Line-by-line reconciliation notes live in the sheet itself.
+- `WYVERN_E4_BOM.xlsx`, master BOM with purchase links, reconciled against the live Amazon/Adafruit/Estes/Bambu carts plus custom PCB fab. Total program spend **$1,677.97** (net out-of-pocket $1,198.70 + $479.27 already acquired; custom PCB fab $231.72 for 3 boards, updated 2026-08-12 — board grew from Ø61mm to Ø62mm and gained parts to fit the larger switch). The BOM's standalone UBEC line is flagged not-needed as of 2026-08-12: PCB1's onboard buck already regulates 2S→5V. Line-by-line reconciliation notes live in the sheet itself.
 - `WYVERN_E4_Cart_Gap_Analysis.md`, what the current cart is missing vs. the BOM and the design.
 - Flight computer: `../Flight Computer/01_FlightComputer_Spec.md`, `firmware/`, `wiring/`, `flowcharts/`.
 - Sims/plots: `../Simulations/we4_sim.py` + `we4_analysis.py` → `../Simulations/plots4/`.

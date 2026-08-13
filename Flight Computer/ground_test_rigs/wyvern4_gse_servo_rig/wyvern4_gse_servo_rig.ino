@@ -1,5 +1,5 @@
 // ================================================================================================
-// WYVERN-E — GSE Servo-TVC Balance Rig  (wyvern4_gse_servo_rig.ino)
+// GTR70E WYVERN — GSE Servo-TVC Balance Rig  (wyvern4_gse_servo_rig.ino)
 // ================================================================================================
 // PURPOSE
 //   Bench DAQ + actuator-command sketch for the servo-gimbal variant of the TVC thrust-vector
@@ -27,7 +27,7 @@
 //   - Servo  (bundled with the earlephilhower Arduino-Pico core, RP2040/RP2350 hardware PWM)
 //   - Wire, SPI                       (bundled with Arduino-Pico core)
 //   Board package: earlephilhower "Raspberry Pi Pico/RP2040/RP2350" Arduino core (same toolchain as
-//   the WYVERN-E flight computer). Target board: "Raspberry Pi Pico" (RP2040) or
+//   the GTR70E WYVERN flight computer). Target board: "Raspberry Pi Pico" (RP2040) or
 //   "Raspberry Pi Pico 2 W" (RP2350) -- code below is portable to either; no RP2350-only or
 //   Pico-W-only (WiFi) features are used.
 //
@@ -364,7 +364,7 @@ void setup() {
   servo_yaw.attach(PIN_SERVO_YAW);
   set_command_angle(0.0f, 0.0f);
 
-  Serial.println(F("WYVERN-E GSE servo-TVC balance rig -- boot OK"));
+  Serial.println(F("GTR70E WYVERN GSE servo-TVC balance rig -- boot OK"));
   print_help();
   Serial.println(F("Send TARE with the rig at mechanical neutral and zero load before logging."));
   print_csv_header();

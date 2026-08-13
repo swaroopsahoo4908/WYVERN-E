@@ -1,4 +1,9 @@
-# WYVERN-E, Pitch/Yaw TVC PID Re-Tune Report
+# GTR70E WYVERN, Pitch/Yaw TVC PID Re-Tune Report
+
+**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
+**Date:** 2026-08-12  
+**Program:** GTR70E WYVERN
+
 
 **Result: firmware gains changed from Kp=2.0/Ki=0.4/Kd=0.5 to Kp=0.10/Ki=0.40/Kd=0.18.**
 Both `Flight Computer/firmware/wyvern_pid.h` and `Simulations/pid_reference.py` now implement the
@@ -58,7 +63,7 @@ and gain margin (GM). Worst case (Cold −15°C, t=0.6 s into burn, low-*q*/high
 | Gains | Worst-case PM | Worst-case GM |
 |---|---|---|
 | Kp=2.0 Ki=0.4 Kd=0.5 (old) | **−0.1°** | **−0.0 dB** |
-| Kp=0.10 Ki=0.40 Kd=0.18 (new) | **+44.7°** | **+12.6 dB** |
+| Kp=0.10 Ki=0.40 Kd=0.18 (new) | **+44.1°** | **+12.6 dB** |
 
 Negative margin means the closed-loop poles are in the right half-plane at that operating point, 
 genuinely unstable, not merely lightly damped. Re-running the *nonlinear* time-domain gust test
@@ -83,7 +88,7 @@ from before).
 
 | Metric | Old (Kp=2.0/Ki=0.4/Kd=0.5) | New (Kp=0.10/Ki=0.40/Kd=0.18) |
 |---|---|---|
-| Worst-case phase margin | −0.1° (unstable) | +44.7° |
+| Worst-case phase margin | −0.1° (unstable) | +44.1° |
 | Worst-case gain margin | −0.0 dB (unstable) | +12.6 dB |
 | Worst-case gust pitch deviation | 0.43° (misleadingly good, delay-free sim) | 1.96° |
 | Worst-case gimbal usage | up to 1.98° (chattering) | 2.35° (smooth) |

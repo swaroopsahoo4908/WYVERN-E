@@ -9,6 +9,6 @@ updated_at: 2026-08-02
 
 ## Files
 
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots_eject/A_deploy_timing.png]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots_eject/B_tube_bay.png]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots_eject/ejection_feasibility.json]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Simulations/plots_eject/A_deploy_timing.png]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Simulations/plots_eject/B_tube_bay.png]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Simulations/plots_eject/ejection_feasibility.json]]

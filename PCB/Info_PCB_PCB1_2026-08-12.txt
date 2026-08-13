@@ -1,0 +1,21 @@
+﻿Project Title: 		WYVERN-E 1.0
+Borard Title: 		Board1
+PCB Title: 		PCB1
+Time: 		2026-08-12 18:40:23
+
+Borard Size: 		62mm x 62mm
+Layers: 		Total 22, Copper 2
+
+Devices: 		36
+Footprints: 		27
+Components: 		Total 65,Top Layer 65,Bottom Layer 0
+Pads: 		Total 327, Top Side Table Stick 289,Bottom Side Table Stick 0,Metallized Hole 38, Nonmetallic Hole 0
+Nets: 		Total 50, Unrouted 0
+Test Point: 		Nets Total 50, Has Testpoint Nets 0, Testpoint Coverage 0%
+ 		Total 0, Top Side Testpoints 0, Bottom Side Testpoints 0
+
+Slot Region: 		8
+Vias: 		Total 148, Through Vias 148, Blind Or Buried Vais 0
+CopperAreas: 		0
+Length of Tracks: 		2394.672mm
+

@@ -1,4 +1,4 @@
-# WYVERN-E, Flight Computer
+# GTR70E WYVERN, Flight Computer
 
 *Single Raspberry Pi Pico 2 W (RP2350), flight computer and real-time TVC controller.*
 
@@ -35,9 +35,9 @@ Flight Computer/
 ├── 01_FlightComputer_Spec.md ← full architecture + sensor config
 ├── 02_RRC3_Telemetry_Logging.md ← DEPRECATED/REMOVED (redirect only)
 ├── BOM/
-│ └── WYVERN_E3_FlightComputer_BOM.xlsx ← FC bill of materials
+│ └── GTR70E_WYVERN3_FlightComputer_BOM.xlsx ← FC bill of materials
 ├── firmware/
-│ └── wyvern4_tvc/
+│ └── gtr70e_wyvern_tvc/
 │ ├── wyvern4_tvc.ino ← main flight firmware (Arduino/Pico SDK)
 │ ├── wyvern_pid.h ← PID controller
 │ ├── imu_grv.h ← BNO085 Game Rotation Vector driver
@@ -51,9 +51,9 @@ Flight Computer/
 │ ├── 03_recovery_logic.mermaid ← motor-ejection separation logic
 │ └── 04_power_tree.mermaid ← power distribution diagram
 ├── ground_test_rigs/
-│ ├── wyvern4_gse_servo_rig/
+│ ├── gtr70e_wyvern_gse_servo_rig/
 │ │ └── wyvern4_gse_servo_rig.ino ← servo sweep / TVC balance test
-│ └── wyvern4_gse_solenoid_rig/
+│ └── gtr70e_wyvern_gse_solenoid_rig/
 │ └── wyvern4_gse_solenoid_rig.ino ← solenoid ground test (A/B comparison)
 ├── test_code/
 │ ├── t1_i2c_scan.ino ← I²C bus scan (verify all BNO085 addresses)

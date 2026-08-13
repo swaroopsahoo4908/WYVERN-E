@@ -1,80 +1,91 @@
-# WYVERN-E, Mathematics & Recalculated Mass Budget
+# GTR70E WYVERN, Mathematics & Recalculated Mass Budget
+
+**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
+**Date:** 2026-08-12  
+**Program:** GTR70E WYVERN
+
 
 *All values from `../Simulations/we4_sim.py`. Single-stage finned F15-4 TVC sustainer (motor-ejection
 recovery via two-body-tube separation at the bulkhead joint), 70 mm OD.*
 
-**⚠ Airframe geometry changed since these numbers were last computed:** the vehicle is now **two
-separate body tubes (Lower BT, Upper BT)** joined at one bulkhead, replacing the prior four-bay
-single-tube layout. The table below is regrouped into Lower BT / Upper BT to match the new physical
-split, but the per-item masses, CG, inertia, T/W, and trajectory figures throughout this file are
-still the **old single-tube values** and have not been recalculated for the new joint/coupler
-hardware the two-BT split adds. Per project convention (`core.py`/`we4_sim.py` cascade is the one
-source of truth for derived numbers), these need a real sim re-run, not a hand edit, flagged
-throughout this file rather than guessed at.
+**2026-08-12 mass recompute.** This section previously carried stale single-tube numbers with an
+uncounted bulkhead/joint mass (TBD). It's now a real bottom-up rebuild against the current two-BT
+CAD (`3D parts/_generator/mass_report.json`) plus the current custom-PCB1 avionics stack, with two
+material changes made specifically to recover T/W (§3): the Lower BT tube moved from PETG-CF to
+ASA-Aero, and the discrete "5V UBEC" line was dropped since the onboard TPS564201 buck already does
+that job.
 
-## 1. Mass budget (bays regrouped into the two-BT layout, **numbers below are stale, pending sim re-run**)
+## 1. Mass budget
 
-The material zoning changed on 2026-08-10: ASA-Aero (foamed, 0.65 g/cm³) for the upper body that
-houses avionics, PETG-CF (1.30 g/cm³) for the lower body and fins, PC-FR (1.20 g/cm³) for the TVC
-assembly. Fin span also grew from 72 to 87 mm in the same pass, since the lighter forward section
-plus heavier PETG-CF fins pulled CG aft enough to drop margin under the 1.0 cal floor at the old
-span. The single-tube item-level breakdown lives in `we4_sim.py`; the table below is the two-BT
-regroup and still needs a real sim re-run for the new bulkhead/joint hardware, exactly as before.
+Material zoning: ASA-Aero (foamed, 0.65 g/cm³) for **both** the Upper BT (avionics housing) and,
+as of this pass, the Lower BT tube (chute/TVC bay); PETG-CF (1.30 g/cm³) for the fins and the
+bulkhead joint (the direct ejection-gas-exposure part, kept at the higher-strength material); PC-FR
+(1.20 g/cm³) for the TVC assembly proper (motor mount, gimbal — the thermal zone nearest the
+nozzle). The Lower-BT swap is hoop-stress-checked against the 140 kPa ejection pulse: σ = p·r/t =
+2.93 MPa, SF ≈ 6–10× on ASA-Aero depending on foamed-vs-solid strength assumption — comfortable
+margin, same "structurally over-margined" conclusion `WYVERN_E4_FEA_Structural.md` §6 already
+reaches for the flight loads. Structural rows below are real CAD output, not scaled estimates.
 
-| Body tube | Section | Items | Mass |
-|---|---|---|---|
-| Upper BT | Nose (ASA-Aero) | ellipsoid nose cone | 16 g |
-| Upper BT | Recovery wadding + FC bay (ASA-Aero) | wadding, custom PCB flight computer, BNO055/BME680/LIS3MDL, µSD, i3 4K Thumb Action Camera, 2S LiPo + 5 V UBEC | 79 g* |
-| Lower BT | Chute + shock cord + wadding | chute+cord, Nomex protector, wadding | 137 g* |
-| Lower BT | TVC bay (PETG-CF tube) + TVC assembly (PC-FR) | bay tube, gimbal assy, 2 servos, motor mount | 214 g |
-| Both | Fins + wiring + bulkhead joint | 4x PETG-CF fins (87 mm), wiring/connectors, **bulkhead + separation-joint hardware (not yet in this total, new part)** | 93 g + TBD |
-| **Dry total** | | | **627 g + TBD (stale)** |
-| Motor | Estes F15-4 loaded (60 g propellant) | | 102 g |
-| **Liftoff** | | | **729 g + TBD (stale)** |
+| Section | Items | Mass |
+|---|---|---|
+| Nose (ASA-Aero) | ellipsoid nose cone | 20.9 g |
+| Upper BT tube (ASA-Aero) | avionics housing, incl. 4x M3 PCB1 standoff bosses (Ø62 mm board) | 44.9 g |
+| Lower BT tube (ASA-Aero, was PETG-CF) | chute/TVC bay, one continuous tube | 94.2 g |
+| Bulkhead joint (PETG-CF) | direct gas-exposure release joint | 17.2 g |
+| Motor mount (PC-FR) | 29 mm motor mount + centering rings | 57.7 g |
+| TVC gimbal assy (PC-FR) | 2-axis gimbal | 105.6 g |
+| Fins ×4 (PETG-CF, 87 mm) | bonded root joint | 70.8 g |
+| Rail buttons ×2 (PETG-CF) | | 1.2 g |
+| **Structure subtotal** | | **412.5 g** |
+| Recovery | chute (24 in) + cord + swivel 58 g, Nomex protector 6 g, wadding 6 g | 70 g |
+| Avionics | custom PCB1 assembly (Ø62 mm, self-estimated) 14 g, external BNO085 breakout+cable 4 g, µSD 0.5 g, i3 4K cam 36 g, 2S 450 mAh LiPo 27 g, wiring/connectors 8 g | 89.5 g |
+| Actuation | 2× EMAX ES08MA II servo, 12 g ea (datasheet) | 24 g |
+| **Dry total** | | **596.0 g airframe + 42 g spent motor casing = 638 g** |
+| Motor | Estes F15-4 loaded (60 g propellant + 42 g casing) | 102 g |
+| **Liftoff** | | **698 g** |
 
-\* These two rows carry over the old "Recovery bay" and "FC bay" line items, rescaled to ASA-Aero
-density from the single-tube stack. The Recovery-bay row still includes hardware sized for the
-sealed-bulkhead architecture that no longer applies (§6), so 137 g is very likely an overstatement
-now, and the FC-bay row still says **Pico 2 W**, which reflects the pre-custom-PCB electronics
-stack this project's other docs (CONFLICTS.md, COMPATIBILITY.md) describe. Flagging that mismatch
-for you to resolve separately, since it's an electronics-architecture question, not a bay-layout or
-materials-zoning one.
+The custom PCB1 assembly mass (14 g) is a component-level self-estimate — bare Ø62 mm 2-layer FR4
+board (~8.9 g, volume × 1.85 g/cm³) plus populated parts (~5.2 g: USB-C connector, slide switch,
+fuse, RP2350B QFN-80, 6–7 small sensor/PMIC packages, 4× JST, STEMMA-QT, H1 header, buck inductor,
+~40 passives) — not a bench scale reading. The 2S 450 mAh LiPo (27 g) is a comparable-product
+estimate (no published weight found for the specific pack); replace both with real weights if a
+scale reading ever contradicts them, and re-run this cascade.
 
-*Material strategy: ASA-Aero for the upper body (avionics housing, no motor heat or gas load);
-PETG-CF for the lower body and fins; PC-FR for the TVC assembly proper (motor mount, gimbal).*
+The all-ASA-Aero upper+lower body plus the dropped UBEC line together take liftoff mass from the
+prior pass's 729 g down to 698 g — comfortably under even the original planning-stage 705 g target
+— while still carrying the heavier 87 mm fins and the full custom-PCB1 avionics stack this document
+now accounts for completely (no more TBD bulkhead line, no more Pico-2W-era placeholder row).
 
-The all-ASA-Aero upper body cuts real mass versus a PETG-CF or PLA equivalent, offsetting most of
-the fin-span increase; net liftoff mass still drops from 792 to 729 g even with 87 mm fins instead
-of 72 mm. The lighter vehicle raises T/W and apogee (see §3-4); this relationship holds regardless
-of the two-BT split, but the exact two-BT numbers need the sim re-run.
+## 2. CG, inertia, control arm
 
-## 2. CG, inertia, control arm, **pending sim re-run for the two-BT geometry**
+$$x_{cg}=\frac{\sum m_i x_i}{\sum m_i}=50.1\ \mathrm{cm\ (liftoff)},\ 48.4\ \mathrm{cm\ (burnout)};\quad
+I_{yy}=\sum m_i (x_i-x_{cg})^2 + \tfrac14 m r^2 = 0.0262\ \mathrm{kg\,m^2}$$
 
-$$x_{cg}=\frac{\sum m_i x_i}{\sum m_i}=50.8\ \mathrm{cm\ (liftoff)},\ 49.1\ \mathrm{cm\ (burnout)};\quad
-I_{yy}=\sum m_i (x_i-x_{cg})^2 + \tfrac14 m r^2 = 0.0257\ \mathrm{kg\,m^2}$$
-
-Gimbal pivot at 62 cm from the nose → **control arm $L=x_{pivot}-x_{cg}=11.2$ cm (liftoff), 12.9 cm
+Gimbal pivot at 62 cm from the nose → **control arm $L=x_{pivot}-x_{cg}=11.9$ cm (liftoff), 13.6 cm
 (burnout)**. The vehicle is *finned*, so it also carries a real static margin: CP at 59.3 cm (87 mm
-fins) gives **+1.20 cal** at liftoff, rising toward 1.3 cal at burnout as the CG moves forward.
+fins) gives **+1.31 cal** at liftoff, rising toward 1.5 cal at burnout as the CG moves forward — up
+from +1.20 cal in the prior mass pass, since the lightened Lower BT/Upper BT moved CG forward.
 Stability is therefore hybrid: passive fins through the ignition transient, active TVC from t = 0.5 s.
 
 ## 3. Thrust-to-weight
 
-$$\mathrm{(T/W)_{avg}}=\frac{14.4}{0.7292\cdot 9.81}=2.01,\qquad \mathrm{(T/W)_{peak}}=\frac{25.3}{0.7292\cdot 9.81}=3.54$$
+$$\mathrm{(T/W)_{avg}}=\frac{14.4}{0.698\cdot 9.81}=2.10,\qquad \mathrm{(T/W)_{peak}}=\frac{25.3}{0.698\cdot 9.81}=3.70$$
 
 The F15 black-powder curve is front-loaded (25.3 N spike → ~14 N sustain), so the rocket gets a
-**3.54** T/W kick off the rail, then holds ~2.01. Comfortable for a TVC launch (3.0's two-stage F-boost
-was marginal at ~1.8; the lighter single stage is better).
+**3.70** T/W kick off the rail, then holds ~2.10 — both up from the prior pass's 2.01/3.54, which is
+the direct payoff of the ASA-Aero Lower BT swap and the dropped UBEC line (§1). Comfortable for a
+TVC launch (3.0's two-stage F-boost was marginal at ~1.8; the lighter single stage is better).
 
-## 4. Trajectory (RK4 + Barrowman engine), **pending sim re-run for the two-BT geometry**
+## 4. Trajectory (RK4 + Barrowman engine)
 *Solved by `we4_flightsim.py`, 4th-order Runge-Kutta (dt = 2x10⁻⁴ s) with Barrowman drag buildup;
-finned ⇒ static margin +1.20 cal, with active TVC taking over at t = 0.5 s.*
+finned ⇒ static margin +1.31 cal, with active TVC taking over at t = 0.5 s.*
  (RK4 point mass, Cd = 0.539, A = π(0.0435)² m², 87 mm fins)
 
-Burnout 3.45 s at **68.7 m, 33.7 m/s**; coast to apogee **121.1 m / ~397 ft at t = 6.67 s** (unified RK4 + Barrowman engine, `we4_flightsim.py`, Cd 0.539). Monte-Carlo
-dispersion for this configuration has not been re-run since the 87 mm fin/material change; treat the
-apogee spread as pending alongside the two-BT recompute. Higher than the earlier 291 ft spec because
-of the lighter zoned airframe; still low and no-waiver (< 125 g propellant, < G, < 1.5 kg).
+Burnout 3.45 s at **74.0 m, 36.3 m/s**; coast to apogee **133.7 m / ~439 ft at t = 6.87 s** (unified
+RK4 + Barrowman engine, `we4_flightsim.py`, Cd 0.539) — higher than the prior pass's 397 ft since the
+lighter, higher-T/W vehicle carries more energy through burnout. Monte-Carlo dispersion re-run
+alongside this pass in `we4_validation.py`: 100% of dispersed flights stay stable (≥0.5 cal) and land
+under 35 m/s. Still low and no-waiver (< 125 g propellant, < G, < 1.5 kg).
 
 ## 5. TVC control (rigid-body pitch, servo lag τ=0.04 s, PID)
 
@@ -89,14 +100,14 @@ finned body plus the gimbal). See `plots4/03_tvc_control.png`, `04_control_autho
 
 ## 6. Recovery
 
-Deploy is by the **F15-4 motor ejection charge**, fired 4 s after burnout at **t ≈ 7.45 s** (0.78 s
+Deploy is by the **F15-4 motor ejection charge**, fired 4 s after burnout at **t ≈ 7.45 s** (0.58 s
 past apogee), pressurizing the Lower BT and **separating the two body tubes at the bulkhead joint**
 (see `WYVERN_E4_Recovery.md`); the finned uncontrolled body can tumble far before that. At burnout
-the vehicle is still climbing at **~34 m/s**, faster than the 812 g spec's ~20 m/s because the zoned
-airframe is lighter; size the chute/cord for a hard opening, or push the timer if a softer opening
-is preferred. An **24″ chute** gives terminal **~4.8 m/s**:
+the vehicle is still climbing at **~36 m/s**, faster than the 812 g spec's ~20 m/s because the zoned,
+now-lighter airframe carries more energy through burnout; size the chute/cord for a hard opening, or
+push the timer if a softer opening is preferred. An **24″ chute** gives terminal **~4.7 m/s**:
 
-$$v_t=\sqrt{\frac{2 m g}{\rho\,C_d A_{chute}}}=\sqrt{\frac{2(0.6272)(9.81)}{1.225(1.5)\pi(0.3048)^2}}\approx 4.8\ \mathrm{m/s}$$
+$$v_t=\sqrt{\frac{2 m g}{\rho\,C_d A_{chute}}}=\sqrt{\frac{2(0.638)(9.81)}{1.225(1.5)\pi(0.3048)^2}}\approx 4.7\ \mathrm{m/s}$$
 
 Recovery is a single passive event (the motor's own charge), there is no electronic deploy path or
 backup channel; robustness comes from the bay-pressurization margin against the bulkhead joint's
@@ -105,5 +116,21 @@ against the new two-BT volume).
 
 ## 7. No-waiver / class
 
-Single F15-4: 49.6 N·s, 60 g propellant, < 125 g cap, ≤ F class, liftoff 729 g < 1500 g → FAA
+Single F15-4: 49.6 N·s, 60 g propellant, < 125 g cap, ≤ F class, liftoff 698 g < 1500 g → FAA
 Class-1, no waiver, no L1 cert.
+
+## References
+
+CEVA, Inc. (2023). *BNO08X datasheet* (Rev. 1.17). https://www.ceva-ip.com/wp-content/uploads/BNO080_085-Datasheet.pdf
+
+EMAX. (n.d.). *ES08MA II 12 g mini metal gear analog servo* [Product specification]. Retrieved August 12, 2026, from https://www.getfpv.com/emax-es08ma-ii-12g-mini-metal-gear-analog-servo-for-rc-model.html
+
+Estes Industries. (n.d.). *F15-4 engines* [Product specification]. Retrieved August 12, 2026, from https://estesrockets.com/products/f15-4-engines
+
+Federal Aviation Administration. (n.d.). *14 CFR Part 101 — Moored balloons, kites, amateur rockets, and unmanned free balloons*. Electronic Code of Federal Regulations. https://www.ecfr.gov/current/title-14/chapter-I/subchapter-F/part-101
+
+National Fire Protection Association. (2018). *NFPA 1122: Code for model rocketry*. https://www.nfpa.org/product/nfpa-1122-code/p1122code
+
+Raspberry Pi Ltd. (2024). *RP2350 datasheet*. https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf
+
+Texas Instruments. (n.d.). *TPS564201: 4.5-V to 17-V input, 4-A synchronous step-down voltage regulator* (SLVSFB5) [Datasheet]. https://www.ti.com/lit/ds/symlink/tps564201.pdf

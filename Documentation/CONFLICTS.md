@@ -1,4 +1,9 @@
-# WYVERN-E, Flight Computer Specification & Frozen Parameter Table
+# GTR70E WYVERN, Flight Computer Specification & Frozen Parameter Table
+
+**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
+**Date:** 2026-08-12  
+**Program:** GTR70E WYVERN
+
 
 This is the single source of truth for the flight computer's firmware parameters, recovery
 architecture, avionics wiring, and structural fit checks. The firmware, wiring generators, and CAD
@@ -14,7 +19,7 @@ These gains come from a phase/gain-margin sweep across 24 operating points: 4 at
 T_sl=288.15K, cold=258.15K, hot=313.15K, high-DA=298.15K) × 6 burn-time slices (0.6/1.0/1.7/2.5/
 2.9/3.4 s into the 3.45 s burn), with the servo modeled as `TAU_SERVO=0.04 s` plus a ~2 ms Padé-2
 transport delay. Kp=0.10/Ki=0.40/Kd=0.18 clears a 30° phase-margin target at every point in the
-sweep, with a worst-case **PM=44.7°, GM=12.6 dB**. Full margin tables in
+sweep, with a worst-case **PM=44.1°, GM=12.6 dB**. Full margin tables in
 `Documentation/PID_TUNING_REPORT.md`; the search itself is `Simulations/we4_pid_retune.py`. The
 mermaid control-loop flowchart (`Flight Computer/flowcharts/02_tvc_control_loop.mermaid`) and
 `we4_atmos_tvc.py`'s in-file defaults are both written to this same table.
@@ -28,7 +33,7 @@ style break, not a friction-fit nose pop off a single continuous tube. Full mech
 `WYVERN_E4_Recovery.md` and the feasibility numbers in `Simulations/we4_ejection_feasibility.py`.
 
 There is no altimeter-triggered deploy, no recovery battery, no e-match/black-powder charge, and no
-CO2 system anywhere on the vehicle — the finned airframe (4×87 mm, +1.20 cal, 729 g liftoff) is
+CO2 system anywhere on the vehicle — the finned airframe (4×87 mm, +1.31 cal, 698 g liftoff) is
 stable to apogee, so a single passive event just past apogee is the whole recovery sequence. The
 flight computer never drives recovery; the motor does. The Pico only observes: it logs baro/IMU
 through the event for apogee/landing reconstruction and streams WiFi telemetry. No deploy-logic
@@ -71,7 +76,7 @@ LiPo-per-cell thresholds a true pack monitor would use — and those rail-sag th
 *after* the pack is already well past a safe per-cell floor, not before. Treat this reading as
 rail-health telemetry, not the vehicle's LiPo protection; keep charging and checking the pack
 separately with a cell-voltage checker before every flight. Full pin-by-pin trace and address-strap
-concern in `Flight Computer/firmware/wyvern4_tvc/battery.h`'s file header.
+concern in `Flight Computer/firmware/gtr70e_wyvern_tvc/battery.h`'s file header.
 
 The buck's own output is estimated at **Vout ≈ 0.768 V × (1 + R5/R6) = 0.768 × (1 + 56 kΩ/10.2 kΩ)
 ≈ 4.98 V**, using the TPS564201 family's typical 0.768 V feedback reference — R5/R6 values are
@@ -102,7 +107,7 @@ our own choice, not something a schematic would ever encode).
 | Control loop rate | 500 Hz (dt = 2.0 ms) on core 0 | confirmed | 01_FlightComputer_Spec.md, flowcharts/02 |
 | TVC engage delay | t ≥ 0.5 s after launch detect (past F15 ignition spike) | confirmed | we4_atmos_tvc.py |
 | Burnout / TVC cutoff | t = 3.45 s | confirmed | we4_flightsim.py, we4_atmos_tvc.py |
-| PID gains (pitch = yaw, decoupled) | Kp=0.10, Ki=0.40, Kd=0.18 | confirmed | wyvern_pid.h; margin-verified 24-point sweep, PID_TUNING_REPORT.md (PM=44.7°, GM=12.6 dB worst case) |
+| PID gains (pitch = yaw, decoupled) | Kp=0.10, Ki=0.40, Kd=0.18 | confirmed | wyvern_pid.h; margin-verified 24-point sweep, PID_TUNING_REPORT.md (PM=44.1°, GM=12.6 dB worst case) |
 | Derivative filter time constant | tau_d = 0.02 s | confirmed | wyvern_pid.h, pid_reference.py |
 | Integral clamp | ±0.4 (anti-windup) | confirmed | wyvern_pid.h, pid_reference.py |
 | Output (gimbal) limit | ±8.0° (0.1396 rad) | confirmed | wyvern_pid.h `OUT_LIM_DEG=8.0`, sized for wind/weathercock authority |
@@ -164,11 +169,11 @@ real run is on record.
 
 ## 7. Custom flight computer PCB
 
-The custom RP2350B flight computer PCB is a **circular Ø61 mm board**. Fabrication package (Gerber,
+The custom RP2350B flight computer PCB is a **circular Ø62 mm board**. Fabrication package (Gerber,
 schematic PDF, BOM, pick-and-place, netlist, Altium/PADS exports, 3D render) lives in `PCB/`.
 
 Fit check against the Upper BT (70 mm OD airframe, 1.6 mm wall per `WYVERN_E4_FEA_Structural.md`
-§4 → ~66.8 mm ID): Ø61 mm leaves **~5.8 mm diametral clearance (~2.9 mm radial per side)**. Carry
+§4 → ~66.8 mm ID): Ø62 mm leaves **~4.8 mm diametral clearance (~2.4 mm radial per side)**. Carry
 this into the build guide's Upper BT fit-check step rather than assuming clearance is obvious.
 
 The board carries **one** external STEMMA-QT port (one external BNO085, mounted at the TVC-bay/
@@ -287,18 +292,25 @@ every Arduino-Pico board profile's `pins_arduino.h` defines `PIN_LED` as a macro
 own onboard LED (25u on `weact_rp2350b`, 64u on `rpipico2w`), and a same-named class member would
 collide with it at the preprocessor level regardless of which board target is active.
 
-All four flight-math validation suites (`we4_flightsim.py`, `we4_validation.py`, `we4_deepsim.py`,
-`we4_atmos_tvc.py`, plus `we4_pid_retune.py`) run against the canonical vehicle mass, 0.7292 kg
-liftoff / 0.6272 kg dry:
+**2026-08-12 mass recompute.** All four flight-math validation suites (`we4_flightsim.py`,
+`we4_validation.py`, `we4_deepsim.py`, `we4_atmos_tvc.py`, plus `we4_pid_retune.py`) were re-run
+against a bottom-up mass rebuild, 0.698 kg liftoff / 0.638 kg dry — down from the prior 0.7292 kg /
+0.6272 kg pass, driven by three real changes: the Lower BT tube moved from PETG-CF to ASA-Aero
+(hoop-stress-checked at SF ~6–10× under the 140 kPa ejection pulse, §4.1 of
+`WYVERN_E4_FEA_Structural.md`), the discrete "5V UBEC" line was dropped since the onboard TPS564201
+buck already does that job (no second physical regulator to weigh), and the recovery consumables
+were re-itemized to 70 g (chute+cord+swivel 58 g, Nomex 6 g, wadding 6 g) instead of the older
+137 g bay-lump this document had already flagged as an overstatement. Full breakdown in
+`WYVERN_E4_Mathematics.md` §1 and `Simulations/we4_sim.py`'s `ITEMS` table.
 
-- `we4_flightsim.py` / `we4_validation.py`: apogee 121.1 m / 397 ft @ 6.67 s, consistent across both
-  engines. Validation clears 10/13 gates; the three flagged (rail-exit velocity, thrust-to-weight
-  peak against the >=5 rule-of-thumb, weathercock angle) are known design tradeoffs — TVC authority
-  is what compensates for the low static T/W, per §1 and §4.
+- `we4_flightsim.py` / `we4_validation.py`: apogee 133.7 m / 439 ft @ 6.87 s, consistent across both
+  engines. Validation still clears 10/13 gates; the same three flagged (rail-exit velocity,
+  thrust-to-weight peak against the >=5 rule-of-thumb, weathercock angle) are known design
+  tradeoffs — TVC authority is what compensates for the low static T/W, per §1 and §4.
 - `we4_deepsim.py`: 7/8 deep checks pass; the one flagged item is servo torque margin (check C).
-- `we4_atmos_tvc.py`: worst-case pitch deviation 2.28° across all 4 atmospheres, comfortably inside
+- `we4_atmos_tvc.py`: worst-case pitch deviation 2.45° across all 4 atmospheres, comfortably inside
   the ±8° gimbal limit.
-- `we4_pid_retune.py`: the 24-point phase/gain-margin sweep gives PM=44.5° / GM=12.6 dB worst-case,
+- `we4_pid_retune.py`: the 24-point phase/gain-margin sweep gives PM=44.1° / GM=12.6 dB worst-case,
   clearing the 30°/6 dB floor with room to spare.
 
 Sensor library: the BME680 is read through the `Adafruit_BME680` driver in `baro.h` — matched part,
@@ -331,3 +343,19 @@ matched library, no compatibility question.
   ballast for this board rev.
 - The GP4/GP5 spare JST connector pins (U10/U11) have no assigned function. Determine their purpose
   (spare servo channel, sensor, unused) before designing anything against them.
+
+## References
+
+CEVA, Inc. (2023). *BNO08X datasheet* (Rev. 1.17). https://www.ceva-ip.com/wp-content/uploads/BNO080_085-Datasheet.pdf
+
+EMAX. (n.d.). *ES08MA II 12 g mini metal gear analog servo* [Product specification]. Retrieved August 12, 2026, from https://www.getfpv.com/emax-es08ma-ii-12g-mini-metal-gear-analog-servo-for-rc-model.html
+
+Estes Industries. (n.d.). *F15-4 engines* [Product specification]. Retrieved August 12, 2026, from https://estesrockets.com/products/f15-4-engines
+
+Federal Aviation Administration. (n.d.). *14 CFR Part 101 — Moored balloons, kites, amateur rockets, and unmanned free balloons*. Electronic Code of Federal Regulations. https://www.ecfr.gov/current/title-14/chapter-I/subchapter-F/part-101
+
+National Fire Protection Association. (2018). *NFPA 1122: Code for model rocketry*. https://www.nfpa.org/product/nfpa-1122-code/p1122code
+
+Raspberry Pi Ltd. (2024). *RP2350 datasheet*. https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf
+
+Texas Instruments. (n.d.). *TPS564201: 4.5-V to 17-V input, 4-A synchronous step-down voltage regulator* (SLVSFB5) [Datasheet]. https://www.ti.com/lit/ds/symlink/tps564201.pdf

@@ -1,7 +1,12 @@
-# WYVERN-E, Ground-Test Rig Math Derivations
+# GTR70E WYVERN, Ground-Test Rig Math Derivations
+
+**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
+**Date:** 2026-08-12  
+**Program:** GTR70E WYVERN
+
 
 This document derives the math the two ground-test-stand sketches
-(`wyvern4_gse_servo_rig/` and `wyvern4_gse_solenoid_rig/`) depend on: the **3-axis load-cell
+(`gtr70e_wyvern_gse_servo_rig/` and `gtr70e_wyvern_gse_solenoid_rig/`) depend on: the **3-axis load-cell
 calibration matrix** (both rigs), which resolves the full thrust vector and hence the gimbal
 deflection directly from the balance. (The earlier ToF-ring plane-fit + Kalman-fusion approach has
 been removed from the design, the ToF sensors were dropped; gimbal deflection now comes from the

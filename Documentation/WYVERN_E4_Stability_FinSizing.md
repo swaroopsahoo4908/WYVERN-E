@@ -1,4 +1,9 @@
-# WYVERN-E, Stability & Fin Sizing (RESOLVED: 87 mm fins, NO ballast)
+# GTR70E WYVERN, Stability & Fin Sizing (RESOLVED: 87 mm fins, NO ballast)
+
+**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
+**Date:** 2026-08-12  
+**Program:** GTR70E WYVERN
+
 
 *Barrowman + RK4 apogee sweep, `../Simulations/we4_stability.py`, `plots4/config_optimized.json`.*
 
@@ -15,13 +20,18 @@ ballast costs apogee: the smaller fins it buys never pay back the dead weight.
 
 | Ballast | Fin span for 1.0 cal | Liftoff mass | Apogee |
 |---|---|---|---|
-| **0 g (chosen)** | **76.2 mm** → flown at **87 mm** for margin | **729 g** | **~397 ft** |
-| 60 g | 59.4 mm | 767 g | ~352 ft |
-| 150 g (old) | 46.9 mm | 846 g | ~271 ft |
+| **0 g (chosen)** | **76.2 mm** → flown at **87 mm** for margin | **729 g*** | **~397 ft*** |
+| 60 g | 59.4 mm | 767 g* | ~352 ft* |
+| 150 g (old) | 46.9 mm | 846 g* | ~271 ft* |
+
+\* This ballast-sensitivity sweep still reflects the pre-2026-08-12 mass pass (729 g base case) —
+not re-run against the current 698 g airframe. The relative trend (every gram of ballast costs more
+apogee than the smaller fin buys back) is unaffected by the base mass and still holds; only the
+absolute numbers in this table are stale. See "Chosen configuration" below for the current numbers.
 
 The flown fin is 87 mm rather than the 76.2 mm minimum: 76.2 mm sits exactly on the 1.0 cal floor
 with no allowance for build tolerance, and the CG-tolerance sweep (`we4_deepsim.py` D) shows 1.0 cal
-survives only limited aft CG error. 87 mm buys +1.20 cal nominal and keeps a comparable buffer at the
+survives only limited aft CG error. 87 mm buys +1.31 cal nominal and keeps a comparable buffer at the
 build-error limit.
 
 ## Chosen configuration
@@ -29,10 +39,10 @@ build-error limit.
 |---|---|
 | Ballast | **none** |
 | Fins | **4 ×**, root 70 / tip 35 / LE-sweep 25 / **span 87 mm**, PETG-CF 3 mm airfoil (~71 g) |
-| CG / CP / margin | 50.8 cm / 59.3 cm / **+1.20 cal** (stable; ASA-Aero upper body + PETG-CF fins moved CG aft → 87 mm fins) |
-| Liftoff / T-W | **729 g** / 2.01 avg, 3.54 peak |
-| Apogee (RK4+Barrowman) | **~397 ft / 121.1 m @ 6.67 s**; F15-4 ejects t=7.45 s, +0.78 s past apogee @ ~7.7 m/s |
-| v_max / Mach | **34.5 m/s / Mach 0.101** |
+| CG / CP / margin | 50.1 cm / 59.3 cm / **+1.31 cal** (stable; ASA-Aero upper+lower body + PETG-CF fins) |
+| Liftoff / T-W | **698 g** / 2.10 avg, 3.70 peak |
+| Apogee (RK4+Barrowman) | **~439 ft / 133.7 m @ 6.87 s**; F15-4 ejects t=7.45 s, +0.58 s past apogee @ ~5.7 m/s |
+| v_max / Mach | **37.1 m/s / Mach 0.108** |
 | Rail exit (1.0 m rail) | pending re-verify against the new mass stack; see the weathercock discussion below |
 | 35 mm fin (rejected) | **UNSTABLE**; 1.0 cal needs ≥76.2 mm, 1.5 cal needs a larger span still |
 

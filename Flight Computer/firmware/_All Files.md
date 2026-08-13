@@ -9,4 +9,4 @@ updated_at: 2026-08-02
 
 ## Subfolders
 
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Flight Computer/firmware/wyvern4_tvc/_All Files.md|wyvern4_tvc/]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Flight Computer/firmware/gtr70e_wyvern_tvc/_All Files.md|gtr70e_wyvern_tvc/]]

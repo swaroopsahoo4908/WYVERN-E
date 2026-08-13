@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-WYVERN-E, post-flight data reduction: onboard SD log -> RQ3 and RQ4 results.
+GTR70E WYVERN, post-flight data reduction: onboard SD log -> RQ3 and RQ4 results.
 
 Point this at `WYV4_FLIGHT.csv` off the flight computer's microSD card and it produces every
 number the paper needs from that flight, plus the figures, in one pass. The intent is that the
@@ -361,7 +361,7 @@ def make_figures(logs, reports, outdir):
     ax[1, 1].axhline(1e6 / PRED["ctrl_hz"], ls="--", c="k", lw=0.8, label="500 Hz nominal")
     ax[1, 1].set_xlabel("t (s)"); ax[1, 1].set_ylabel("loop dt (us)")
     ax[1, 1].set_title("Health · control-loop timing"); ax[1, 1].legend(fontsize=7); ax[1, 1].grid(alpha=.3)
-    fig.suptitle("WYVERN-E, post-flight reduction", fontweight="bold")
+    fig.suptitle("GTR70E WYVERN, post-flight reduction", fontweight="bold")
     fig.tight_layout(); fig.savefig(os.path.join(outdir, "01_flight_overview.png"), dpi=130); plt.close(fig)
 
     # RQ3 summary: reconstructed vs predicted
@@ -392,7 +392,7 @@ def make_figures(logs, reports, outdir):
 
 def print_report(reports):
     print("\n" + "=" * 78)
-    print("WYVERN-E POST-FLIGHT REDUCTION")
+    print("GTR70E WYVERN POST-FLIGHT REDUCTION")
     print("=" * 78)
     for r in reports:
         print(f"\n--- {r['label']} ({r['path']}, {r['rows']:,} rows) ---")

@@ -9,5 +9,5 @@ updated_at: 2026-08-02
 
 ## Subfolders
 
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Motor Test Stand/Static Stand (thrust + deflector)/_All Files.md|Static Stand (thrust + deflector)/]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Motor Test Stand/TVC Thrust-Vector Balance/_All Files.md|TVC Thrust-Vector Balance/]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Motor Test Stand/Static Stand (thrust + deflector)/_All Files.md|Static Stand (thrust + deflector)/]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Motor Test Stand/TVC Thrust-Vector Balance/_All Files.md|TVC Thrust-Vector Balance/]]

@@ -9,6 +9,6 @@ updated_at: 2026-08-02
 
 ## Files
 
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/wyvern_datagen/datasets/_bench_samples/ground_tvc_pid.png]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/wyvern_datagen/datasets/_bench_samples/jetvane_graphite.png]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/wyvern_datagen/datasets/_bench_samples/motor_F15.png]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Simulations/wyvern_datagen/datasets/_bench_samples/ground_tvc_pid.png]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Simulations/wyvern_datagen/datasets/_bench_samples/jetvane_graphite.png]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Simulations/wyvern_datagen/datasets/_bench_samples/motor_F15.png]]

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-WYVERN-E, PID auto-tune (robust, multi-wind, time-domain).
+GTR70E WYVERN, PID auto-tune (robust, multi-wind, time-domain).
 
 Complements the frequency-domain margin analysis in PID_TUNING_REPORT.md: searches Kp/Ki/Kd over a
 coarse→fine grid and scores each gain set by a robustness cost averaged over several wind speeds,

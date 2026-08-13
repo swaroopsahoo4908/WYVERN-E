@@ -1,4 +1,9 @@
-# WYVERN-E, Component Compatibility Audit
+# GTR70E WYVERN, Component Compatibility Audit
+
+**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
+**Date:** 2026-08-12  
+**Program:** GTR70E WYVERN
+
 
 **Scope:** Every I2C, SPI, PWM, ADC, and power pairing across the flight computer (Raspberry Pi Pico 2 W / RP2350, `wyvern4_tvc.ino` + headers) and the ground-test rig (3-axis TVC balance harness + static thrust stand), cross-checked against the BOM part list and the frozen pin map in `Documentation/CONFLICTS.md` §4.
 
@@ -185,7 +190,7 @@ RP2350 parts, native-compatible with the HX711 DT/SCK lines and STEMMA-QT I2C at
 
 ### 6b. Ground-rig GPIO budget under a Pico substitution, CAUTION, provisional
 
-If the ground rig is redesigned around a Raspberry Pi Pico (per the deliverable spec) rather than the BOM's Nano, a first-pass GPIO budget (the Pico/Pico 2 W has 26 usable GPIO pins, as WYVERN-E's own flight design already relies on):
+If the ground rig is redesigned around a Raspberry Pi Pico (per the deliverable spec) rather than the BOM's Nano, a first-pass GPIO budget (the Pico/Pico 2 W has 26 usable GPIO pins, as GTR70E WYVERN's own flight design already relies on):
 
 | Function | GPIO pins consumed |
 |---|---|
@@ -213,4 +218,20 @@ Without the VL53L4CD ring, a Pico-based ground rig fits with wide GPIO margin (1
 
 ---
 
-*Audit compiled from static review of the provided WYVERN-E firmware/wiring/documentation bundle and the given BOM. No physical hardware was measured; all "PASS" verdicts reflect internal design/documentation consistency, not bench validation.*
+*Audit compiled from static review of the provided GTR70E WYVERN firmware/wiring/documentation bundle and the given BOM. No physical hardware was measured; all "PASS" verdicts reflect internal design/documentation consistency, not bench validation.*
+
+## References
+
+CEVA, Inc. (2023). *BNO08X datasheet* (Rev. 1.17). https://www.ceva-ip.com/wp-content/uploads/BNO080_085-Datasheet.pdf
+
+EMAX. (n.d.). *ES08MA II 12 g mini metal gear analog servo* [Product specification]. Retrieved August 12, 2026, from https://www.getfpv.com/emax-es08ma-ii-12g-mini-metal-gear-analog-servo-for-rc-model.html
+
+Estes Industries. (n.d.). *F15-4 engines* [Product specification]. Retrieved August 12, 2026, from https://estesrockets.com/products/f15-4-engines
+
+Federal Aviation Administration. (n.d.). *14 CFR Part 101 — Moored balloons, kites, amateur rockets, and unmanned free balloons*. Electronic Code of Federal Regulations. https://www.ecfr.gov/current/title-14/chapter-I/subchapter-F/part-101
+
+National Fire Protection Association. (2018). *NFPA 1122: Code for model rocketry*. https://www.nfpa.org/product/nfpa-1122-code/p1122code
+
+Raspberry Pi Ltd. (2024). *RP2350 datasheet*. https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf
+
+Texas Instruments. (n.d.). *TPS564201: 4.5-V to 17-V input, 4-A synchronous step-down voltage regulator* (SLVSFB5) [Datasheet]. https://www.ti.com/lit/ds/symlink/tps564201.pdf

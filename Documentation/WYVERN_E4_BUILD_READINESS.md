@@ -1,6 +1,10 @@
-# WYVERN-E, Build-Readiness Report
+# GTR70E WYVERN, Build-Readiness Report
 
-### A Skylight Rocketry Venture
+**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
+**Date:** 2026-08-12  
+**Program:** GTR70E WYVERN
+
+
 ##### Cross-check of all project files against the current (rev-latest) design, build in 1 week, launch in 2
 
 ## 1. Verdict
@@ -24,18 +28,18 @@ against those before it's trusted as-is.
 | Parameter | Value |
 |---|---|
 | Airframe | 70 mm OD, ~0.74 m (stale, pending re-run), single stage, **two body tubes (Lower BT, Upper BT) + one separation bulkhead** (was 3 bays + 2 sealed bulkheads) |
-| Liftoff / dry mass | **729 g / 627 g** |
+| Liftoff / dry mass | **698 g / 638 g** (2026-08-12 recompute, was 729/627 g) |
 | Motor (flight) | **Estes F15-4** ×4 (4 s delay + ejection charge = recovery) |
 | Motor (ground) | **Estes F15-0** ×13-24 (plugged; static thrust curves + MTVC + servo TVC on the balance + jetvane blast-shield screen) |
 | Commissioning | Estes/AeroTech **E16-4** ×6 |
-| Apogee | **~397 ft / 121.1 m @ 6.67 s** (RK4(2e-4)+Barrowman) |
-| v_max / Mach | **34.5 m/s / Mach 0.101** |
-| Max acceleration | **2.55 g** net (3.54 g specific force = peak T/W) |
-| T/W | **2.01 avg / 3.54 peak** |
+| Apogee | **~439 ft / 133.7 m @ 6.87 s** (RK4(2e-4)+Barrowman) |
+| v_max / Mach | **37.1 m/s / Mach 0.108** |
+| Max acceleration | **2.71 g** net (3.70 g specific force = peak T/W) |
+| T/W | **2.10 avg / 3.70 peak** |
 | Fins | 4 × **87 mm** PETG-CF, root 70 / tip 35 / LE-sweep 25° |
-| Stability | CG 50.8 cm / CP 59.3 cm → **+1.20 cal** (→1.3 cal burnout), no ballast |
-| Materials | **ASA-Aero**: nose, recovery bay tube, FC bay tube (upper body/avionics) · **PETG-CF**: lower body tube, fins, separation bulkhead · **PC-FR**: TVC assembly, motor mount, gimbal |
-| Recovery | **F15-4 motor ejection** separating the two body tubes at the bulkhead joint; deploy t≈7.45 s (+0.78 s past apogee, ~7.7 m/s); 24″ chute → ~4.8 m/s; bay-pressurization margin **pending re-check against the new two-BT volume**; no RRC3/9 V/CO2/e-match |
+| Stability | CG 50.1 cm / CP 59.3 cm → **+1.31 cal** (→1.5 cal burnout), no ballast |
+| Materials | **ASA-Aero**: nose, Upper BT tube, **Lower BT tube (changed from PETG-CF 2026-08-12)** · **PETG-CF**: fins, separation bulkhead · **PC-FR**: TVC assembly, motor mount, gimbal |
+| Recovery | **F15-4 motor ejection** separating the two body tubes at the bulkhead joint; deploy t≈7.45 s (+0.58 s past apogee, ~5.7 m/s); 24″ chute → ~4.7 m/s; bay-pressurization margin **pending re-check against the new two-BT volume**; no RRC3/9 V/CO2/e-match |
 | Flight computer | **Raspberry Pi Pico 2 W (RP2350)**, dual-core, 500 Hz TVC PID **Kp0.10/Ki0.40/Kd0.18**, ±8° gimbal |
 | Sensors | 3× BNO085 (GRV), BME680 + **BMP388** (Adafruit 3966) baro, microSD, i3 4K Thumb Action Camera cam, Wi-Fi bench telemetry |
 | Structural margins | flight min SF ~340× (unaffected by the bay split); bulkhead separation-joint release-force sizing and direct-gas thermal check are **open items**, see `WYVERN_E4_FEA_Structural.md` §4; engine-bay thermal < HDT |
@@ -44,7 +48,7 @@ against those before it's trusted as-is.
 ## 3. Per-target readiness
 
 ### 3.1 Flight computer, READY to build
-- Firmware sketch `wyvern4_tvc/` complete: main `.ino` + 10 header tabs, brace/paren balanced,
+- Firmware sketch `gtr70e_wyvern_tvc/` complete: main `.ino` + 10 header tabs, brace/paren balanced,
   no CO2/RRC3 includes (recovery is passive). PID gains margin-verified (`PID_TUNING_REPORT.md`).
 - Wiring: `gen_wiring4.py` + `gen_connected_sch.py` regenerate a balanced `.kicad_sch` + preview,
   now consistent with firmware (BMP388 @3.3 V on mux ch3; GP1/GP6 spare; no 9 V/RRC3 block).
@@ -77,8 +81,8 @@ against those before it's trusted as-is.
   direct tunnel-measured lift/drag/stall (RQ3 in-situ) cross-checked against flight telemetry (RQ4).
 
 ### 3.4 Motor test stands, READY to print/build
-- **Servo TVC stand** (`wyvern4_gse_servo_rig`): base, thrust block, flexure template (PETG-CF).
-- **Magnetic TVC stand** (`wyvern4_gse_solenoid_rig`): separate physical rig, same flexure/DAQ chain as the servo stand, solenoid gimbal actuator swapped in for the RQ1 A/B comparison.
+- **Servo TVC stand** (`gtr70e_wyvern_gse_servo_rig`): base, thrust block, flexure template (PETG-CF).
+- **Magnetic TVC stand** (`gtr70e_wyvern_gse_solenoid_rig`): separate physical rig, same flexure/DAQ chain as the servo stand, solenoid gimbal actuator swapped in for the RQ1 A/B comparison.
 - **Static fire stand**: base plate, load-cell bracket, motor tower, steel blast deflector, plus a jetvane/material coupon rack (restored 2026-08-10, see `WYVERN_E4_GSE_TestStands.md` §1). Print PLA/PETG-CF baseline jetvanes and the ABS/PC-FR comparison set alongside the coupon set.
 - **Wind tunnel** (`Wind Tunnel/`): bench aerofoil rig for RQ3/RQ4, assemble per the STL/3MF kit in that folder.
 - DAQ: Raspberry Pi Pico + load cells/HX711 (BOM §10); ground-rig sketches target Pico. Both TVC stands and the static-fire stand share the same DAQ chain for directly comparable data.
@@ -132,6 +136,21 @@ diameter got written down. Cost/quantity (3 boards, $200 total) is unaffected by
 **2026-08-11b: custom PCB fab cost updated to $207.01 for 3 boards** (was $200). Quantity
 unchanged at 3; only the total fab price changed. Total program spend rises by $7.01 to
 **$1,653.26**.
+
+**2026-08-12: custom PCB diameter revised to Ø62 mm circular** (was Ø61 mm, per the 2026-08-11
+pass above), to accommodate the larger `SS-12D10-G5` power switch footprint. Fit check against the
+70 mm OD / ~66.8 mm ID Upper BT (`WYVERN_E4_Recovery.md` §1, `CONFLICTS.md` §7) now reads ~4.8 mm
+diametral clearance (~2.4 mm radial per side), down from ~5.8 mm / ~2.9 mm at Ø61 mm — still clears.
+Rocket/airframe OD is unaffected (70 mm, unchanged).
+
+**2026-08-12b: fresh EasyEDA export confirms the Ø62 mm board and updates the fab cost.**
+`PCB/Info_PCB_PCB1_2026-08-12.txt` (real export, supersedes the 2026-08-11 61mm×61mm snapshot):
+board 62mm×62mm, 65 components (was 61), 36 devices (was 33), 50 nets (was 49) — the extra parts
+account for the larger switch footprint and whatever else changed in this pass. Custom PCB fab cost
+updated to **$231.72 for 3 boards** (was $207.01); quantity unchanged at 3. Total program spend
+rises by $24.71 to **$1,677.97**. The standalone Hobbywing UBEC BOM line (§ Power) is now flagged
+not-needed: PCB1's onboard TPS564201 buck already regulates 2S→~5V, so there's no second physical
+regulator to buy.
 
 **Filament pass (2026-08-09c):** Section 6 reconciled against the real Bambu Lab cart, PC-FR
 ($54.99), PC ($39.99), ABS ($19.99), ASA Aero ($49.99), all 1 kg, $164.96 total. **⚠ None of these
@@ -208,7 +227,7 @@ Run `selftest.py` before every flight; it gates on all of the above that are obs
   A/B (servo vs. magnetic) on the 3-axis stand; lock the flown actuator (servo).
 - Days 11–12: full preflight `selftest.py` GO; range procedures (remote ignition, ≥3 m standoff,
   igniter installed last).
-- Days 13–14: **launch on F15-4** (FAA Class-1, no waiver; 729 g < 1500 g). Recover, pull SD +
+- Days 13–14: **launch on F15-4** (FAA Class-1, no waiver; 698 g < 1500 g). Recover, pull SD +
   Wi-Fi logs, feed flight data back into `Simulations/` for post-flight validation.
 
 ## 8. Notes / residual risk
@@ -292,26 +311,25 @@ two figures are not directly comparable, the script now prints that caveat along
 
 ### 9.4 Post-rerun canonical numbers
 
-**Updated 2026-08-10** for the ASA-Aero/PETG-CF/PC-FR material re-zoning and the resulting 72->87 mm
-fin-span increase (the lighter zoned upper body plus heavier PETG-CF fins moved CG aft enough to
-drop margin under the 1.0 cal floor at 72 mm; 87 mm restores +1.20 cal). PID margins, gate counts,
-and cross-file check below are carried over from the prior rerun and have not been independently
-re-verified against the new mass stack; treat those three rows as pending confirmation.
+**Updated 2026-08-12** for the mass recompute (§2, `WYVERN_E4_Mathematics.md` §1): Lower BT tube
+PETG-CF→ASA-Aero, the discrete UBEC line dropped, and recovery consumables re-itemized, taking
+liftoff from 729 g to 698 g. Every row below was re-run this pass (`we4_flightsim.py`,
+`we4_validation.py`, `we4_deepsim.py`, `we4_pid_retune.py`), not carried over.
 
 | Quantity | Value |
 |---|---|
-| Apogee | **121.1 m / 397 ft @ 6.67 s** (was 324 ft at 792 g, 435 ft at the original 705 g spec) |
-| Burnout | 3.45 s, 68.7 m, 33.7 m/s |
-| v_max / Mach | 34.5 m/s / **Mach 0.101** |
-| Max acceleration | 2.55 g net (3.54 g specific force) |
-| CG / CP / margin | 50.8 cm / 59.3 cm / **+1.20 cal** |
-| Deploy | t = 7.45 s, +0.78 s past apogee, 7.7 m/s |
-| PID margins | PM **44.7°**, GM **12.6 dB**, worst gust pitch **1.96°**, gimbal 2.35° (pending re-verify) |
-| Gates | validation **10/13**, deepsim **7/8** (servo torque flagged, §11; pending re-verify) |
-| Cross-file check | **14/14** numeric agreements between the summary JSONs (pending re-verify) |
+| Apogee | **133.7 m / 439 ft @ 6.87 s** (was 397 ft at 729 g; 324 ft at 792 g; 435 ft at the original 705 g spec) |
+| Burnout | 3.45 s, 74.0 m, 36.3 m/s |
+| v_max / Mach | 37.1 m/s / **Mach 0.108** |
+| Max acceleration | 2.71 g net (3.70 g specific force) |
+| CG / CP / margin | 50.1 cm / 59.3 cm / **+1.31 cal** |
+| Deploy | t = 7.45 s, +0.58 s past apogee, 5.7 m/s |
+| PID margins | PM **44.1°**, GM **12.6 dB**, worst gust pitch **2.45°**, gimbal per `we4_pid_retune.py` re-run |
+| Gates | validation **10/13**, deepsim **7/8** (servo torque flagged, §11) |
+| Cross-file check | pending a fresh cross-file numeric-agreement pass against these re-run values |
 
 The three flagged validation gates are unchanged in character and share one root cause: the F15 is
-underpowered for a 729 g vehicle. Rail exit and weathercock figures have not been re-run against the
+underpowered for a 698 g vehicle, even lighter than before. Rail exit and weathercock figures have not been re-run against the
 new mass stack; peak T/W is now 3.54 against the 5.0 rule of thumb used elsewhere. This is a
 launch-window constraint, not a design defect, but it is real and should not be presented as passing.
 
@@ -422,3 +440,19 @@ to 6 V (~2.0 kg·cm instead of ~1.8), or fit a higher-torque servo.
 
 This is a good outcome from the audit: a modelling error was flagged before flight, and the test
 that resolves it is already in the schedule three days before the flight window.
+
+## References
+
+CEVA, Inc. (2023). *BNO08X datasheet* (Rev. 1.17). https://www.ceva-ip.com/wp-content/uploads/BNO080_085-Datasheet.pdf
+
+EMAX. (n.d.). *ES08MA II 12 g mini metal gear analog servo* [Product specification]. Retrieved August 12, 2026, from https://www.getfpv.com/emax-es08ma-ii-12g-mini-metal-gear-analog-servo-for-rc-model.html
+
+Estes Industries. (n.d.). *F15-4 engines* [Product specification]. Retrieved August 12, 2026, from https://estesrockets.com/products/f15-4-engines
+
+Federal Aviation Administration. (n.d.). *14 CFR Part 101 — Moored balloons, kites, amateur rockets, and unmanned free balloons*. Electronic Code of Federal Regulations. https://www.ecfr.gov/current/title-14/chapter-I/subchapter-F/part-101
+
+National Fire Protection Association. (2018). *NFPA 1122: Code for model rocketry*. https://www.nfpa.org/product/nfpa-1122-code/p1122code
+
+Raspberry Pi Ltd. (2024). *RP2350 datasheet*. https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf
+
+Texas Instruments. (n.d.). *TPS564201: 4.5-V to 17-V input, 4-A synchronous step-down voltage regulator* (SLVSFB5) [Datasheet]. https://www.ti.com/lit/ds/symlink/tps564201.pdf

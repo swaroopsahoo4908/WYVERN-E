@@ -9,4 +9,4 @@ updated_at: 2026-08-02
 
 ## Subfolders
 
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Senior Research/Proposal/_All Files.md|Proposal/]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Senior Research/Proposal/_All Files.md|Proposal/]]

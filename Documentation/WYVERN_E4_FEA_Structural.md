@@ -1,4 +1,9 @@
-# WYVERN-E, Structural & Thermal Analysis (first-order FEA)
+# GTR70E WYVERN, Structural & Thermal Analysis (first-order FEA)
+
+**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
+**Date:** 2026-08-12  
+**Program:** GTR70E WYVERN
+
 
 *First-order analytical margins from `../Simulations/we4_analysis.py` → `plots4/08_fea_loads.png`,
 `09_thermal.png`. A 25 N motor on a 70 mm tube is handling/print-limited, not load-limited.*

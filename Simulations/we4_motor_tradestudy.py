@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E, MOTOR TRADE STUDY [HISTORICAL RECORD, superseded mass, conclusion still stands]
+"""GTR70E WYVERN, MOTOR TRADE STUDY [HISTORICAL RECORD, superseded mass, conclusion still stands]
 ================================================================================
 NOTE (2026-08): this study was run against the 705 g vehicle. The flown vehicle is now 792 g after
 the PLA/PETG-CF material change and the 24 in canopy. The masses below are therefore NOT current --
@@ -148,7 +148,7 @@ fig,ax=plt.subplots(figsize=(10,5.5)); cmap={"F15-4":GRY,"F67W":"#43aa8b","G74W"
 for n,(T,H,V) in traj.items():
     ax.plot(T,H,c=cmap[n],lw=2,label=f"{n} ({rows[n]['apogee_ft']} ft)")
 ax.set_xlabel("t (s)"); ax.set_ylabel("altitude (m)"); ax.grid(alpha=.3); ax.legend()
-ax.set_title("WYVERN-E, apogee by motor option (RK4 + Barrowman)")
+ax.set_title("GTR70E WYVERN, apogee by motor option (RK4 + Barrowman)")
 fig.tight_layout(); fig.savefig(f"{OUT}/01_apogee_overlay.png",dpi=130); plt.close()
 
 # 2. metric bars: rail-exit v and T/W

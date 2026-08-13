@@ -1,4 +1,4 @@
-// WYVERN-E — launch detect, camera gate, status LED/buzzer.
+// GTR70E WYVERN — launch detect, camera gate, status LED/buzzer.
 // =================================================================
 #pragma once
 #include <Arduino.h>

@@ -1,4 +1,4 @@
-// WYVERN-E — power-rail monitor via onboard INA226, shared I2C bus.
+// GTR70E WYVERN — power-rail monitor via onboard INA226, shared I2C bus.
 // ===============================================================================
 // RECONCILED 2026-08-11 against the real PCB1 netlist/BOM, traced pin-by-pin (not assumed) against
 // Netlist_PCB1_2026-08-11.tel and the labeled pinout in SCH_Schematic1_1-P1_2026-08-11.svg. This

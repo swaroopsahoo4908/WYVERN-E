@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-WYVERN-E, ground-test bench simulators (backend-agnostic, no Tk).
+GTR70E WYVERN, ground-test bench simulators (backend-agnostic, no Tk).
 
 Pure functions + matplotlib-Figure builders for three bench tools surfaced in the datagen GUI:
   1. Static motor tester -> select a motor, get its thrust curve + the axial load-cell trace a

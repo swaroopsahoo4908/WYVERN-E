@@ -2,38 +2,38 @@
   "atmospheres": {
     "ISA 15\u00b0C": {
       "rho_sl": 1.225,
-      "q_peak_Pa": 724.0,
-      "max_pitch_dev_deg": 2.08,
-      "max_gimbal_deg": 2.34,
-      "max_pitch_dev_scheduled_deg": 1.87,
-      "improvement_pct": 10.1
+      "q_peak_Pa": 838.0,
+      "max_pitch_dev_deg": 2.23,
+      "max_gimbal_deg": 2.55,
+      "max_pitch_dev_scheduled_deg": 2.02,
+      "improvement_pct": 9.5
     },
     "Cold \u221215\u00b0C": {
       "rho_sl": 1.367,
-      "q_peak_Pa": 793.0,
-      "max_pitch_dev_deg": 2.28,
-      "max_gimbal_deg": 2.58,
-      "max_pitch_dev_scheduled_deg": 2.06,
-      "improvement_pct": 9.8
+      "q_peak_Pa": 916.0,
+      "max_pitch_dev_deg": 2.45,
+      "max_gimbal_deg": 2.81,
+      "max_pitch_dev_scheduled_deg": 2.22,
+      "improvement_pct": 9.2
     },
     "Hot +40\u00b0C": {
       "rho_sl": 1.121,
-      "q_peak_Pa": 671.0,
-      "max_pitch_dev_deg": 1.92,
-      "max_gimbal_deg": 2.16,
-      "max_pitch_dev_scheduled_deg": 1.72,
-      "improvement_pct": 10.3
+      "q_peak_Pa": 778.0,
+      "max_pitch_dev_deg": 2.07,
+      "max_gimbal_deg": 2.36,
+      "max_pitch_dev_scheduled_deg": 1.87,
+      "improvement_pct": 9.7
     },
     "High DA 1500m": {
       "rho_sl": 1.025,
-      "q_peak_Pa": 621.0,
-      "max_pitch_dev_deg": 1.78,
-      "max_gimbal_deg": 1.99,
-      "max_pitch_dev_scheduled_deg": 1.59,
-      "improvement_pct": 10.5
+      "q_peak_Pa": 721.0,
+      "max_pitch_dev_deg": 1.92,
+      "max_gimbal_deg": 2.18,
+      "max_pitch_dev_scheduled_deg": 1.73,
+      "improvement_pct": 9.9
     }
   },
-  "worst_case_pitch_dev_deg": 2.28,
+  "worst_case_pitch_dev_deg": 2.45,
   "all_inside_5deg_gimbal": true,
-  "recommendation": "Margin-validated gains Kp=0.10 Ki=0.40 Kd=0.18 (see Documentation/PID_TUNING_REPORT.md; Kp=2.0/Ki=0.4/Kd=0.5 has negative stability margin once the 2ms loop delay is modeled alongside the 40ms servo lag) hold <~2.3\u00b0 across all atmospheres + mid/late gusts; gain-scheduling adds <1% (F15 thrust is nearly flat) \u21d2 keep a simple fixed-gain PID."
+  "recommendation": "Margin-validated gains Kp=0.10 Ki=0.40 Kd=0.18 (see Documentation/PID_TUNING_REPORT.md; Kp=2.0/Ki=0.4/Kd=0.5 has negative stability margin once the 2ms loop delay is modeled alongside the 40ms servo lag) hold <~2.5\u00b0 across all atmospheres + mid/late gusts; gain-scheduling adds <1% (F15 thrust is nearly flat) \u21d2 keep a simple fixed-gain PID."
 }

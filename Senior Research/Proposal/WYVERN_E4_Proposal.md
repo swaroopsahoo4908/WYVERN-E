@@ -1,10 +1,10 @@
-# WYVERN-E, Research Proposal
+# GTR70E WYVERN, Research Proposal
 
-### A Skylight Rocketry Venture · 70 mm Single-Stage Servo-TVC Sustainer
+### 70 mm Single-Stage Servo-TVC Sustainer
 ##### Allison Hong · Chris Liu · Swaroop K. Sahoo
 
 ## Executive Summary
-WYVERN-E is a 70 mm, single-stage, **3D-printed active-thrust-vector-control (TVC)** research
+GTR70E WYVERN is a 70 mm, single-stage, **3D-printed active-thrust-vector-control (TVC)** research
 rocket that demonstrates closed-loop flight stabilization on a bare-metal **Raspberry Pi Pico 2 W (RP2350)** flight
 computer, powered by the **Estes F15-4**. It carries four 72 mm fins (no ballast) for
 **passive stability during launch and the F15 ignition spike**, after which (t ≥ 0.5 s) the TVC loop
@@ -23,7 +23,7 @@ aerodynamic surfaces, the method used by every orbital launch vehicle. A small, 
 printed TVC vehicle makes the control problem tangible while producing real flight data.
 
 ### 1.2 WYVERN lineage
-WYVERN-E 1.0 (interceptor study) → 2.0 (84 mm two-stage, custom avionics) → 3.0 (Raspberry Pi 5,
+GTR70E WYVERN 1.0 (interceptor study) → 2.0 (84 mm two-stage, custom avionics) → 3.0 (Raspberry Pi 5,
 solenoid-vs-servo A/B in flight) established the aero, structures, and avionics groundwork. 4.0
 distills those lessons into the simplest vehicle that still answers the core question: a single
 stage, a single bare-metal controller, and the A/B actuator comparison moved to a repeatable ground

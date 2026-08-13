@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E, DEEP SIM BATCH (F15-4 single-stage, servo TVC, ellipsoid nose + 72 mm fins)
+"""GTR70E WYVERN, DEEP SIM BATCH (F15-4 single-stage, servo TVC, ellipsoid nose + 72 mm fins)
 ================================================================================================
 Second-tier analyses beyond we4_validation.py, the engineering detail behind the GO verdict.
 All use the same vehicle constants / RK4 trajectory as we4_flightsim.py.
@@ -24,7 +24,7 @@ BLU,RED,GRN,ORG,PUR,TEAL="#2a6f97","#bc4749","#386641","#e09f3e","#6d597a","#43a
 # ---------------- vehicle constants (mirror we4_flightsim.py) ----------------
 g,rho0,a0=9.80665,1.225,343.0
 D=0.070; Rb=D/2; A=np.pi*Rb**2; Ltot=0.74; Lnose=0.12
-m_lift,m_dry,PROP,tb=0.7292,0.6272,0.060,3.45 # canonical mass 2026-08-11, was 0.792/0.690
+m_lift,m_dry,PROP,tb=0.698,0.638,0.060,3.45 # canonical mass 2026-08-12, was 0.7292/0.6272
 # CANONICAL values (we4_flightsim.py / wyvern_datagen/core.py). This file previously carried
 # CG=0.467 / Xcp=0.537 -- the pre-ASA-Aero, pre-i3-camera numbers -- so every margin, flutter
 # and CG-tolerance result below was computed against a vehicle that no longer exists.
@@ -214,7 +214,7 @@ tb_=ax.table(cellText=rows,colLabels=["analysis","result","key numbers"],loc="ce
 tb_.auto_set_font_size(False); tb_.set_fontsize(8.5); tb_.scale(1,1.6)
 for i,(k,v) in enumerate(items,1):
     tb_[(i,1)].set_facecolor(GRN if v.get("pass") else RED); tb_[(i,1)].set_text_props(color="white",fontweight="bold")
-ax.set_title(f"WYVERN-E, deep sim batch [{np_}/{nt} pass]",fontweight="bold")
+ax.set_title(f"GTR70E WYVERN, deep sim batch [{np_}/{nt} pass]",fontweight="bold")
 fig.tight_layout(); fig.savefig(f"{OUT}/H_summary.png",dpi=130); plt.close()
 
 print(json.dumps(res,indent=2)); print(f"\n{np_}/{nt} deep checks pass -> {OUT}")

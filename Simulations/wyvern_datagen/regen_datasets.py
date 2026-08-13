@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-WYVERN-E, resumable, parallel dataset regeneration driver.
+GTR70E WYVERN, resumable, parallel dataset regeneration driver.
 
 Why this exists: the full Monte-Carlo regeneration is tens of CPU-minutes, which is longer than
 any single interactive session or CI step wants to hold open. This driver splits the whole job
@@ -111,7 +111,7 @@ def _run_shard(sh):
 
 # ---------------------------------------------------------------- driver
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Resumable parallel WYVERN-E dataset regeneration")
+    ap = argparse.ArgumentParser(description="Resumable parallel GTR70E WYVERN dataset regeneration")
     ap.add_argument("--budget-s", type=float, default=35.0,
                     help="approximate wall-clock budget for this invocation")
     ap.add_argument("--workers", type=int, default=3,

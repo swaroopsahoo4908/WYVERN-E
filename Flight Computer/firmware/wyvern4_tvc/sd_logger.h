@@ -1,4 +1,4 @@
-// WYVERN-E -- SPI microSD flight logger, drained from the inter-core FIFO on core 1.
+// GTR70E WYVERN -- SPI microSD flight logger, drained from the inter-core FIFO on core 1.
 // ==========================================================================================
 // Core 0 pushes one LogFrame per 500 Hz control tick into a lock-free shared-RAM SPSC ring
 // (see the transport section below -- this was the hardware inter-core FIFO, which was 8 words

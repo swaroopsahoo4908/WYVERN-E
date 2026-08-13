@@ -1,4 +1,4 @@
-# WYVERN-E, Recovery Telemetry
+# GTR70E WYVERN, Recovery Telemetry
 
 Recovery runs entirely on the F15-4 motor's own ejection charge, separating the two body tubes at
 the bulkhead joint — see `Documentation/WYVERN_E4_Recovery.md`. There is no altimeter, no e-match,

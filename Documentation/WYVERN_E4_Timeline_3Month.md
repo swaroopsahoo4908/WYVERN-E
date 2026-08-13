@@ -1,4 +1,9 @@
-# WYVERN-E, 3-Month Project Timeline (2026-08-10 → 2026-12-01)
+# GTR70E WYVERN, 3-Month Project Timeline (2026-08-10 → 2026-12-01)
+
+**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
+**Date:** 2026-08-12  
+**Program:** GTR70E WYVERN
+
 
 *Budget: 3 man-hours/week. Does not include 3D-print run time (parts print unattended in the
 background) but does include CAD/design time, starting/queuing prints, and all post-processing

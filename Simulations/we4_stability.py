@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E, fin sizing and passive-stability trade study (Barrowman), remass, re-trajectory,
+"""GTR70E WYVERN, fin sizing and passive-stability trade study (Barrowman), remass, re-trajectory,
 rail-exit, weathercock, flutter, drift -> plots4/.
 
 REWRITTEN 2026-08. The previous version of this file was internally inconsistent in four ways,
@@ -196,7 +196,7 @@ ax.axvline(SPAN_FLOWN * 1000, ls='--', c='#386641', label=f"72 mm FLOWN → {mar
 ax.scatter([s_1p0 * 1000], [1.0], c='k', zorder=5, label=f"min span @1.0 cal = {s_1p0*1000:.0f} mm")
 ax.set_xlabel("fin semispan (mm)"); ax.set_ylabel("static margin (cal)")
 ax.legend(fontsize=8); ax.grid(alpha=.3)
-ax.set_title("WYVERN-E · fin sizing, Barrowman static margin vs semispan (4 fins, canonical mass stack)",
+ax.set_title("GTR70E WYVERN · fin sizing, Barrowman static margin vs semispan (4 fins, canonical mass stack)",
              fontweight='bold'); sv(fig, "13_fin_sizing")
 
 fig, ax = plt.subplots(figsize=(10, 2.8))
@@ -206,7 +206,7 @@ ax.annotate('', xy=(cp72 * 100, 0.5), xytext=(cg72 * 100, 0.5), arrowprops=dict(
 ax.text((cg72 + cp72) * 50, 0.6, f"{marg72:.2f} cal", ha='center', color='g')
 ax.set_xlim(0, Ltot * 100); ax.set_ylim(0, 1); ax.set_yticks([])
 ax.set_xlabel("station from nose (cm)"); ax.legend(loc='upper left')
-ax.set_title("WYVERN-E · CG / CP, FLOWN 72 mm fins, passively stable through the ignition transient",
+ax.set_title("GTR70E WYVERN · CG / CP, FLOWN 72 mm fins, passively stable through the ignition transient",
              fontweight='bold'); sv(fig, "14_cp_cg")
 
 fig, ax = plt.subplots(figsize=(8.5, 5))
@@ -214,13 +214,13 @@ ax.plot(T, H, c="#2a6f97", label="altitude")
 ax.axvline(TB, ls=':', c='g', label="burnout 3.45 s")
 ax.axvline(T_DEPLOY, ls='--', c='k', label=f"motor eject {T_DEPLOY:.2f} s")
 ax.set_xlabel("t (s)"); ax.set_ylabel("altitude (m)"); ax.legend(); ax.grid(alpha=.3)
-ax.set_title(f"WYVERN-E finned (72 mm) · apogee {H[ap]*3.281:.0f} ft · Cd {CD_NOMINAL} · {m72*1000:.0f} g liftoff",
+ax.set_title(f"GTR70E WYVERN finned (72 mm) · apogee {H[ap]*3.281:.0f} ft · Cd {CD_NOMINAL} · {m72*1000:.0f} g liftoff",
              fontweight='bold'); sv(fig, "15_trajectory_finned")
 
 fig, ax = plt.subplots(figsize=(8, 4.5))
 ax.plot(Vw, wc, '-', c="#bc4749", lw=2)
 ax.set_xlabel("crosswind (m/s)"); ax.set_ylabel("weathercock angle (deg)"); ax.grid(alpha=.3)
-ax.set_title(f"WYVERN-E · weathercock vs wind (rail-exit {v_rail_1p5:.1f} m/s off a 1.5 m rail)",
+ax.set_title(f"GTR70E WYVERN · weathercock vs wind (rail-exit {v_rail_1p5:.1f} m/s off a 1.5 m rail)",
              fontweight='bold'); sv(fig, "16_weathercock")
 
 # ---- ballast trade (replaces the orphaned config_optimized.json / config_finned_ballast.json) ---

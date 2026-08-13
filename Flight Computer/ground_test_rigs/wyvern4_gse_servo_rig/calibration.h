@@ -1,4 +1,4 @@
-// WYVERN-E GSE — servo-TVC balance load-cell calibration + thrust-vector reconstruction.
+// GTR70E WYVERN GSE — servo-TVC balance load-cell calibration + thrust-vector reconstruction.
 // ============================================================================================
 // Implements the pseudo-inverse least-squares calibration derived in
 // `MATH_DERIVATIONS.md` section 1 (project artifact `ve7dc4cad_MATH_DERIVATIONS.md`) and the

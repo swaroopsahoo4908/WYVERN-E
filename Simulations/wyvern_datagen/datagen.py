@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-WYVERN-E, Monte-Carlo dataset generator.
+GTR70E WYVERN, Monte-Carlo dataset generator.
 
 Streams millions of datapoints to disk in chunks so memory stays flat regardless of dataset size.
 Three dataset types (all selectable from the GUI or CLI):
@@ -373,7 +373,7 @@ def _cli_progress(done, total, rows, rate):
 
 
 def main(argv=None):
-    p = argparse.ArgumentParser(description="WYVERN-E Monte-Carlo dataset generator")
+    p = argparse.ArgumentParser(description="GTR70E WYVERN Monte-Carlo dataset generator")
     sub = p.add_subparsers(dest="kind", required=True)
     for k in ("outcomes", "tvc"):
         s = sub.add_parser(k); s.add_argument("--n", type=int, required=True)

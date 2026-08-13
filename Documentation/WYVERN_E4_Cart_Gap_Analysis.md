@@ -2,7 +2,12 @@
 updated_at: 2026-08-01
 ---
 
-# WYVERN-E, Cart Gap Analysis (rev 2)
+# GTR70E WYVERN, Cart Gap Analysis (rev 2)
+
+**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
+**Date:** 2026-08-12  
+**Program:** GTR70E WYVERN
+
 
 > ⚠ **Stale vs. 2026-08-10 scope restoration.** This snapshot is checked against the 2026-08
 > jetvane-dropped scope. Jetvane testing is back in the program as of 2026-08-10 (see

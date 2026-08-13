@@ -1,5 +1,5 @@
 // =============================================================================================
-// WYVERN-E — Ground-Test TVC-Balance Rig: Magnetic-Solenoid Gimbal Variant
+// GTR70E WYVERN — Ground-Test TVC-Balance Rig: Magnetic-Solenoid Gimbal Variant
 // =============================================================================================
 // PURPOSE
 //   Bench DAQ + actuation sketch for the solenoid-actuated 2-axis TVC gimbal ground-test stand
@@ -249,7 +249,7 @@ void setup() {
     bno08x.enableReport(SH2_GYROSCOPE_CALIBRATED, 5000);
   }
 
-  Serial.println(F("# WYVERN-E solenoid TVC-balance rig -- boot complete."));
+  Serial.println(F("# GTR70E WYVERN solenoid TVC-balance rig -- boot complete."));
   Serial.println(F("# Commands: TARE | ZERO | SET,<pitch_pct>,<yaw_pct>"));
   Serial.println(
     F("t_ms,raw_z_counts,raw_x_counts,raw_y_counts,Fz_N,Fx_N,Fy_N,thrust_N,theta_deg,phi_deg,"

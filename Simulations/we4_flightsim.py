@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""WYVERN-E, unified RK4 + Barrowman flight engine (single-stage F15-4, FINNED TVC, fly-light).
+"""GTR70E WYVERN, unified RK4 + Barrowman flight engine (single-stage F15-4, FINNED TVC, fly-light).
 RK4 (4th-order) integration of [altitude, velocity] with Barrowman drag buildup and CP/CN reporting."""
 import os,json,numpy as np
 _TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None)) # NumPy 2.x renamed trapz
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 OUT=os.path.join(os.path.dirname(os.path.abspath(__file__)),"plots4"+os.environ.get("WYVERN_RUN_TAG","")); os.makedirs(OUT,exist_ok=True)
 g=9.80665; rho0=1.225; D=0.070; Rb=D/2; A=np.pi*Rb**2; Lnose=0.12; Ltot=0.74
-m_lift=0.7292; m_dry=0.6272; PROP=0.060; tb=3.45; CG=0.5083 # finned 87mm, zoned ASA-Aero/PETG-CF/PC-FR, NO ballast
+m_lift=0.698; m_dry=0.638; PROP=0.060; tb=3.45; CG=0.5011 # 2026-08-12 recompute: finned 87mm, zoned ASA-Aero (upper+lower)/PETG-CF (fins+bulkhead)/PC-FR (TVC), NO ballast
 # --- Barrowman aero (nose + 4x 87 mm fins, PETG-CF; span increased 72->87mm 2026-08-10 to hold margin ---
 # --- after the ASA-Aero/PETG-CF/PC-FR material re-zoning shifted CG aft) ---
 def barrowman_cp():
@@ -63,6 +63,6 @@ json.dump(res,open(f"{OUT}/flightsim_summary.json","w"),indent=1)
 fig,ax=plt.subplots(figsize=(9,5)); ax.plot(T,H,c="#2a6f97",label="altitude (m)"); ax.set_xlabel("t (s)"); ax.set_ylabel("altitude (m)",color="#2a6f97")
 a2=ax.twinx(); a2.plot(T,V,c="#bc4749"); a2.set_ylabel("velocity (m/s)",color="#bc4749")
 ax.axvline(tb,ls=':',c='g'); ax.axvline(T_DEPLOY,ls='--',c='k'); ax.text(tb+.05,5,"burnout"); ax.text(T_DEPLOY+.05,H[ap]*0.5,f"motor eject {T_DEPLOY:.2f} s")
-ax.set_title(f"WYVERN-E · RK4+Barrowman · apogee {res['apogee_ft']:.0f} ft @ {res['apogee_t']} s · deploy {res['deploy_v']} m/s",fontweight='bold'); ax.grid(alpha=.3)
+ax.set_title(f"GTR70E WYVERN · RK4+Barrowman · apogee {res['apogee_ft']:.0f} ft @ {res['apogee_t']} s · deploy {res['deploy_v']} m/s",fontweight='bold'); ax.grid(alpha=.3)
 fig.tight_layout(); fig.savefig(f"{OUT}/01_trajectory.png",dpi=130); plt.close()
 print(json.dumps(res,indent=1))

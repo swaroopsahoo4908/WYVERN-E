@@ -1,4 +1,4 @@
-// WYVERN-E — barometric altitude driver: BME680 (0x76) on the shared I2C bus, BMP388 optional.
+// GTR70E WYVERN — barometric altitude driver: BME680 (0x76) on the shared I2C bus, BMP388 optional.
 // =================================================================================================
 // RECONCILED 2026-08-11 against the real PCB1 netlist/BOM: there is no PCA9548A mux and no second
 // I2C bus on this board. BME680 (U3) shares the single GP0/GP1 bus with everything else (see

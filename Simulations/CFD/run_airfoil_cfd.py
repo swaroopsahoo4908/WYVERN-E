@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E -- 2D airfoil CFD (vortex panel method) for the fin profiles.
+"""GTR70E WYVERN -- 2D airfoil CFD (vortex panel method) for the fin profiles.
 
 Restored 2026-08-10 (deleted during the 2026-08 wind-tunnel-removal scope change,
 see CONFLICTS.md sec7). RQ numbering below uses the current five-RQ scheme: fin

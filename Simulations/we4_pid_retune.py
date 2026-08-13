@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E, pitch-axis TVC PID re-tune (numerical, margin + nonlinear validated).
+"""GTR70E WYVERN, pitch-axis TVC PID re-tune (numerical, margin + nonlinear validated).
 =========================================================================================
 Re-derives the flight PID gains in firmware/wyvern_pid.h and Simulations/pid_reference.py.
 
@@ -40,7 +40,7 @@ trapz = np.trapezoid if hasattr(np, "trapezoid") else _TRAPZ
 
 # ---------------- vehicle params (mirrors we4_atmos_tvc.py / we4_flightsim.py) ----------------
 g = 9.80665; D = 0.070; A = np.pi*(D/2)**2; Ltot = 0.74
-m_lift, m_dry, PROP, tb = 0.7292, 0.6272, 0.060, 3.45  # canonical mass 2026-08-11, was 0.792/0.690
+m_lift, m_dry, PROP, tb = 0.698, 0.638, 0.060, 3.45  # canonical mass 2026-08-12, was 0.7292/0.6272
 # CANONICAL stability constants (we4_flightsim.py / we4_stability.py / wyvern_datagen/core.py).
 # These were CG=0.467 / Xcp=0.537 / x_gimbal=0.72 -- the pre-ASA-Aero, pre-i3-camera vehicle --
 # so the aero restoring stiffness k = q*A*CN*(Xcp-CG) and the control moment arm (x_gimbal-CG)
@@ -250,7 +250,7 @@ if __name__ == "__main__":
     ax[0].plot(idx, pm_o, "o-", c="#bc4749", ms=4, label=f"OLD Kp={OLD[0]}/Ki={OLD[1]}/Kd={OLD[2]} (worst {wpm_old:.1f}°)")
     ax[0].plot(idx, pm_n, "s-", c="#386641", ms=4, label=f"ADOPTED Kp={ADOPTED[0]}/Ki={ADOPTED[1]}/Kd={ADOPTED[2]} (worst {wpm_a:.1f}°)")
     ax[0].set_ylabel("phase margin (deg)"); ax[0].grid(alpha=.3); ax[0].legend(fontsize=8, loc="upper right")
-    ax[0].set_title("WYVERN-E, TVC PID stability margins across 24 operating points "
+    ax[0].set_title("GTR70E WYVERN, TVC PID stability margins across 24 operating points "
                     "(4 atmospheres x 6 burn-time slices)", fontweight="bold")
     ax[1].axhspan(-100, 6, color="#bc4749", alpha=0.10)
     ax[1].axhline(6, ls="--", c="#bc4749", lw=1.2, label="GM floor 6 dB")

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E, FLIGHT VALIDATION SUITE
+"""GTR70E WYVERN, FLIGHT VALIDATION SUITE
 ================================================================================
 Eight independent simulations, each with a hard PASS/FAIL gate, that together
 answer one question: will the vehicle fly safely and predictably on an F15-4?
@@ -29,7 +29,7 @@ BLU, RED, GRN, ORG, PUR = "#2a6f97", "#bc4749", "#386641", "#e09f3e", "#6d597a"
 g, rho0 = 9.80665, 1.225
 D = 0.070; Rb = D/2; A = np.pi*Rb**2 # 70 mm airframe
 Lnose, Ltot = 0.12, 0.74
-m_lift, m_dry, PROP, tb = 0.7292, 0.6272, 0.060, 3.45  # canonical mass 2026-08-11, was 0.792/0.690
+m_lift, m_dry, PROP, tb = 0.698, 0.638, 0.060, 3.45  # canonical mass 2026-08-12, was 0.7292/0.6272
 # Canonical liftoff CG (we4_sim mass stack / we4_flightsim / core.py). This file carried 0.467,
 # the pre-ASA-Aero, pre-i3-camera value, so every margin gate below was scored against a
 # vehicle that no longer exists -- and reported 1.44 cal where the real margin is 1.10.
@@ -261,7 +261,7 @@ gates["structure_SF"]=dict(value=round(PCFR_yield/sigma,1), limit=">= 3", **{"pa
 # ===================================================================================================
 npass=sum(1 for v in gates.values() if v["pass"]); ntot=len(gates)
 verdict="GO, all gates pass" if npass==ntot else f"REVIEW, {ntot-npass} gate(s) flagged"
-summary=dict(vehicle="WYVERN-E (70 mm, F15-4, ellipsoid nose + 72 mm fins, no ballast)",
+summary=dict(vehicle="GTR70E WYVERN (70 mm, F15-4, ellipsoid nose + 72 mm fins, no ballast)",
              liftoff_mass_kg=m_lift, apogee_m=round(apogee,1), apogee_ft=round(apogee*3.281,0),
              v_max_ms=round(v_max,1), mach_max=round(M_max,3), a_max_g=round(a_max,2),
              maxQ_Pa=round(maxQ,0), descent_ms=round(v_desc,1), CEP_m=round(cep,0),
@@ -270,7 +270,7 @@ json.dump(summary, open(f"{OUT}/validation_summary.json","w"), indent=2)
 
 # verdict figure (table)
 fig,ax=plt.subplots(figsize=(10,6)); ax.axis("off")
-ax.set_title(f"WYVERN-E, Flight Validation [{npass}/{ntot} gates pass] {verdict}", fontweight="bold", fontsize=12)
+ax.set_title(f"GTR70E WYVERN, Flight Validation [{npass}/{ntot} gates pass] {verdict}", fontweight="bold", fontsize=12)
 rows=[[k, str(v["value"]), v["limit"], "PASS" if v["pass"] else "FLAG"] for k,v in gates.items()]
 tb_=ax.table(cellText=rows, colLabels=["gate","value","limit","result"], loc="center", cellLoc="left")
 tb_.auto_set_font_size(False); tb_.set_fontsize(9); tb_.scale(1,1.5)

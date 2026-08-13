@@ -1,6 +1,10 @@
-# WYVERN-E, PID Auto-Tune & First-Flight Gain Confirmation
+# GTR70E WYVERN, PID Auto-Tune & First-Flight Gain Confirmation
 
-### A Skylight Rocketry Venture
+**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
+**Date:** 2026-08-12  
+**Program:** GTR70E WYVERN
+
+
 ##### Time-domain robustness confirmation of the TVC pitch gains, complementing the frequency-domain margin analysis
 
 ## 1. Result (headline)
@@ -43,7 +47,7 @@ flight choice:
 
 - At the higher winds that dominate the averaged cost (9–12 m/s), the steady-state pitch error is
   **~17° for *every* gain set, including the firmware set**, because the ±5° gimbal is
-  **authority-saturated** (a 729 g, ~2 T/W vehicle simply cannot vector enough thrust to hold
+  **authority-saturated** (a 698 g, ~2.1 T/W vehicle simply cannot vector enough thrust to hold
   attitude against that much crosswind). When the gimbal is saturated, integral action cannot move
   it further, so dropping Ki shaves a sliver of "wasted" gimbal effort and wins by ~4 %, a number
   well inside model noise.
@@ -72,7 +76,7 @@ this vehicle. Practical consequences:
 
 ## 6. First-flight readiness
 
-- Gains **Kp 0.10 / Ki 0.40 / Kd 0.18**, frozen in `firmware/wyvern4_tvc/wyvern_pid.h`, confirmed by
+- Gains **Kp 0.10 / Ki 0.40 / Kd 0.18**, frozen in `firmware/gtr70e_wyvern_tvc/wyvern_pid.h`, confirmed by
   frequency-domain margins **and** time-domain robust auto-tune. **No change for first flight.**
 - Anti-windup is present (integral clamped to the gimbal limit), so integral is safe even when
   saturated.

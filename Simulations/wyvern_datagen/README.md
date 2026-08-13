@@ -1,10 +1,10 @@
-# WYVERN-E, Simulation & Dataset Suite
+# GTR70E WYVERN, Simulation & Dataset Suite
 
 Start from loaded:
-cd ~/"Library/Mobile Documents/iCloud~md~obsidian/Documents/Skylight/Projects/Skylight/WYVERN/WYVERN-E/Simulations/wyvern_datagen"
+cd ~/"Library/Mobile Documents/iCloud~md~obsidian/Documents/Skylight/Projects/Skylight/WYVERN/GTR70E WYVERN/Simulations/wyvern_datagen"
 /opt/homebrew/bin/python3 run_gui.py
 
-One Python GUI + engine that generates **millions of atmospheric datapoints** for the WYVERN-E
+One Python GUI + engine that generates **millions of atmospheric datapoints** for the GTR70E WYVERN
 rocket, and links the project's existing single-run simulation engines under the same window.
 
 This replaces the old Java/OpenRocket `arc-sim` tool (which was wired to the CSW project, its
@@ -29,7 +29,7 @@ brew install python-tk # modern Tk 8.6 for the GUI
 ```bash
 # a) double-click launch.command in Finder (auto-picks a working Python), OR
 # b) from a terminal:
-cd ~/"Library/Mobile Documents/iCloud~md~obsidian/Documents/Skylight/Projects/WYVERN/WYVERN-E/Simulations/wyvern_datagen"
+cd ~/"Library/Mobile Documents/iCloud~md~obsidian/Documents/Skylight/Projects/WYVERN/GTR70E WYVERN/Simulations/wyvern_datagen"
 /opt/homebrew/bin/python3 run_gui.py
 ```
 

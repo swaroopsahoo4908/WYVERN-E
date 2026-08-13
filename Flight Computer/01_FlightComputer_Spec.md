@@ -1,4 +1,4 @@
-# WYVERN-E, Flight Computer Specification
+# GTR70E WYVERN, Flight Computer Specification
 
 ### Single Raspberry Pi Pico 2 W (RP2350), flight computer *and* real-time TVC controller
 
@@ -92,7 +92,7 @@ hardware PWM to the 2 servos → push a log frame to the core-1 ring buffer. Ser
 modelled) keeps the gimbal inside ±8° with authority headroom (low-wind pitch dev <4°; halved saturation vs ±5°). At burnout thrust → 0 ⇒ no control
 authority ⇒ coast to the F15-4 ejection (~t = 7.5 s, 0.7 s past apogee), which separates the two
 body tubes at the bulkhead joint and deploys the chute. The 2 ms cycle budget is comfortable at
-150 MHz with the hardware FPU. Firmware lives in the Arduino IDE sketch folder `firmware/wyvern4_tvc/`
+150 MHz with the hardware FPU. Firmware lives in the Arduino IDE sketch folder `firmware/gtr70e_wyvern_tvc/`
 (sketch name = folder name, all `.h` files are tabs, see `Documentation/COMPATIBILITY.md` and
 `Documentation/CONFLICTS.md`).
 

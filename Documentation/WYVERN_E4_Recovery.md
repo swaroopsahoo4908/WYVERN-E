@@ -1,4 +1,9 @@
-# WYVERN-E, Recovery
+# GTR70E WYVERN, Recovery
+
+**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
+**Date:** 2026-08-12  
+**Program:** GTR70E WYVERN
+
 
 Recovery runs entirely on the F15-4's own ejection charge: no CO2 system, no solenoids, drivers,
 cartridges, or needles, no recovery battery, no altimeter-triggered deploy. The flight computer does
@@ -18,8 +23,8 @@ cleanly. The bulkhead carries **pass-through holes** for the servo signal/power 
 STEMMA-QT cable running from the flight computer (Upper BT) to the **single external BNO085**
 mounted right at the TVC-bay/electronics boundary — the fwd end of the Lower BT / aft end of the
 Upper BT, immediately adjacent to the bulkhead joint itself, not deep in the TVC bay on the gimbal.
-The custom flight computer PCB is a **circular Ø61 mm board**, sized for the Upper BT: 70 mm OD
-airframe less the 1.6 mm wall gives a ~66.8 mm ID, so Ø61 mm clears with **~2.9 mm radial clearance
+The custom flight computer PCB is a **circular Ø62 mm board**, sized for the Upper BT: 70 mm OD
+airframe less the 1.6 mm wall gives a ~66.8 mm ID, so Ø62 mm clears with **~2.4 mm radial clearance
 per side**.
 
 The flight computer PCB carries exactly **one** STEMMA-QT port, so there is one external IMU plus
@@ -119,7 +124,7 @@ from a generic estimate.
 4. **Chute pack + Nomex/wadding:** verify wadding on both bulkhead faces adequately shields the
    canopy and the Upper BT's electronics bay from the ejection gas.
 
-## 9. Why this is the right recovery approach for WYVERN-E
+## 9. Why this is the right recovery approach for GTR70E WYVERN
 
 The motor already carries a perfectly-timed ejection charge, so recovery needs zero electronics,
 zero battery, zero pyro handling — just wadding, a chute, cord, and a joint sized to release at the

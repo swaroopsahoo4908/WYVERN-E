@@ -2,9 +2,13 @@
 updated_at: 2026-08-01
 ---
 
-# WYVERN-E, 14-Day Build-to-Flight Timeline
+# GTR70E WYVERN, 14-Day Build-to-Flight Timeline
 
-### A Skylight Rocketry Venture
+**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
+**Date:** 2026-08-12  
+**Program:** GTR70E WYVERN
+
+
 ##### Day 0 = Saturday 2026-08-01 · paper writing starts Day 15 (Saturday 2026-08-15)
 
 > ⚠ **Superseded pacing, 2026-08-10.** This 14-day order-to-flight sprint plan is dated and its

@@ -1,7 +1,7 @@
 ---
 updated_at: 2026-08-02
 ---
-# wyvern4_gse_solenoid_rig, All Files
+# gtr70e_wyvern_gse_solenoid_rig, All Files
 
 *Auto-generated index, every file and subfolder linked for vault graph connectivity.*
 
@@ -9,5 +9,5 @@ updated_at: 2026-08-02
 
 ## Files
 
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Flight Computer/ground_test_rigs/wyvern4_gse_solenoid_rig/calibration.h]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Flight Computer/ground_test_rigs/wyvern4_gse_solenoid_rig/wyvern4_gse_solenoid_rig.ino]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Flight Computer/ground_test_rigs/gtr70e_wyvern_gse_solenoid_rig/calibration.h]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Flight Computer/ground_test_rigs/gtr70e_wyvern_gse_solenoid_rig/wyvern4_gse_solenoid_rig.ino]]

@@ -9,6 +9,6 @@ updated_at: 2026-08-02
 
 ## Files
 
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots_flight/01_flight_overview.png]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots_flight/02_rq3_reconstruction.png]]
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/plots_flight/_selftest_synthetic_flight.csv]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Simulations/plots_flight/01_flight_overview.png]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Simulations/plots_flight/02_rq3_reconstruction.png]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Simulations/plots_flight/_selftest_synthetic_flight.csv]]

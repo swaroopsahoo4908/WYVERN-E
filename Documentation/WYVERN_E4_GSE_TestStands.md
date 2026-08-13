@@ -1,4 +1,9 @@
-# WYVERN-E, Ground Test Stands & Motor Plan
+# GTR70E WYVERN, Ground Test Stands & Motor Plan
+
+**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
+**Date:** 2026-08-12  
+**Program:** GTR70E WYVERN
+
 
 **2026-08-10: full project spec restored.** Four independent ground-test rigs, one per research
 question that needs physical validation before flight: static fire (RQ2 materials + calibration),
@@ -35,10 +40,10 @@ Sized for the small motors here: **F15 peak 25.3 N**, side force at ±8° ≈ **
 axial + two 1 kg lateral** cells + 3× HX711 → one of the three custom RP2350B flight-computer PCBs
 (2026-08-10: repurposed from a bare Pico DAQ) at 80 SPS. Logging commanded vs
 measured (θ, φ) gives bandwidth, slew, overshoot, and steady-state error for the servo system,
-this is the rig the flight vehicle's actual TVC gets qualified on (`wyvern4_gse_servo_rig`).
+this is the rig the flight vehicle's actual TVC gets qualified on (`gtr70e_wyvern_gse_servo_rig`).
 
 ## 3. Magnetic TVC test stand
-A second, physically separate rig (`wyvern4_gse_solenoid_rig`) using the same three-load-cell
+A second, physically separate rig (`gtr70e_wyvern_gse_solenoid_rig`) using the same three-load-cell
 flexure and DAQ chain as the servo stand, but with the magnetic-solenoid gimbal actuator in place
 of the servo gimbal. Running the identical instrumentation chain on both stands is what makes the
 **RQ1 magnetic-vs-servo A/B comparison** valid, commanded vs measured (θ, φ) from each stand feed

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""WYVERN-E, fully-routed flight wiring schematic (KiCad-7 .kicad_sch).
+"""GTR70E WYVERN, fully-routed flight wiring schematic (KiCad-7 .kicad_sch).
 Unlike the flat-netlist harness, every component is DRAWN and PHYSICALLY WIRED pin-to-pin with
 orthogonal wire segments, junctions, power rails (2S LiPo -> buck -> LDO / GND) and net labels.
 No symbol library required, components are documentation rectangles with real pin stubs + wires.
 
 RECONCILED 2026-08-11 against the actual custom RP2350B PCB1 (netlist/BOM/schematic in PCB/,
-traced pin-by-pin -- see CONFLICTS.md section 4 and firmware/wyvern4_tvc/imu_grv.h's file header).
+traced pin-by-pin -- see CONFLICTS.md section 4 and firmware/gtr70e_wyvern_tvc/imu_grv.h's file header).
 This full rewrite replaces the prior generator, which was built for a never-fabricated board
 (Pico 2 W module, PCA9548A mux + dual I2C bus, GP26 ADC battery divider). The real board has ONE
 bare RP2350B chip, ONE shared I2C bus carrying every sensor by address (no mux), and a real INA226
@@ -195,7 +195,7 @@ for sv in [sv1,sv2]:
 g=cam.p("GND"); poly([g,(g[0]+12,g[1]),(g[0]+12,RAIL_GND)]); junc(g[0]+12,RAIL_GND)
 
 # title + notes
-text(40,8,"WYVERN-E, Flight Wiring (fully routed, all components connected) -- PCB1 custom RP2350B",2.4)
+text(40,8,"GTR70E WYVERN, Flight Wiring (fully routed, all components connected) -- PCB1 custom RP2350B",2.4)
 text(40,300,"One shared I2C bus (no mux), every address netlist-CONFIRMED: body BNO055 0x28, "
              "external BNO085 0x4A (STEMMA-QT, bulkhead-boundary mount), BME680 0x76, LIS3MDL 0x1C. "
              "No BMP388 populated, no WiFi/BLE radio chip on this board. INA226 (U4) has a real "
@@ -207,8 +207,8 @@ text(40,300,"One shared I2C bus (no mux), every address netlist-CONFIRMED: body 
              "expected -- possible SD-power defect, bench-check before trusting flight logging.",1.1)
 
 body_s="\n ".join(S)
-out=f'''(kicad_sch (version 20230121) (generator "wyvern4_connected") (paper "A1")
-  (title_block (title "WYVERN-E Flight Wiring, fully routed") (company "Skylight Rocketry") (rev "5.0"))
+out=f'''(kicad_sch (version 20230121) (generator "gtr70e_wyvern_connected") (paper "A1")
+  (title_block (title "GTR70E WYVERN Flight Wiring, fully routed") (company "Skylight Industries") (rev "5.0"))
   (lib_symbols)
   {body_s}
   (sheet_instances (path "/" (page "1"))))'''

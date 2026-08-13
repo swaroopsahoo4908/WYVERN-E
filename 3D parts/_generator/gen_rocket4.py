@@ -1,17 +1,31 @@
 #!/usr/bin/env python3
-"""WYVERN-E, 70 mm single-stage FINNED TVC sustainer (F15-4, motor-ejection recovery via
+"""GTR70E WYVERN, 70 mm single-stage FINNED TVC sustainer (F15-4, motor-ejection recovery via
 two-body-tube separation at a single bulkhead joint, NO bypass tube) + 3-axis TVC balance
 (servo test stand) + static thrust stand + static deflector.
 
-Architecture as of 2026-08-10 (`Documentation/WYVERN_E4_Recovery.md`, `CONFLICTS.md` §6/§8,
+Architecture as of 2026-08-12 (`Documentation/WYVERN_E4_Recovery.md`, `CONFLICTS.md` §6/§8,
 `Documentation/WYVERN_E4_Mathematics.md`):
 
   Upper BT (ASA-Aero, foamed 0.65 g/cm3): nose + recovery wadding/FC bay (avionics housing,
-            no motor heat, no ejection-gas load -- lightest zone in the stack).
-  Lower BT (PETG-CF, 1.30 g/cm3): chute+cord+wadding zone + TVC bay, ONE continuous tube.
-  TVC assembly (PC-FR, 1.20 g/cm3): motor mount + gimbal only.
+            no motor heat, no ejection-gas load -- lightest zone in the stack). Now also carries
+            4x M3 standoff bosses sized for the Ø62 mm custom PCB1 board (added 2026-08-12).
+  Lower BT (ASA-Aero, foamed 0.65 g/cm3, changed from PETG-CF 2026-08-12): chute+cord+wadding
+            zone + TVC bay, ONE continuous tube. Re-derived hoop stress under the 140 kPa
+            ejection pulse (`WYVERN_E4_FEA_Structural.md` §4.1 load): sigma = p*r/t = 2.93 MPa,
+            SF ~10x vs solid-ASA yield (30 MPa), ~6x even under a conservative 60%-strength-
+            retention assumption for the foamed variant -- comfortable positive margin, same
+            logic as the >>1 flight-load SF elsewhere in that doc, and the change alone recovers
+            ~94 g (188.3 g at 1.30 g/cm3 -> ~94.2 g at 0.65 g/cm3) toward T/W. Fin bond and
+            ejection-gas thermal exposure unaffected by this swap (fins are a separate PETG-CF
+            part bonded to the tube's solid outer perimeter shell, and the bulkhead -- the actual
+            direct-gas-exposure part per FEA_Structural.md §4.2 -- stays PETG-CF, untouched).
+  TVC assembly (PC-FR, 1.20 g/cm3): motor mount + gimbal only. PC-FR is already the LIGHTER of
+            the two non-foamed materials here (1.20 vs PETG-CF's 1.30 g/cm3) and is the one
+            picked for its thermal role next to the nozzle -- swapping it to PETG-CF would add
+            mass, not save it, so it stays PC-FR.
   Bulkhead joint (PETG-CF): the ONE bulkhead between Upper BT and Lower BT, a friction-fit/
-            shear-pin RELEASE joint, NOT gas-sealed.
+            shear-pin RELEASE joint, NOT gas-sealed. Direct ejection-gas-exposure part per
+            FEA_Structural.md §4.2 -- kept PETG-CF, not lightened.
   Fins (PETG-CF): 87 mm span, root 70 / tip 35 / LE-sweep 25 / thickness 3, all mm.
 
 --------------------------------------------------------------------------------------------
@@ -81,6 +95,7 @@ P = dict(
     UPPER_L=round(_OLD_FC_L * _SCALE, 1),
     LOWER_L=round((_OLD_REC_L + _OLD_ENG_L) * _SCALE, 1),
     BULKHEAD_T=4.0,
+    PCB_D=62.0,  # custom PCB1 board diameter (CONFLICTS.md #7, revised from 61mm 2026-08-12)
 )
 DENS = dict(ASAAERO=0.65, PETGCF=1.30, PCFR=1.20)
 report = []
@@ -115,17 +130,31 @@ def upper_bt():
     # bulkhead's rim, 8mm in from the aft face (clear of the bulkhead's own edge chamfer).
     b = tube(P["R"], P["RI"], P["UPPER_L"])
     b = b.cut(retention_screws(P["R"], P["RI"], 8.0, n=3))
+    # PCB1 standoff bosses (added 2026-08-12): 4x M3 heat-set insert bosses on a bolt circle
+    # sized 4mm inside the Ø62mm PCB1 board edge (typical mounting-hole inset), so the board
+    # drops onto real standoffs instead of floating loose in the bore. Placed mid-bay, clear of
+    # the bulkhead retention screws (z=8) and the fwd end.
+    pcb_r = P["PCB_D"] / 2.0
+    boss_z = min(30.0, P["UPPER_L"] - 20.0)
+    for (x, y) in bolt_circle(pcb_r - 4.0, 4):
+        b = b.fuse(insert_boss(M3["BOSS_OD"], M3["BOSS_H"], M3["PILOT"], x, y, boss_z))
     save(b, DROCK, "02_upper_bt_avionics_ASAAero", "ASAAERO")
 
 def lower_bt():
-    # Lower BT: chute+cord+wadding zone AND the TVC bay, ONE continuous PETG-CF tube. Fwd end
+    # Lower BT: chute+cord+wadding zone AND the TVC bay, ONE continuous tube. Fwd end
     # (z=LOWER_L, mates to bulkhead) gets the matching 3x M3 retention screws; aft end gets 2x
     # M3 retention screws into the motor mount's aft centering ring (see motor_mount()).
+    # MATERIAL CHANGE 2026-08-12: PETG-CF (1.30 g/cm3) -> ASA-Aero (0.65 g/cm3) to recover mass
+    # for T/W. Hoop stress under the 140 kPa ejection pulse is 2.93 MPa (module docstring), SF
+    # ~6-10x on ASA-Aero -- comfortable positive margin. The motor mount and gimbal keep PC-FR
+    # for thermal duty next to the nozzle; the bulkhead keeps PETG-CF as the direct-gas-exposure
+    # part (FEA_Structural.md §4.2). This tube itself sees neither the nozzle heat nor a direct
+    # gas-exposure surface, so it's the safe place to take the ASA-Aero win.
     L = P["LOWER_L"]
     b = tube(P["R"], P["RI"], L)
     b = b.cut(retention_screws(P["R"], P["RI"], L - 8.0, n=3))
     b = b.cut(retention_screws(P["R"], P["RI"], 8.0, n=2))
-    save(b, DROCK, "03_lower_bt_chute_tvc_PETGCF", "PETGCF")
+    save(b, DROCK, "03_lower_bt_chute_tvc_ASAAero", "ASAAERO")
 
 def bulkhead_joint():
     # The ONE bulkhead between Upper BT and Lower BT. NOT gas-sealed -- pass-throughs are wiring

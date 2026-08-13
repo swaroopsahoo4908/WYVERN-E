@@ -1,5 +1,10 @@
 # PCB Fabrication Plan, Carvera Air (Isolation Routing)
 
+**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
+**Date:** 2026-08-12  
+**Program:** GTR70E WYVERN
+
+
 General process for milling copper-clad boards on the Carvera Air with the PCB kit, using the `skylight-cam-toolpaths` skill's `gcode_toolpaths.py` library. This is the repeatable workflow, not tied to a specific board, use the DFM ceiling in §1 to decide *which* boards from this repo are actually candidates before running the rest of the process.
 
 ## 1. Design-for-manufacture ceiling, check this before starting

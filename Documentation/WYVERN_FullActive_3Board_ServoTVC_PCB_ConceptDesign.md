@@ -1,12 +1,16 @@
 # WYVERN, Full Active-Control Avionics Stack, Rev 2
 
-### A Skylight Rocketry Venture
+**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
+**Date:** 2026-08-12  
+**Program:** GTR70E WYVERN
+
+
 ##### Three 75 mm circular boards, stacked: Camera/Sensor/Airbrake, Compute/Power/Storage, TVC/Fin/Sensor
 ##### Concept + component-level BOM only. No schematic, footprint, or routing generated, staged for the AI PCB design tool.
 
 ## 0. What changed from Rev 1
 
-Board diameter is fixed at 75 mm (matching the WYVERN-E 2.0 FCM/B1/B2 precedent, Ø69 mm
+Board diameter is fixed at 75 mm (matching the GTR70E WYVERN 2.0 FCM/B1/B2 precedent, Ø69 mm
 4×M3 mount pattern, 2-layer or 4-layer FR4, ENIG). Stack order and board assignments are now
 fixed per Sky's spec below. The Pocket Geiger module is cut, it's a pre-built breakout board,
 not a placeable component, and Sky's rule this pass is that only the camera, the NVMe drive,
@@ -31,7 +35,7 @@ included here since it wasn't asked for this pass.
 ```
 
 All three boards: Ø75.0 mm (r = 37.5 mm) circular Edge.Cuts, 4×M3 mounts on Ø69 mm at
-0/90/180/270°, matching the WYVERN-E 2.0 stack so the same disc-mount hardware carries over.
+0/90/180/270°, matching the GTR70E WYVERN 2.0 stack so the same disc-mount hardware carries over.
 
 ## 2. Board 1, Camera / Sensor / Airbrake driver (top)
 
@@ -60,7 +64,7 @@ servo on the vehicle). Board 1 hosts the physical actuator interface per channel
 FET stage if current limiting is wanted per channel. PWM commands cross the stack from Board 3
 through Board 2 on two dedicated single-ended lines in the general 2×10 headers, a GPIO toggle
 at ≤50 Hz update rate has no bandwidth concern crossing two connectors (same principle validated
-in the WYVERN-E 2.0 two-board spec for the solenoid PWM lines).
+in the GTR70E WYVERN 2.0 two-board spec for the solenoid PWM lines).
 
 | Channel | Connector | Servo (off-board) |
 |---|---|---|
@@ -128,7 +132,7 @@ fidelity, independent of which board hosts the MCU driving the control loop.
 | Fused 9-DoF orientation reference | Bosch BNO085, SH-2 fusion, quaternion out | I2C, shared bus to Board 3 |
 
 The ICM-42688-P's SPI link crossing one stack connector (B2→B3) is the one place this Rev
-departs from the "keep the fast-loop sensor local to the MCU" principle used in WYVERN-E 2.0, 
+departs from the "keep the fast-loop sensor local to the MCU" principle used in GTR70E WYVERN 2.0, 
 that's the direct consequence of Sky's placement call (CG-proximity for the sensor beats
 zero-latency wiring). One connector hop at SPI clock rates well under 24 MHz is still a small
 fraction of a 500 Hz control loop's budget, but it's worth the AI PCB tool giving that link
@@ -186,7 +190,7 @@ converters and duplicate EMI sources.
 
 Board 2 gets 4 layers because it's carrying PCIe (NVMe), the CM5 high-density edge connector
 fanout, and the charger's higher-current power distribution, the same justification the
-WYVERN-E 2.0 spec used for its Board 2 (RP2350B + camera board) 4-layer stackup.
+GTR70E WYVERN 2.0 spec used for its Board 2 (RP2350B + camera board) 4-layer stackup.
 
 ## 7. Power budget
 
@@ -217,5 +221,21 @@ https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf
 https://www.infineon.com/assets/row/public/documents/24/49/infineon-im69d130-datasheet-en.pdf
 
 Other parts (BMP390, BME680, SCD41, LIS3MDL, ICM-42688-P, BNO085, INA226, Savöx SH-0257MG,
-TPS54202) carry forward from Rev 1's citation list and the WYVERN-E 2.0 board precedent, same
+TPS54202) carry forward from Rev 1's citation list and the GTR70E WYVERN 2.0 board precedent, same
 parts, same sourcing, just reassigned across the new three-board split.
+
+## References
+
+CEVA, Inc. (2023). *BNO08X datasheet* (Rev. 1.17). https://www.ceva-ip.com/wp-content/uploads/BNO080_085-Datasheet.pdf
+
+EMAX. (n.d.). *ES08MA II 12 g mini metal gear analog servo* [Product specification]. Retrieved August 12, 2026, from https://www.getfpv.com/emax-es08ma-ii-12g-mini-metal-gear-analog-servo-for-rc-model.html
+
+Estes Industries. (n.d.). *F15-4 engines* [Product specification]. Retrieved August 12, 2026, from https://estesrockets.com/products/f15-4-engines
+
+Federal Aviation Administration. (n.d.). *14 CFR Part 101 — Moored balloons, kites, amateur rockets, and unmanned free balloons*. Electronic Code of Federal Regulations. https://www.ecfr.gov/current/title-14/chapter-I/subchapter-F/part-101
+
+National Fire Protection Association. (2018). *NFPA 1122: Code for model rocketry*. https://www.nfpa.org/product/nfpa-1122-code/p1122code
+
+Raspberry Pi Ltd. (2024). *RP2350 datasheet*. https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf
+
+Texas Instruments. (n.d.). *TPS564201: 4.5-V to 17-V input, 4-A synchronous step-down voltage regulator* (SLVSFB5) [Datasheet]. https://www.ti.com/lit/ds/symlink/tps564201.pdf

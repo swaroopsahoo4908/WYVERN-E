@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E, PID reference implementation (matches firmware/wyvern_pid.h exactly).
+"""GTR70E WYVERN, PID reference implementation (matches firmware/wyvern_pid.h exactly).
 Discrete PID: integral-clamp anti-windup + first-order filtered derivative + output clamp.
 
 Flight gains (re-tuned numerically; see ../Documentation/PID_TUNING_REPORT.md):
@@ -18,7 +18,7 @@ Run as a script to print a small step-response demo.
 import numpy as np
 
 class PID:
-    """Numerically equivalent to firmware/wyvern4_tvc/wyvern_pid.h (verified to 1.2e-9 rad,
+    """Numerically equivalent to firmware/gtr70e_wyvern_tvc/wyvern_pid.h (verified to 1.2e-9 rad,
     i.e. float32 rounding, over a 2000-tick pseudo-random error sequence)."""
     def __init__(self, kp, ki, kd, out_lim, tau_d=0.02, i_lim=0.4):
         self.kp, self.ki, self.kd = kp, ki, kd

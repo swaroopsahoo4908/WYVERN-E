@@ -1,4 +1,4 @@
-// WYVERN-E — dual-IMU attitude driver (onboard BNO055 + external BNO085) with 2-of-2 voting.
+// GTR70E WYVERN — dual-IMU attitude driver (onboard BNO055 + external BNO085) with 2-of-2 voting.
 // =====================================================================================================
 // RECONCILED 2026-08-11 against the ACTUAL fabricated PCB1 netlist/BOM/schematic
 // (PCB/Netlist_PCB1_2026-08-11.tel, PCB/BOM_Board1_PCB1_2026-08-11.xlsx,

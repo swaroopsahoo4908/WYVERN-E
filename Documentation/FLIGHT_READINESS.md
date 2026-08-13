@@ -1,4 +1,9 @@
-# WYVERN-E Flight Computer, Flight-Readiness Document
+# GTR70E WYVERN Flight Computer, Flight-Readiness Document
+
+**Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
+**Date:** 2026-08-12  
+**Program:** GTR70E WYVERN
+
 
 **⚠ Open item (2026-08-09):** flight hardware is now a custom RP2350B PCB with one external
 STEMMA-QT port (one external BNO085 at the TVC-bay/electronics boundary, see
@@ -86,22 +91,22 @@ the air, and the go/no-go sequence.
 
 ## 6. Firmware file map
 
-The flight firmware is now a proper Arduino IDE sketch folder, `wyvern4_tvc/` (folder name matches
+The flight firmware is now a proper Arduino IDE sketch folder, `gtr70e_wyvern_tvc/` (folder name matches
 the `.ino` filename, as the IDE requires), containing the main sketch plus every header as a tab in
-the same folder. Open `wyvern4_tvc/wyvern4_tvc.ino` in the IDE and every file below loads as a tab.
+the same folder. Open `gtr70e_wyvern_tvc/wyvern4_tvc.ino` in the IDE and every file below loads as a tab.
 
 | File | Role |
 |---|---|
-| `wyvern4_tvc/wyvern4_tvc.ino` | Main sketch: pin map, dual-core ownership, state machine, setup/loop |
-| `wyvern4_tvc/wyvern_pid.h` | Dual-axis PID: anti-windup, filtered derivative, slew limit, bumpless reset. Frozen gains: Kp=0.10/Ki=0.40/Kd=0.18 (margin-verified retune, §2 item 1) |
-| `wyvern4_tvc/i2c_mux.h` | PCA9548A driver: channel select/cache, bus recovery |
-| `wyvern4_tvc/imu_grv.h` | Tri-IMU GRV driver, quaternion math, 2-of-2 voting, body accelerometer |
-| `wyvern4_tvc/baro.h` | BME680 + BMP388 (Adafruit 3966) combined driver, ground-datum altitude |
-| `wyvern4_tvc/battery.h` | 2S LiPo ADC monitor (GP26 100k/62k divider; 6.4/6.0 V cutoffs); voltage now also snapshotted cross-core into every log row |
-| `wyvern4_tvc/launch_status.h` | Launch-detect, camera gate, status LED/buzzer patterns |
-| `wyvern4_tvc/sd_logger.h` | **Schema v2**: 37-field `LogFrame` (up from 19) + inter-core FIFO + microSD flight logger. Adds flight time, loop-timing jitter, IMU vote disagreement, commanded setpoint, per-axis P/I/D term breakdown, battery flags/voltage, and cumulative dropped-frame count, see the header's schema-v2 comment for the full rationale |
-| `wyvern4_tvc/rrc3_telemetry.h` | **Deprecated stub**, RRC3+ removed (motor-ejection recovery); no longer included by the sketch |
-| `wyvern4_tvc/wifi_telemetry.h` | Optional CYW43439 UDP bench telemetry broadcaster |
+| `gtr70e_wyvern_tvc/wyvern4_tvc.ino` | Main sketch: pin map, dual-core ownership, state machine, setup/loop |
+| `gtr70e_wyvern_tvc/wyvern_pid.h` | Dual-axis PID: anti-windup, filtered derivative, slew limit, bumpless reset. Frozen gains: Kp=0.10/Ki=0.40/Kd=0.18 (margin-verified retune, §2 item 1) |
+| `gtr70e_wyvern_tvc/i2c_mux.h` | PCA9548A driver: channel select/cache, bus recovery |
+| `gtr70e_wyvern_tvc/imu_grv.h` | Tri-IMU GRV driver, quaternion math, 2-of-2 voting, body accelerometer |
+| `gtr70e_wyvern_tvc/baro.h` | BME680 + BMP388 (Adafruit 3966) combined driver, ground-datum altitude |
+| `gtr70e_wyvern_tvc/battery.h` | 2S LiPo ADC monitor (GP26 100k/62k divider; 6.4/6.0 V cutoffs); voltage now also snapshotted cross-core into every log row |
+| `gtr70e_wyvern_tvc/launch_status.h` | Launch-detect, camera gate, status LED/buzzer patterns |
+| `gtr70e_wyvern_tvc/sd_logger.h` | **Schema v2**: 37-field `LogFrame` (up from 19) + inter-core FIFO + microSD flight logger. Adds flight time, loop-timing jitter, IMU vote disagreement, commanded setpoint, per-axis P/I/D term breakdown, battery flags/voltage, and cumulative dropped-frame count, see the header's schema-v2 comment for the full rationale |
+| `gtr70e_wyvern_tvc/rrc3_telemetry.h` | **Deprecated stub**, RRC3+ removed (motor-ejection recovery); no longer included by the sketch |
+| `gtr70e_wyvern_tvc/wifi_telemetry.h` | Optional CYW43439 UDP bench telemetry broadcaster |
 | `test_code/host_monitor.py` | Parses the live serial protocol, tabulates self-test + heartbeat |
 | `test_code/selftest.py` | Go/no-go wrapper around `host_monitor.py` for the bench sequence above |
 | `docs/CONFLICTS.md` | Design-conflict memo + frozen parameter table (read this first) |

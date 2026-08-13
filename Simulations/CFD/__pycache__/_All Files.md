@@ -9,4 +9,4 @@ updated_at: 2026-07-30
 
 ## Linked Items (auto-added)
 
-- [[Projects/Skylight/WYVERN/WYVERN-E/WYVERN Project/Simulations/CFD/__pycache__/airfoil_profiles.cpython-310.pyc]]
+- [[Projects/Skylight/WYVERN/GTR70E WYVERN/WYVERN Project/Simulations/CFD/__pycache__/airfoil_profiles.cpython-310.pyc]]

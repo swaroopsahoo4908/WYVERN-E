@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WYVERN-E 2.0 fin cross-section geometry for the panel-method CFD.
+"""GTR70E WYVERN 2.0 fin cross-section geometry for the panel-method CFD.
 
 Generates closed coordinate loops (ordered clockwise from the trailing edge,
 over the top to the LE, under the bottom back to the TE) for the four RQ1 fin

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-wcad.py -- WYVERN-E 2.0 thin CAD helper over the OpenCASCADE (OCP) kernel.
+wcad.py -- GTR70E WYVERN 2.0 thin CAD helper over the OpenCASCADE (OCP) kernel.
 Exports both STEP (B-rep, CAD-editable) and STL (mesh, printable) from one solid.
 All units mm. +Z is the rocket long axis (nose up).
 """

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-WYVERN-E, Simulation & Dataset Suite (single desktop GUI).
+GTR70E WYVERN, Simulation & Dataset Suite (single desktop GUI).
 
 Tabs:
   1. Atmospheric Datasets : Monte-Carlo generator (outcomes / time-series / TVC) with envelope
@@ -262,7 +262,7 @@ PRESETS = {
 class Suite(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("WYVERN-E, Simulation & Dataset Suite")
+        self.title("GTR70E WYVERN, Simulation & Dataset Suite")
         try: # old macOS system Tk 8.5 fails to paint 'aqua'
             style = ttk.Style(self)
             mm = tuple(int(x) for x in self.tk.call("info", "patchlevel").split(".")[:2])
@@ -1095,7 +1095,7 @@ class Suite(tk.Tk):
         f = ttk.Frame(nb); nb.add(f, text="About")
         txt = tk.Text(f, wrap="word"); txt.pack(fill="both", expand=True, padx=10, pady=10)
         txt.insert("end",
-            "WYVERN-E, Simulation & Dataset Suite\n"
+            "GTR70E WYVERN, Simulation & Dataset Suite\n"
             "==========================================\n\n"
             "Canonical vehicle (matches we4_flightsim.py):\n"
             f" Liftoff {core.M_LIFT*1000:.0f} g / dry {core.M_DRY*1000:.0f} g · Estes F15-4 (flight)\n"

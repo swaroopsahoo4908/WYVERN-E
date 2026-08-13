@@ -1,15 +1,35 @@
 #!/usr/bin/env python3
 """
-WYVERN-E, vectorized Monte-Carlo flight-physics core (fidelity revision, 2026-08).
+GTR70E WYVERN, vectorized Monte-Carlo flight-physics core (fidelity revision, 2026-08).
 
 Everything here operates on NumPy arrays of shape (N,) so that N independent flights
 integrate in lock-step; this is what makes million-flight datasets tractable in pure
 Python/NumPy. The nominal physics match `we4_flightsim.py` (the project's canonical
 RK4+Barrowman engine) so datasets are consistent with the single-flight results.
 
-Canonical vehicle (F15-4, zoned ASA-Aero upper body / PETG-CF lower body+fins / PC-FR TVC assembly,
-87 mm fins, i3 cam):
-  m_lift=0.7292 kg, m_dry=0.6272 kg, D = 70 mm, burn 3.45 s, apogee ~121.1 m / 397 ft @ 6.67 s.
+MASS RECOMPUTE, 2026-08-12: bottom-up rebuild from the current CAD (`3D parts/_generator/
+mass_report.json`, real geometry) + real/estimated component masses, replacing the two
+disagreeing prior figures (729/627 g from an earlier reconciliation pass, 705/603 g from
+the original planning-stage brief). Three real changes drove the number down:
+  1. Lower BT tube: PETG-CF -> ASA-Aero (188.3 g -> 94.2 g). Hoop stress under the 140 kPa
+     ejection pulse is 2.93 MPa, SF ~6-10x on ASA-Aero -- comfortable margin (see
+     `3D parts/_generator/gen_rocket4.py` docstring). Motor mount/gimbal keep PC-FR (thermal
+     duty), bulkhead keeps PETG-CF (direct gas-exposure part).
+  2. No separate discrete UBEC line -- the onboard TPS564201 buck (PCB1) already regulates
+     2S -> ~5 V; the "2S LiPo -> one 5V UBEC" in the project brief always meant that buck, not
+     a second physical module. Removing the double-count drops ~5 g.
+  3. Recovery consumables re-itemized (chute 58 g + Nomex 6 g + wadding 6 g = 70 g) instead of
+     the older 137 g bay-lump, which CONFLICTS.md/Mathematics.md had already flagged as "very
+     likely an overstatement" (sized for a sealed-bulkhead architecture that no longer applies).
+  Custom PCB1 assembly mass (Ø62 mm, 2-layer FR4 + all populated parts) is a self-estimate:
+  ~8.9 g bare board (volume x FR4 density 1.85 g/cm3) + ~5.2 g populated components (USB-C,
+  slide switch, fuse, QFN80, 6-7 small sensor/PMIC packages, 4x JST, STEMMA-QT, H1 header,
+  buck inductor, ~40 passives) = ~14 g. No bench scale weight exists yet for this or the LiPo
+  pack (~27 g, comparable-product estimate) -- flag both if a real reading ever contradicts.
+
+Canonical vehicle (F15-4, zoned ASA-Aero upper+lower body / PETG-CF fins+bulkhead / PC-FR TVC
+assembly, 87 mm fins, i3 cam):
+  m_lift=0.698 kg, m_dry=0.638 kg, D = 70 mm, burn 3.45 s (apogee/CG/IYY below re-run this pass).
 
 --------------------------------------------------------------------------------------------
 FIDELITY REVISION 2026-08, what changed relative to the previous core, and why
@@ -62,13 +82,13 @@ RB = D / 2.0
 A = np.pi * RB**2 # reference area [m^2]
 LTOT = 0.74 # overall length [m]
 LNOSE = 0.12
-M_LIFT = 0.7292 # liftoff mass [kg] (canonical, we4_flightsim; ASA-Aero/PETG-CF/PC-FR zoning, 87 mm fins)
-M_DRY = 0.6272 # burnout/dry mass [kg]
+M_LIFT = 0.698 # liftoff mass [kg] (2026-08-12 recompute; ASA-Aero upper+lower/PETG-CF fins+bulkhead/PC-FR TVC, 87 mm fins)
+M_DRY = 0.638 # burnout/dry mass [kg] (airframe 596.0 g + spent motor casing 42 g)
 PROP = 0.060 # propellant mass [kg]
 TB = 3.45 # burn time [s]
-CG=0.5083 # CG from nose [m] (zoned materials + 87 mm fins)
-XCP = 0.5925 # CP from nose [m] (Barrowman, 87 mm fins)
-IYY = 0.0257 # pitch inertia [kg m^2]
+CG=0.5011 # CG from nose [m] (liftoff; 2026-08-12 item-mass recompute, we4_sim.py ITEMS)
+XCP = 0.5925 # CP from nose [m] (Barrowman, 87 mm fins; unaffected by mass changes)
+IYY = 0.02624 # pitch inertia [kg m^2] (2026-08-12 recompute)
 PIVOT = 0.62 # gimbal pivot station from nose [m]
 CN_ALPHA= 12.0 # total normal-force slope [1/rad] (nose+fins, order-of-mag)
 

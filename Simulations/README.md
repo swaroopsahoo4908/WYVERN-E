@@ -1,4 +1,4 @@
-# WYVERN-E, Simulations
+# GTR70E WYVERN, Simulations
 
 - `we4_flightsim.py` → `plots4/01_trajectory.png` + `flightsim_summary.json`, **unified RK4(2e-4) + Barrowman engine** (apogee 397 ft @ 6.67 s, motor-ejection deploy at t=7.45 s / 7.7 m/s, finned margin +1.20 cal).
 - `we4_sim.py` → `plots4/`, mass/CG/inertia, F15-4 trajectory, TVC pitch control + authority,

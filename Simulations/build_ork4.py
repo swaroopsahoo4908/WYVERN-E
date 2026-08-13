@@ -9,7 +9,7 @@ FINS=f'''<trapezoidfinset><name>Stabilizing fins (PLA, 4x 72mm)</name><id>{uuid.
 cfg=str(uuid.uuid4())
 xml=f'''<?xml version='1.0' encoding='utf-8'?>
 <openrocket version="1.9" creator="OpenRocket 23.09"><rocket>
-<name>WYVERN-E 70mm Single-Stage F15-4 TVC (ellipsoid nose, finned 72mm no-ballast, 1.0 cal)</name><id>{uuid.uuid4()}</id>
+<name>GTR70E WYVERN 70mm Single-Stage F15-4 TVC (ellipsoid nose, finned 72mm no-ballast, 1.0 cal)</name><id>{uuid.uuid4()}</id>
 <axialoffset method="absolute">0.0</axialoffset><position type="absolute">0.0</position>
 <motorconfiguration configid="{cfg}" default="true"><stage number="0" active="true"/></motorconfiguration>
 <referencetype>maximum</referencetype><subcomponents><stage><name>Sustainer</name><id>{uuid.uuid4()}</id><subcomponents>
@@ -39,7 +39,7 @@ xml=f'''<?xml version='1.0' encoding='utf-8'?>
 <simulations><simulation status="outdated"><name>4.0 F15-4 finned</name><simulator>RK4Simulator</simulator><calculator>BarrowmanCalculator</calculator>
 <conditions><configid>{cfg}</configid><launchrodlength>1.5</launchrodlength><launchrodangle>0.0</launchrodangle><launchroddirection>0.0</launchroddirection><windaverage>2.0</windaverage><windturbulence>0.1</windturbulence><launchaltitude>200.0</launchaltitude><launchlatitude>40.0</launchlatitude><launchlongitude>-105.0</launchlongitude><geodeticmethod>spherical</geodeticmethod><atmosphere model="extendedisa"><basetemperature>288.15</basetemperature><basepressure>101325.0</basepressure></atmosphere><timestep>0.01</timestep></conditions></simulation></simulations>
 </openrocket>'''
-p=f"{OUT}/WYVERN_E4_F15-4{os.environ.get('WYVERN_RUN_TAG','')}.ork"
+p=f"{OUT}/GTR70E_WYVERN_F15-4{os.environ.get('WYVERN_RUN_TAG','')}.ork"
 with zipfile.ZipFile(p,"w",zipfile.ZIP_DEFLATED) as z: z.writestr("rocket.ork",xml)
 import xml.dom.minidom as M; M.parseString(xml); print("ork OK (FLOWN config: 4x 72 mm PLA fins, NO ballast, +1.20 cal):",os.path.getsize(p),"bytes")
 print("OpenRocket should show ~1.20 cal static margin and ~324 ft apogee on the F15-4.")

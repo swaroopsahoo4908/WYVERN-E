@@ -1,4 +1,4 @@
-// WYVERN-E — TVC-balance load-cell calibration (shared model, servo rig & solenoid rig).
+// GTR70E WYVERN — TVC-balance load-cell calibration (shared model, servo rig & solenoid rig).
 // =============================================================================================
 // Three strain-gauge load cells (1x axial Z 5 kg, 2x lateral X/Y 1 kg) restrain the thrust block
 // through flexures (GSE_TestStands.md section 1). No physical flexure is a perfect single-DOF
