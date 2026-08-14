@@ -14,8 +14,8 @@ instrumented testing, and powered flight:
 - **RQ1, actuator class.** Magnetic-solenoid vs. servo thrust-vector control, compared on two
   physically separate, instrumentally identical three-axis load balances. The vehicle flies servo.
 - **RQ2, zoned materials.** ASA-Aero, PETG-CF, and PC-FR allocated by section (upper body, lower
-  body/fins, TVC assembly), justified by three-point-bend and thermal data, plus a jetvane
-  blast-shield materials screen on the static-fire stand.
+  body/fins, TVC assembly), justified by bend-to-fracture and thermal data, plus a blast-shield
+  materials screen on the static-fire stand.
 - **RQ3, fin aerofoil selection.** Bench wind-tunnel measurement of candidate fin sections,
   cross-checked against a 2D vortex-panel CFD solver.
 - **RQ4, wind-tunnel-vs-flight calibration.** Barrowman-predicted stability checked against both

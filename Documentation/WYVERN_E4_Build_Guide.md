@@ -231,14 +231,18 @@ deflection.** Log commanded vs measured throughout, that difference is the resul
 
 RQ2 is the material justification for the zoning actually flown (ASA-Aero upper body, PETG-CF
 lower body and fins, PC-FR TVC assembly), plus a jetvane materials screen on the static-fire stand,
-run as a blast-shield coupon test (see `WYVERN_E4_GSE_TestStands.md` §1). Print three-point-bend
-coupons in all three flown materials plus the two extra RQ2 comparison
-materials (ABS, PC), and six coupon plates for the blast-shield screen.
+run as a blast-shield coupon test (see `WYVERN_E4_GSE_TestStands.md` §1). Print bend coupons in
+all three flown materials plus the extra RQ2 comparison materials (PLA, PC), and five coupon plates
+for the blast-shield screen.
 
-- **Three-point bend** (Day 7, no motor needed): ASA-Aero, PETG-CF, and PC-FR coupons, identical
-  print parameters, same nozzle, layer height, wall count, infill. Report flexural modulus and
-  stiffness for each. This is the data behind why the TVC assembly is PC-FR and not PETG-CF or
-  ASA-Aero.
+- **Bend to fracture** (Day 7, no motor needed): 2.0 × 15 × 100 mm coupons, printed flat, identical
+  print parameters across materials, same nozzle, layer height, wall count and infill. Simply
+  support each on two 6 mm rollers at an 80 mm span, hang a string and yoke from mid-span, and add
+  dead weight in 500 g steps until it snaps. Record the mass at fracture. Five coupons per material.
+  Fixture and full sizing are in `WYVERN_E4_GSE_TestStands.md` §5; the conversion for this exact
+  geometry is $\sigma_f\,[\text{MPa}] = 19.6\,m\,[\text{kg}]$, and the fixture is built to 6 kg
+  against a worst case near 5 kg. This is the data behind why the TVC assembly is PC-FR and not
+  PETG-CF or ASA-Aero. No load cell is involved — dead weight is the force reference.
 - **Engine-bay wall temperature** (Day 9, during the static fires): tape a thermocouple to the
   inside of the engine-bay wall and log peak temperature across the 3.45 s burn. Compare against
   ASA-Aero's lower HDT and PETG-CF's ~80 °C. The model predicts a wall temperature comfortably
@@ -246,10 +250,11 @@ materials (ABS, PC), and six coupon plates for the blast-shield screen.
   and it validates the zoning decision directly.
 - **Jetvane blast-shield screen** (static-fire campaign): a flat coupon
   plate of each candidate material, 5 mm thick at 100% infill, mounted directly in the exhaust
-  path like a blast shield and fired on. Six materials go through the screen: PLA, PETG-CF, ABS,
-  ASA-Aero, PC, and PC-FR. Response measured is melt-through, ablation depth, and slag buildup, not
-  thrust or deflection. Materials that survive 5 mm without melting through are retested at 4 mm,
-  then 3 mm, then 2 mm, until they fail, giving a failure-thickness ranking across all six.
+  path like a blast shield and fired on. Five materials go through the screen: PLA, PETG-CF,
+  ASA-Aero, PC, and PC-FR; ABS was dropped 2026-08-14. Response measured is melt-through, ablation
+  depth, and slag buildup, not thrust or deflection. Materials that survive 5 mm without melting
+  through are retested at 4 mm, then 3 mm, then 2 mm, until they fail, giving a failure-thickness
+  ranking across all five.
   Feeds directly into RQ2 as a materials-selection data point independent of the flight airframe.
 
 ---

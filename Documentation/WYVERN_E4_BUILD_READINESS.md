@@ -22,7 +22,7 @@ build / 2-week launch schedule in §7 is scoped against that punch-list.
 | Airframe | 70 mm OD, ~0.672 m, single stage, **two body tubes (Lower BT, Upper BT) + one separation bulkhead** |
 | Liftoff / dry mass | **720 g / 660 g** |
 | Motor (flight) | **Estes F15-4** ×4 (4 s delay + ejection charge = recovery) |
-| Motor (ground) | **Estes F15-0** ×13-24 (plugged; static thrust curves + MTVC + servo TVC on the balance + jetvane blast-shield screen) |
+| Motor (ground) | **Estes F15-0** ×13-20 (plugged; static thrust curves + MTVC + servo TVC on the balance + jetvane blast-shield screen) |
 | Commissioning | Estes/AeroTech **E16-4** ×6 |
 | Apogee | **~409 ft / 124.6 m @ 6.72 s** (RK4(2e-4)+Barrowman) |
 | v_max / Mach | **37.1 m/s / Mach 0.108** |
@@ -75,7 +75,7 @@ build / 2-week launch schedule in §7 is scoped against that punch-list.
 ### 3.4 Motor test stands, READY to print/build
 - **Servo TVC stand** (`gtr70e_wyvern_gse_servo_rig`): base, thrust block, flexure template (PETG-CF).
 - **Magnetic TVC stand** (`gtr70e_wyvern_gse_solenoid_rig`): separate physical rig, same flexure/DAQ chain as the servo stand, solenoid gimbal actuator swapped in for the RQ1 A/B comparison.
-- **Static fire stand**: base plate, load-cell bracket, motor tower, steel blast deflector, plus a jetvane/material coupon rack (restored 2026-08-10, see `WYVERN_E4_GSE_TestStands.md` §1). Print PLA/PETG-CF baseline jetvanes and the ABS/PC-FR comparison set alongside the coupon set.
+- **Static fire stand**: base plate, load-cell bracket, motor tower, steel blast deflector, plus a jetvane/material coupon rack (restored 2026-08-10, see `WYVERN_E4_GSE_TestStands.md` §1). Print PLA/PETG-CF baseline jetvanes and the PC/PC-FR comparison set alongside the coupon set (ABS dropped 2026-08-14).
 - **Wind tunnel** (`Wind Tunnel/`): bench aerofoil rig for RQ3/RQ4, assemble per the STL/3MF kit in that folder.
 - DAQ: Raspberry Pi Pico + load cells/HX711 (BOM §10); ground-rig sketches target Pico. Both TVC stands and the static-fire stand share the same DAQ chain for directly comparable data.
 

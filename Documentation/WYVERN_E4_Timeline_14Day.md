@@ -49,7 +49,7 @@ all depend on the same things, so they do not all carry the same risk.
 | RQ | Needs | Gated by | Weather? | Risk if the schedule slips |
 |---|---|---|---|---|
 | **RQ1** actuator A/B | TVC balance + load cells + DAQ + F15-0 × 6 | parts, stand print | No | **Low**, ground only, can run any day |
-| **RQ2** PLA vs PETG-CF | 3-point bend coupons + engine-bay temp from the static fires | filament | No | **Lowest**, coupons print first, no motor needed for the bend tests |
+| **RQ2** zoned materials | bend-to-fracture coupons (dead weight, no load cell) + engine-bay temp from the static fires | filament | No | **Lowest**, coupons print first, no motor needed for the bend tests |
 | **RQ3** predicted vs in-situ stability | **One good flight** + measured wind | full vehicle, range, weather | **Yes** | **Highest**, needs the flight |
 | **RQ4** gain sensitivity | **≥2 flights**, different gain sets | full vehicle, range, weather | **Yes** | **High**, needs repeat flights |
 
@@ -116,7 +116,7 @@ on Day 10.
 | 5–6 | Print both stands: TVC balance base, thrust block, flexure; static stand base plate, load-cell bracket, motor tower. Fit the steel blast deflector. | |
 | 6 | Wire both DAQs (Pico + HX711 × 3 on the balance, × 1 on the static stand). Flash the GSE rig sketches. | |
 | 7 | **Dead-weight calibrate every load-cell channel** before any motor is anywhere near the stand. Known masses across the full range, record the transfer function per channel. | **Gate 4: cal residual < 1%** |
-| 7 | **Print RQ2 coupons**, 3-point bend, PLA and PETG-CF, identical print parameters. Run the bend tests; no motor needed, do this while waiting on parts. | RQ2 bend data |
+| 7 | **Print RQ2 coupons**, 2.0 × 15 × 100 mm in all five materials, identical print parameters, 5 each. Run the bend-to-fracture tests on the 80 mm-span dead-weight fixture; no motor and no load cell needed, do this while waiting on parts. | RQ2 fracture-mass data |
 | 8 | **Commission both stands: 2 × E16-4 each.** Compare measured curve against published. Check for mount ringing, the bench model predicts a 42 Hz resonance that **aliases** against the 80 SPS HX711 sample rate. If you see it, stiffen the mount or drop to 10 SPS. | **Gate 5: measured curve within 10% of published** |
 | 9 | **RQ1 data day: TVC balance A/B.** 3 × F15-0 per actuator class, step and ramp commands, log everything. | **RQ1 DATA COMPLETE** |
 | 9 | **Also measure servo torque margin.** `we4_deepsim` check C now reports only **2.3×** against stall at the full ±8° (it was computed at 5° before). Record servo current and commanded-vs-achieved deflection at the ±8° extremes under thrust. See `WYVERN_E4_BUILD_READINESS.md` §11. | **Servo margin resolved** |
