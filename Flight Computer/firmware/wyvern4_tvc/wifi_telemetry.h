@@ -1,4 +1,4 @@
-// GTR70E WYVERN — optional WiFi/UDP bench telemetry broadcaster. INERT on PCB1 as fabricated: this
+// GTR70E WYVERN — optional WiFi/UDP bench telemetry broadcaster. INERT on the Pico 2 W perfboard as fabricated: this
 // board has no CYW43439 or any other radio chip populated, so WIFI_ENABLED stays 0 (set in
 // wyvern4_tvc.ino) and this code path never runs in flight. Kept for a future board rev or an
 // external WiFi module, not deleted.

@@ -5,7 +5,7 @@ import os,json,numpy as np
 _TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None)) # NumPy 2.x renamed trapz
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 OUT=os.path.join(os.path.dirname(os.path.abspath(__file__)),"plots4"+os.environ.get("WYVERN_RUN_TAG",""))
-g=9.80665;rho0=1.225;D=0.070;A=np.pi*(D/2)**2;m_lift=0.698;m_dry=0.638;tb=3.45  # canonical mass
+g=9.80665;rho0=1.225;D=0.070;A=np.pi*(D/2)**2;m_lift=0.7203;m_dry=0.6603;tb=3.45  # canonical mass
 # F15 thrust curve CORRECTED 2026-08. The digitized shape integrated to 41.97 N.s, so the
 # 49.6 N.s renormalization below scaled the whole curve by 1.1817 and pushed peak thrust to
 # 29.9 N -- against Estes' published 25.3 N peak, and against the 3.26 peak T/W quoted
@@ -38,9 +38,9 @@ ax.set_xlabel("t (s)"); ax.set_ylabel("q (Pa)",color="#bc4749"); a2=ax.twinx()
 Re=rho0*V*D/1.81e-5; a2.plot(T,Re/1e5,c="#386641",label="Reynolds /1e5"); a2.set_ylabel("Re (×10⁵)",color="#386641")
 ax.axvline(tb,ls=':',c='g'); ax.set_title("GTR70E WYVERN · dynamic pressure & Reynolds number",fontweight='bold'); ax.grid(alpha=.3); sv(fig,"18_q_reynolds")
 # 19 in-flight static margin (CG moves aft as propellant burns)
-tt=np.linspace(0,tb,60); CGb=0.467-0.0 # finned no-ballast; prop is aft so CG moves slightly aft during burn
-CG=0.484-0.017*np.clip(tt/tb,0,1) # 48.4 -> 46.7 cm: CG moves FORWARD as propellant burns
-CP=0.525; marg=(CP-CG)/D
+tt=np.linspace(0,tb,60); CGb=0.4350-0.0 # finned no-ballast; prop is aft so CG moves slightly aft during burn
+CG=0.4500-0.015*np.clip(tt/tb,0,1) # 45.0 -> 43.5 cm: CG moves FORWARD as propellant burns
+CP=0.5327; marg=(CP-CG)/D
 fig,ax=plt.subplots(figsize=(8.5,5)); ax.plot(tt,marg,c="#2a6f97",lw=2); ax.axhline(1.0,ls=':',c='g',label="1.0 cal min")
 ax.axvline(0.5,ls='--',c='orange',label="TVC engages 0.5 s"); ax.set_xlabel("burn time (s)"); ax.set_ylabel("static margin (cal)"); ax.legend()
 ax.set_title("GTR70E WYVERN · in-flight static margin (passive cover until TVC at 0.5 s)",fontweight='bold'); ax.grid(alpha=.3); sv(fig,"19_margin_inflight")

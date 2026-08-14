@@ -1,8 +1,8 @@
-// GTR70E WYVERN — barometric altitude driver: BME680 (0x76) on the shared I2C bus, BMP388 optional.
+// GTR70E WYVERN — barometric altitude driver: BME688 (0x76) on the shared I2C bus, BMP388 optional.
 // =================================================================================================
-// There is no PCA9548A mux and no second I2C bus on this board. BME680 (U3) shares the single
+// There is no PCA9548A mux and no second I2C bus on this board. BME688 (U3) shares the single
 // GP0/GP1 bus with everything else (see imu_grv.h's file header for the full trace). The BOM has
-// NO BMP388 -- only BME680 is physically populated on this board rev. The BMP388 code path is left
+// NO BMP388 -- only BME688 is physically populated on this board rev. The BMP388 code path is left
 // in place rather than deleted: it fails closed (begin_I2C() returns false, bmp_ok_ stays false)
 // and every accessor below already degrades gracefully to "use whichever sensor is healthy," so
 // this class works correctly whether or not a BMP388 is ever added on a future rev or plugged in
@@ -16,7 +16,7 @@
 // Both are read every cycle on core 1 (baro is not control-loop-critical at 500 Hz; it's used for:
 // ground datum at BOOT, launch-detect cross-check, apogee/landing detection during DESCENT, and the
 // on-board altitude of record for post-flight reconstruction). Recovery is fully passive motor
-// ejection with no altimeter-triggered deploy hardware on the vehicle, so BME680 alone is the
+// ejection with no altimeter-triggered deploy hardware on the vehicle, so BME688 alone is the
 // altitude record on this board rev -- there is no second-sensor redundancy unless a BMP388 is
 // added externally.
 #pragma once
@@ -68,7 +68,7 @@ public:
     if (bme_ok_) return bme_t_;
     return NAN;
   }
-  float gas_resistance_ohm() const { return bme_ok_ ? bme_gas_ : NAN; }  // BME680 only
+  float gas_resistance_ohm() const { return bme_ok_ ? bme_gas_ : NAN; }  // BME688 only
 
   // Barometric altitude above the BOOT-time pad datum, meters. Standard hypsometric approximation
   // (ISA, valid for the few-hundred-meter altitudes this vehicle flies -- see we4_flightsim.py,

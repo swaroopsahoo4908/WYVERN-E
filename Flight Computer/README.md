@@ -1,31 +1,49 @@
 # GTR70E WYVERN, Flight Computer
 
-*Single custom PCB1 (bare RP2350B, QFN-80, Ø62 mm board), flight computer and real-time TVC controller.*
+*Raspberry Pi Pico 2 W on a 20 x 24 perfboard, flight computer and real-time TVC controller.*
 
-See `01_FlightComputer_Spec.md` for the full architecture writeup.
+See `01_FlightComputer_Spec.md` for the full architecture writeup, and
+`Documentation/CANONICAL_NUMBERS.md` for the vehicle numbers every doc should agree with.
 
 ---
 
 ## Architecture summary
 
-Dual-core RP2350B split for determinism:
+Dual-core RP2350 split for determinism:
 
-- *Core 0, real-time control.* 500 Hz TVC loop only: read external + body BNO085 (Game Rotation
+- *Core 0, real-time control.* 500 Hz TVC loop only: read both BNO085 units (Game Rotation
   Vector), vote attitude, run PID, command servos. Nothing on core 0 blocks.
-- *Core 1, logging + comms.* Drains the inter-core ring buffer to microSD over SPI, services
-  optional bench-only Wi-Fi telemetry (`WIFI_ENABLED=0` in flight; the board has no onboard radio,
-  so this is a debug-header add-on, not a flight capability), handles housekeeping (camera gate,
-  status LED).
+- *Core 1, logging + comms.* Drains the inter-core ring buffer to microSD over SPI1, services
+  WiFi telemetry (bench only -- the Pico 2 W does have a CYW43439 radio, but flight logs to card
+  as the data of record), handles housekeeping.
+
+Four sensors on one shared I2C bus, no mux:
+
+| Device | Address | Strap |
+|---|---|---|
+| BNO085, bay | 0x4B | DI wired to 3V3 |
+| BNO085, gimbal | 0x4A | DI unconnected |
+| BME688 | 0x76 | SDO wired to GND |
+| BMP388 | 0x77 | SDO unconnected |
 
 Two body tubes, one bulkhead joint:
 
 | Bay | Contents |
 |---|---|
-| Lower BT (TVC bay) | F15-4 · 2-axis 2-servo gimbal · motor mount |
-| Upper BT (FC bay) | Custom PCB1 (bare RP2350B, Ø62 mm) · body BNO085 · BME680 + BMP388 · microSD · i3 4K Thumb Action Camera |
-| Bulkhead joint | External BNO085 (STEMMA-QT) mounted here · motor-ejection separation point · 24″ chute · Nomex |
+| Upper BT (FC bay) | Perfboard card: Pico 2 W, bay BNO085, BME688, BMP388, microSD breakout, LiPo, UBEC, arming switch, i3 4K Thumb camera |
+| Bulkhead joint | Motor-ejection separation point; seven dupont leads part here |
+| Lower BT | 24" chute, Nomex, aramid cord, then the TVC bay: F15-4, 2-axis gimbal, 2x ES08MA II, gimbal BNO085 |
 
-PID gains (auto-tuned): *Kp* 0.10 / *Ki* 0.40 / *Kd* 0.18 · ±8° gimbal authority.
+The arming switch is reached by pulling the nose cone. The gimbal BNO085 IS gimbal-mounted on the
+flight vehicle, so deflection is directly measurable in flight, not just on the ground rigs.
+
+PID gains: *Kp* 0.10 / *Ki* 0.40 / *Kd* 0.18, +-8 deg gimbal authority, 500 Hz.
+
+## Dual role
+
+The same board and firmware image run the ground TVC/servo stand. Build with
+`-DWYVERN_GROUND_TEST=1` and the bay IMU stops being required, launch detect and recovery compile
+out, and WiFi telemetry turns on. See `firmware/wyvern4_tvc/wyvern_config.h`.
 
 ---
 
@@ -35,42 +53,37 @@ PID gains (auto-tuned): *Kp* 0.10 / *Ki* 0.40 / *Kd* 0.18 · ±8° gimbal author
 Flight Computer/
 ├── README.md ← this file
 ├── 01_FlightComputer_Spec.md ← full architecture + sensor config
-├── 02_RRC3_Telemetry_Logging.md ← DEPRECATED/REMOVED (redirect only)
-├── BOM/ ← empty; FC line items live in Documentation/WYVERN_E4_BOM.xlsx
 ├── firmware/
 │ └── wyvern4_tvc/
-│ ├── wyvern4_tvc.ino ← main flight firmware (Arduino-Pico core, board "weact_rp2350b")
+│ ├── wyvern4_tvc.ino ← main flight firmware (Arduino-Pico core, board "Raspberry Pi Pico 2 W")
+│ ├── wyvern_config.h ← pin map, I2C addresses, flight/ground-stand role switch
 │ ├── wyvern_pid.h ← PID controller
-│ ├── imu_grv.h ← BNO085 Game Rotation Vector driver
-│ ├── sd_logger.h ← microSD ring-buffer logger
-│ ├── wifi_telemetry.h ← Wi-Fi bench telemetry
-│ ├── baro.h ← BME680 + BMP388 barometric driver
-│ └── … ← supporting headers
+│ ├── imu_grv.h ← BNO085 Game Rotation Vector driver (both units)
+│ ├── sd_logger.h ← microSD ring-buffer logger (SPI1)
+│ ├── wifi_telemetry.h ← WiFi bench telemetry (ground stand only)
+│ ├── baro.h ← BME688 + BMP388 barometric driver
+│ ├── battery.h ← GP26 divider battery monitor
+│ └── launch_status.h ← launch detect / flight state
 ├── flowcharts/ ← Mermaid state/logic diagrams
 │ ├── 01_flight_state_machine.mermaid ← BOOT→ARMED→BOOST→COAST→RECOVER→LANDED
 │ ├── 02_tvc_control_loop.mermaid ← 500 Hz PID loop flowchart
 │ ├── 03_recovery_logic.mermaid ← motor-ejection separation logic
 │ └── 04_power_tree.mermaid ← power distribution diagram
-├── ground_test_rigs/ ← bench DAQ, runs on off-the-shelf Pico/Pico 2 W (not the flight computer)
+├── ground_test_rigs/ ← standalone bench DAQ sketches (load cells, HX711)
 │ ├── wyvern4_gse_servo_rig/
-│ │ └── wyvern4_gse_servo_rig.ino ← servo sweep / TVC balance test
 │ └── wyvern4_gse_solenoid_rig/
-│ └── wyvern4_gse_solenoid_rig.ino ← solenoid ground test (A/B comparison)
 ├── test_code/
-│ ├── t1_i2c_scan.ino ← I²C bus scan (verify all BNO085 addresses)
+│ ├── t1_i2c_scan.ino ← I²C bus scan (expect 0x4A, 0x4B, 0x76, 0x77)
 │ ├── t2_imu_grv_deflection.ino ← GRV deflection read + servo command check
 │ ├── t3_servo_sweep.ino ← full ±8° gimbal sweep test
 │ ├── t4_sensors_sdlog.ino ← all sensors → microSD log verification
-│ ├── host_monitor.py ← Wi-Fi telemetry monitor (run on laptop)
+│ ├── host_monitor.py ← WiFi telemetry monitor (run on laptop)
 │ └── selftest.py ← automated bench self-test sequence
 └── wiring/
-    ├── WYVERN_E4_flight_harness.kicad_sch ← flight wiring schematic
-    ├── WYVERN_E4_flight_wiring_connected.kicad_sch ← connected (net-tied) version
-    ├── WYVERN_E4_flight_wiring_connected_preview.png ← rendered preview
-    ├── WYVERN_E4_tvc_balance_harness.kicad_sch ← 3-axis TVC balance harness
-    ├── WYVERN_E4_tvc_balance_servo_harness.kicad_sch
-    ├── WYVERN_E4_tvc_balance_solenoid_harness.kicad_sch
-    └── gen_wiring4.py ← KiCad schematic generator
+    ├── wyvern_perfboard_wiring.svg ← hole-by-hole perfboard wiring + power chain
+    ├── wyvern_bay_layout.svg ← bay layout + separation-joint cabling
+    ├── gen_perfboard_diagram.py ← regenerates the wiring diagram
+    └── gen_bay_layout.py ← regenerates the layout diagram
 ```
 
 ---
@@ -86,8 +99,7 @@ Run these in order before any motor firing:
 4. `test_code/t4_sensors_sdlog.ino`, all sensors write to microSD; verify file on SD card.
 5. `test_code/selftest.py` + `host_monitor.py` (laptop), USB-serial bench self-test verification.
 
-Upload firmware via Arduino IDE 2.x with the [Arduino-Pico core](https://github.com/earlephilhower/arduino-pico) installed, board **"WeAct RP2350B"** (`weact_rp2350b`) — the bare-silicon RP2350B
-target this custom board (PCB1) actually uses, not a Pico/Pico 2 W module profile.
+Upload firmware via Arduino IDE 2.x with the [Arduino-Pico core](https://github.com/earlephilhower/arduino-pico) installed, board **"Raspberry Pi Pico 2 W"** (`rpipico2w`).
 
 ---
 

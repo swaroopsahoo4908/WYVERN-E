@@ -23,12 +23,12 @@ BLU,RED,GRN,ORG,PUR,TEAL="#2a6f97","#bc4749","#386641","#e09f3e","#6d597a","#43a
 
 # ---------------- vehicle constants (mirror we4_flightsim.py) ----------------
 g,rho0,a0=9.80665,1.225,343.0
-D=0.070; Rb=D/2; A=np.pi*Rb**2; Ltot=0.74; Lnose=0.12
-m_lift,m_dry,PROP,tb=0.698,0.638,0.060,3.45 # canonical mass
+D=0.070; Rb=D/2; A=np.pi*Rb**2; Ltot=0.672; Lnose=0.12
+m_lift,m_dry,PROP,tb=0.7203,0.6603,0.060,3.45 # canonical mass
 # CANONICAL values (matches we4_flightsim.py / wyvern_datagen/core.py)
-CG=0.5011; Xcp=0.5925; CN=2.0+ (lambda:0)() # CN set below
+CG=0.4500; Xcp=0.5327; CN=2.0+ (lambda:0)() # CN set below
 # fin geometry (4x): root cr, tip ct, semispan sp, thick th, sweep sw
-cr,ct,sp,th_fin,sw=0.070,0.035,0.072,0.0030,0.025 # 72 mm span, 3 mm thick (matches 3D parts + .ork)
+cr,ct,sp,th_fin,sw=0.070,0.035,0.087,0.0030,0.025 # 87 mm span, 3 mm thick (matches 3D parts + .ork)
 Fc_t=np.array([0,0.05,0.12,0.2,0.3,0.5,1,1.5,2,2.5,3,3.3,3.45])
 # F15 thrust curve, digitized and shaped to match all three published values simultaneously:
 # total impulse 49.6 N.s, peak 25.3 N, average 14.4 N. The renormalization below is kept as a

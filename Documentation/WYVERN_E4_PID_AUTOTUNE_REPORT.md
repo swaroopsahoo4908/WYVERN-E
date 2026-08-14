@@ -46,7 +46,7 @@ flight choice:
 
 - At the higher winds that dominate the averaged cost (9–12 m/s), the steady-state pitch error is
   **~17° for *every* gain set, including the firmware set**, because the ±5° gimbal is
-  **authority-saturated** (a 698 g, ~2.1 T/W vehicle simply cannot vector enough thrust to hold
+  **authority-saturated** (a 720 g, ~2.1 T/W vehicle simply cannot vector enough thrust to hold
   attitude against that much crosswind). When the gimbal is saturated, integral action cannot move
   it further, so dropping Ki shaves a sliver of "wasted" gimbal effort and wins by ~4 %, a number
   well inside model noise.

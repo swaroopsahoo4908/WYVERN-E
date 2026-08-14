@@ -4,8 +4,8 @@ rail-exit, weathercock, flutter, drift -> plots4/.
 
 Evaluates the real trade: static margin vs. fin semispan for the canonical mass stack (ASA-Aero
 upper body, PETG-CF lower body + fins, PC-FR TVC assembly), with the rejected 35 mm candidate and
-the flown 87 mm fin configuration both marked. Reproduces the canonical CG/CP/margin (50.1 cm /
-59.3 cm / +1.31 cal) at 87 mm.
+the flown 87 mm fin configuration both marked. Reproduces the canonical CG/CP/margin (45.0 cm /
+53.3 cm / +1.14 cal) at 87 mm.
 """
 import os, json, numpy as np
 _TRAPZ = getattr(np, "trapezoid", getattr(np, "trapz", None)) # NumPy 2.x renamed trapz
@@ -17,8 +17,8 @@ g = 9.80665; rho0 = 1.225; D = 0.070; Rb = D / 2; A = np.pi * Rb**2
 Lnose = 0.12; Ltot = 0.74
 
 # ---- canonical mass stack (we4_sim.py) -----------------------------------------------------
-M_LIFT_FLOWN = 0.7292 # kg, incl. 4x 87 mm PETG-CF fins and the loaded F15-4
-M_DRY_FLOWN = 0.6272
+M_LIFT_FLOWN = 0.7203 # kg, incl. 4x 87 mm PETG-CF fins and the loaded F15-4
+M_DRY_FLOWN = 0.6603
 CG_FLOWN = 0.5083 # m from nose, flown config
 SPAN_FLOWN = 0.087 # m semispan
 PROP = 0.060; TB = 3.45

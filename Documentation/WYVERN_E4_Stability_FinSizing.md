@@ -26,7 +26,7 @@ is the reason ballast is dropped entirely; see "Chosen configuration" for the ex
 
 The flown fin is 87 mm rather than the 76.2 mm minimum: 76.2 mm sits exactly on the 1.0 cal floor
 with no allowance for build tolerance, and the CG-tolerance sweep (`we4_deepsim.py` D) shows 1.0 cal
-survives only limited aft CG error. 87 mm buys +1.31 cal nominal and keeps a comparable buffer at the
+survives only limited aft CG error. 87 mm buys +1.14 cal nominal and keeps a comparable buffer at the
 build-error limit.
 
 ## Chosen configuration
@@ -34,9 +34,9 @@ build-error limit.
 |---|---|
 | Ballast | **none** |
 | Fins | **4 ×**, root 70 / tip 35 / LE-sweep 25 / **span 87 mm**, PETG-CF 3 mm airfoil (~71 g) |
-| CG / CP / margin | 50.1 cm / 59.3 cm / **+1.31 cal** (stable; ASA-Aero upper+lower body + PETG-CF fins) |
-| Liftoff / T-W | **698 g** / 2.10 avg, 3.70 peak |
-| Apogee (RK4+Barrowman) | **~439 ft / 133.7 m @ 6.87 s**; F15-4 ejects t=7.45 s, +0.58 s past apogee @ ~5.7 m/s |
+| CG / CP / margin | 45.0 cm / 53.3 cm / **+1.14 cal** (stable; ASA-Aero upper+lower body + PETG-CF fins) |
+| Liftoff / T-W | **720 g** / 2.10 avg, 3.70 peak |
+| Apogee (RK4+Barrowman) | **~409 ft / 124.6 m @ 6.72 s**; F15-4 ejects t=7.45 s, +0.58 s past apogee @ ~5.7 m/s |
 | v_max / Mach | **37.1 m/s / Mach 0.108** |
 | Rail exit (1.0 m rail) | pending re-verify against the new mass stack; see the weathercock discussion below |
 | 35 mm fin (rejected) | **UNSTABLE**; 1.0 cal needs ≥76.2 mm, 1.5 cal needs a larger span still |

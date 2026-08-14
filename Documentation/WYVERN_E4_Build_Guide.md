@@ -55,10 +55,10 @@ Run these in order. **Do not skip ahead**; each test assumes the previous one pa
 ### B1 Toolchain
 
 Arduino IDE → Board Manager → install **Arduino-Pico (earlephilhower)**. Select
-**"WeAct RP2350B"** (`weact_rp2350b`) — the bare-silicon RP2350B target this custom board (PCB1)
+**"Raspberry Pi Pico 2 W"** (`rpipico2w`) — the module this build
 actually uses, **not** any Pico/Pico 2 W module profile (those assume the wrong GPIO count and a
 radio chip that isn't populated here). Library Manager → install `Adafruit_BNO08x`,
-`Adafruit_BNO055`, `Adafruit_BME680`. `Servo`, `Wire`, `SPI`, `SD` ship with the core; `WiFi` is
+`Adafruit_BNO08x`, `Adafruit_BME680`, `Adafruit_BMP3XX`. `Servo`, `Wire`, `SPI`, `SD` ship with the core; `WiFi` is
 only needed if `WIFI_ENABLED` is ever flipped on for a future board rev with a radio chip.
 
 ```
@@ -106,7 +106,7 @@ commanded ±8°, which quietly eats your control authority without throwing any 
 
 ### B5 `t4_sensors_sdlog`, does the card actually take data?
 
-Confirm BMP388 and BME680 both read, and that a file appears on the card with plausible rows.
+Confirm BMP388 and BME688 both read, and that a file appears on the card with plausible rows.
 Use a **class 10 or better** card. A slow card is the one thing that can still make the log ring
 back up (watch `peak=` in the heartbeat).
 
@@ -338,9 +338,9 @@ and **record which gain set is on the vehicle**, mixing this up loses RQ4 entire
 
 | Parameter | Value |
 |---|---|
-| Liftoff / dry mass | 698 g / 638 g |
-| CG / CP / margin | 50.1 cm / 59.3 cm / +1.31 cal |
-| Apogee | 133.7 m (439 ft) @ 6.87 s |
+| Liftoff / dry mass | 720 g / 660 g |
+| CG / CP / margin | 45.0 cm / 53.3 cm / +1.14 cal |
+| Apogee | 124.6 m (409 ft) @ 6.72 s |
 | Burnout | 3.45 s, 68.7 m, 33.7 m/s |
 | v_max / Mach | 34.5 m/s / M0.101 |
 | Deploy | t = 7.45 s, +0.78 s past apogee, 7.7 m/s |

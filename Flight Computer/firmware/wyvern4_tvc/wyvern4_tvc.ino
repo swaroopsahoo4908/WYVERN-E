@@ -1,13 +1,13 @@
-// GTR70E WYVERN — custom RP2350B flight computer (PCB1) + real-time TVC controller.
+// GTR70E WYVERN — custom RP2350 flight computer (the Pico 2 W perfboard) + real-time TVC controller.
 // ===============================================================================================
-// Toolchain: Arduino-Pico core (earlephilhower), board "WeAct RP2350B" (weact_rp2350b) -- the bare-
-// silicon RP2350B target (48 GPIO, QFN-80, external QSPI flash), NOT any Pico/Pico-W module profile.
-// This board (PCB1) carries a standalone RP2350B (U1), not a Pico 2 module,
+// Toolchain: Arduino-Pico core (earlephilhower), board "Raspberry Pi Pico 2 W" (rpipico2w) -- the bare-
+// silicon RP2350 target (48 GPIO, QFN-80, external QSPI flash), NOT any Pico/Pico-W module profile.
+// This board (the Pico 2 W perfboard) carries a standalone RP2350 (U1), not a Pico 2 module,
 // so board profiles built around a module (rpipico2w, rpipico2) assume the wrong GPIO count, the
 // wrong ADC-capable pin range, and a WiFi radio chip that isn't populated here.
 //
-// Libraries (Library Manager): Adafruit_BNO08x (external IMU, SH2 protocol), Adafruit_BNO055
-// (onboard IMU, register protocol -- a different chip family, see imu_grv.h), Adafruit_BME680,
+// Libraries (Library Manager): Adafruit_BNO08x (external IMU, SH2 protocol), Adafruit_BNO085
+// (both IMUs are BNO085, same driver, different address -- see imu_grv.h), Adafruit_BME680,
 // Adafruit_BMP3XX (optional, no BMP388 populated on this board rev, see baro.h), INA226 (RobTillaart,
 // battery/power monitor), plus the Arduino-Pico built-ins Servo, Wire, SPI, SD. WiFi/WiFiUdp remain
 // linked for wifi_telemetry.h's bench-only code path, but this board has NO onboard radio chip (no
@@ -26,8 +26,8 @@
 // *bus peripheral* exactly one owning core, and uses single-writer/single-reader volatile flags
 // (never multi-byte structs without a snapshot) to cross the core boundary:
 //
-//   core 0 (setup/loop)   owns: the single shared I2C bus (Wire, GP0 SDA / GP1 SCL) -- body BNO055,
-//                          external BNO085 (STEMMA-QT, bulkhead-boundary mount), BME680, and the
+//   core 0 (setup/loop)   owns: the single shared I2C bus (Wire, GP0 SDA / GP1 SCL) -- bay BNO085,
+//                          external BNO085 (STEMMA-QT, bulkhead-boundary mount), BME688, and the
 //                          decimated baro reads all share this one bus by address, no mux/second bus
 //                          exists on this board -- plus the 2 servo PWM outputs and LAUNCH_IRQ sense.
 //                          Runs the 500 Hz TVC loop. NEVER calls anything that can block
@@ -61,7 +61,7 @@
 // (no partial-write tearing possible at that width); nothing wider crosses cores outside the
 // LogFrame FIFO, which is purpose-built for cross-core transfer (see sd_logger.h).
 // WIFI_ENABLED must be defined before wifi_telemetry.h is included: that header pulls in <WiFi.h>,
-// which assumes a CYW43439 radio chip. PCB1 has NO radio chip in its BOM (see wifi_telemetry.h's
+// which assumes a CYW43439 radio chip. the Pico 2 W perfboard has NO radio chip in its BOM (see wifi_telemetry.h's
 // file header) -- keep this at 0 unless a future board rev or external WiFi module changes that.
 #define WIFI_ENABLED 0
 
@@ -70,7 +70,7 @@
 #include <SD.h>
 #include <Servo.h>
 #include <Adafruit_BNO08x.h>
-#include <Adafruit_BNO055.h>
+#include <Adafruit_BNO085.h>
 #include <math.h>
 #include "pico/multicore.h"
 
@@ -84,10 +84,10 @@
 #include "wifi_telemetry.h"
 #endif
 
-// ---------- pin map (custom RP2350B PCB1) — CONFIRMED by tracing every pin in the netlist against
+// ---------- pin map (custom RP2350 the Pico 2 W perfboard) — CONFIRMED by tracing every pin in the netlist against
 // the labeled schematic pinout -- see imu_grv.h and launch_status.h file headers for the detail.
 #define SDA0 0
-#define SCL0 1             // ONE shared I2C bus -> body BNO055, external BNO085 (STEMMA-QT), BME680,
+#define SCL0 1             // ONE shared I2C bus -> bay BNO085, external BNO085 (STEMMA-QT), BME688,
                             // INA226, LIS3MDL -- no mux, no second bus (core 0 owned)
 #define PIN_SERVO_P 2       // pitch servo, JST connector U8 (PWM)
 #define PIN_SERVO_Y 3       // yaw servo, JST connector U9 (PWM)
@@ -98,7 +98,7 @@
 // RBF: there is NO software-readable remove-before-flight pin on this board. U13 (the physical
 // slide switch near the power path) was the obvious candidate, but it connects to NOTHING on
 // U1 in the netlist -- both its terminals sit in the power domain (one on the ~5V buck rail, one on
-// an address-strap-adjacent node), not on any GPIO. Arming safety on PCB1 as fabricated is provided
+// an address-strap-adjacent node), not on any GPIO. Arming safety on the Pico 2 W perfboard as fabricated is provided
 // entirely by U13 being a literal power switch: the board simply isn't running until it's flipped.
 // GP12 (H1 header pin13) is a genuinely free, otherwise-unused GPIO -- PIN_RBF below keeps the
 // existing INPUT_PULLUP software gate wired to it so a bodge wire (H1 pin13 to GND, switched by
@@ -107,7 +107,7 @@
 // this stage of the BOOT gate provides no actual protection until that bodge exists.
 #define PIN_RBF 12          // H1 header pin13 -- free GPIO, NOT wired to any switch on this board rev
 #define BNO085_ADDR 0x4A    // external IMU, STEMMA-QT default
-#define BNO055_ADDR 0x28    // onboard IMU, CONFIRMED via netlist (COM3/ADR pin tied to GND)
+#define BNO085_ADDR 0x4B    // onboard IMU, CONFIRMED via netlist (COM3/ADR pin tied to GND)
 #define SERVO_NEUTRAL_DEG 90.0f
 
 // ---------- WiFi bench telemetry — EDIT before bench use. WIFI_ENABLED itself is defined above the
@@ -173,7 +173,7 @@ volatile TelemSnapshot g_telem;   // writer: core 0
 // =================================================================================================
 // CORE 0 — 500 Hz real-time TVC control loop. Nothing here may block.
 // =================================================================================================
-TriImu g_imu(Wire, BNO085_ADDR, BNO055_ADDR);
+TriImu g_imu(Wire, BNO085_ADDR, BNO085_ADDR);
 BaroPair g_baro(Wire);
 BatteryMonitor g_battery(Wire);   // shares core 0's I2C bus -- see the dual-core ownership NOTE above
 LaunchDetect g_launch;
@@ -243,7 +243,7 @@ void setup() {
 
   Serial.println("SELFTEST:BEGIN");
 
-  // PCB1 has exactly 2 physical IMUs (onboard body BNO055, external BNO085 via the single
+  // the Pico 2 W perfboard has exactly 2 physical IMUs (onboard bay BNO085, external BNO085 via the single
   // STEMMA-QT port) -- see imu_grv.h's file header. mask bit0 = external, bit1 = body.
   uint8_t imu_mask = g_imu.begin();
   g_imu_init_mask = imu_mask;
@@ -499,7 +499,7 @@ void setup1() {
   delay(50);
 
   pinMode(PIN_RBF, INPUT_PULLUP);     // floats HIGH as fabricated -- see the RBF note at PIN_RBF's
-                                       // #define above: nothing is wired to this pin on PCB1 yet
+                                       // #define above: nothing is wired to this pin on the Pico 2 W perfboard yet
 
   g_camera.begin();
   g_status.begin();

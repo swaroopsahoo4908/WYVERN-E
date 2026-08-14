@@ -50,7 +50,7 @@ fig,ax=plt.subplots(figsize=(8.5,5)); ax.plot(t,Twall,c="#bc4749",lw=2); ax.axhl
 ax.axvline(burn,ls=':',c='g',label="burnout"); ax.set_xlabel("t (s)"); ax.set_ylabel("engine-bay wall °C"); ax.legend()
 ax.set_title(f"GTR70E WYVERN · engine-bay thermal soak (peak ~{Twall.max():.0f} °C, with phenolic liner)",fontweight='bold'); ax.grid(alpha=.3); sv(fig,"09_thermal")
 # 10 power budget
-loads={"Custom PCB1 (RP2350B)":0.15,"2× servo (active avg)":3.0,"BNO055+BNO085":0.25,"BME680":0.05,"camera":1.5}
+loads={"Custom the Pico 2 W perfboard (RP2350)":0.15,"2× servo (active avg)":3.0,"BNO085+BNO085":0.25,"BME688":0.05,"camera":1.5}
 Ptot=sum(loads.values()); E=2*3.7*0.45*0.9 # 2S 450mAh usable Wh
 add["power_active_W"]=round(Ptot,2); add["batt_Wh"]=round(E,2); add["endurance_min"]=round(E/Ptot*60,0)
 fig,ax=plt.subplots(figsize=(8.5,5)); ax.bar(loads.keys(),loads.values(),color="#2a6f97"); ax.set_ylabel("W")

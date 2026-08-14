@@ -18,7 +18,7 @@ WHAT IT COMPUTES
     (b) Static margin from the weathercock response. The steady pitch offset the vehicle holds
         into the measured crosswind gives the aerodynamic restoring stiffness, hence CP:
               k_alpha = q A CN_alpha (Xcp - Xcg) => Xcp = Xcg + k_alpha / (q A CN_alpha)
-        Compared against the Barrowman CP of 56.8 cm (+1.20 cal).
+        Compared against the Barrowman CP of 53.3 cm (+1.14 cal).
 
   RQ4 -- closed-loop gain sensitivity
     Peak and RMS pitch deviation, gimbal utilisation and saturation, settling behaviour, and
@@ -51,8 +51,8 @@ PRED = dict(
     xcg_m = 0.501, # liftoff CG from nose
     diameter_m = 0.070,
     margin_cal = 1.31,
-    m_lift_kg = 0.698,  # canonical mass
-    m_dry_kg = 0.638,
+    m_lift_kg = 0.7203,  # canonical mass
+    m_dry_kg = 0.6603,
     burn_s = 3.45,
     deploy_s = 7.45,
     apogee_m = 98.9,

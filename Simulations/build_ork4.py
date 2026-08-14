@@ -2,7 +2,7 @@
 # cross-checks in OpenRocket's own solver, not the full ASA-Aero/PETG-CF/PC-FR zoned, 87mm-fin
 # airframe (see Documentation/WYVERN_E4_Mathematics.md for the current vehicle numbers). It is
 # NOT part of the documented mass cascade (core.py -> we4_flightsim.py -> docs); the avionics
-# mass-component labels below do name the current custom PCB1 stack. Re-derive full geometry
+# mass-component labels below do name the current Pico 2 W perfboard stack. Re-derive full geometry
 # against current CAD before treating the exported .ork file as authoritative for stability or
 # apogee.
 import zipfile,uuid,os
@@ -31,7 +31,7 @@ xml=f'''<?xml version='1.0' encoding='utf-8'?>
 </subcomponents></bodytube>
 <bodytube><name>FC bay (PLA)</name><id>{uuid.uuid4()}</id><overridemass>0.051</overridemass><overridesubcomponentsmass>false</overridesubcomponentsmass><finish>normal</finish>
 <material type="bulk" density="1240.0">PLA</material><length>0.160</length><thickness>0.0016</thickness><radius>0.035</radius><subcomponents>
-{mc("Custom PCB1 (RP2350B)+IMUs+baro+cam",0.02,0.024)}{mc("2S LiPo (onboard buck, no discrete UBEC)",0.06,0.027)}
+{mc("Custom the Pico 2 W perfboard (RP2350)+IMUs+baro+cam",0.02,0.024)}{mc("2S LiPo (onboard buck, no discrete UBEC)",0.06,0.027)}
 </subcomponents></bodytube>
 <bodytube><name>Engine/TVC bay (PETG-CF)</name><id>{uuid.uuid4()}</id><overridemass>0.166</overridemass><overridesubcomponentsmass>false</overridesubcomponentsmass><finish>normal</finish>
 <material type="bulk" density="1300.0">PETG-CF</material><length>0.160</length><thickness>0.0016</thickness><radius>0.035</radius><subcomponents>
@@ -48,5 +48,5 @@ xml=f'''<?xml version='1.0' encoding='utf-8'?>
 </openrocket>'''
 p=f"{OUT}/GTR70E_WYVERN_F15-4{os.environ.get('WYVERN_RUN_TAG','')}.ork"
 with zipfile.ZipFile(p,"w",zipfile.ZIP_DEFLATED) as z: z.writestr("rocket.ork",xml)
-import xml.dom.minidom as M; M.parseString(xml); print("ork OK (FLOWN config: 4x 72 mm PLA fins, NO ballast, +1.20 cal):",os.path.getsize(p),"bytes")
-print("OpenRocket should show ~1.20 cal static margin and ~324 ft apogee on the F15-4.")
+import xml.dom.minidom as M; M.parseString(xml); print("ork OK (FLOWN config: 4x 72 mm PLA fins, NO ballast, +1.14 cal):",os.path.getsize(p),"bytes")
+print("OpenRocket should show ~1.14 cal static margin and ~324 ft apogee on the F15-4.")

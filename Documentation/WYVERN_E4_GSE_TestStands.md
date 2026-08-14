@@ -24,7 +24,7 @@ Axial-only load path (1x 5 kg cell + HX711) with a **steel blast deflector**, si
   buildup, not thrust or deflection. Six materials go through the screen: PLA, PETG-CF, ABS,
   ASA-Aero, PC, and PC-FR. Any material that survives 5 mm without melting through gets retested
   at 4 mm, then 3 mm, then 2 mm, until it fails, giving a failure-thickness ranking across the six
-  candidates rather than a single pass/fail. The BME680 already on the stand logs plume-adjacent
+  candidates rather than a single pass/fail. The BME688 already on the stand logs plume-adjacent
   temperature alongside each firing so the melt/slag result has a temperature record to go with it.
 
 ## 2. Servo TVC test stand

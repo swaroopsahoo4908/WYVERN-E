@@ -5,8 +5,8 @@ import os,json,numpy as np
 _TRAPZ=getattr(np,"trapezoid",getattr(np,"trapz",None)) # NumPy 2.x renamed trapz
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 OUT=os.path.join(os.path.dirname(os.path.abspath(__file__)),"plots4"+os.environ.get("WYVERN_RUN_TAG","")); os.makedirs(OUT,exist_ok=True)
-g=9.80665; rho0=1.225; D=0.070; Rb=D/2; A=np.pi*Rb**2; Lnose=0.12; Ltot=0.74
-m_lift=0.698; m_dry=0.638; PROP=0.060; tb=3.45; CG=0.5011 # finned 87mm, zoned ASA-Aero (upper+lower)/PETG-CF (fins+bulkhead)/PC-FR (TVC), NO ballast
+g=9.80665; rho0=1.225; D=0.070; Rb=D/2; A=np.pi*Rb**2; Lnose=0.12; Ltot=0.672
+m_lift=0.7203; m_dry=0.6603; PROP=0.060; tb=3.45; CG=0.4500 # finned 87mm, zoned ASA-Aero (upper+lower)/PETG-CF (fins+bulkhead)/PC-FR (TVC), NO ballast
 # --- Barrowman aero (nose + 4x 87 mm fin span, PETG-CF, sized to hold margin against the zoned mass stack) ---
 def barrowman_cp():
     CNn=2.0; Xn=0.333*Lnose; cr,ct,sw,sp=0.070,0.035,0.025,0.087; Rb_=0.035 # ellipsoid nose, 87mm fins

@@ -11,7 +11,7 @@ updated_at: 2026-08-01
 This is a procedure-level reference for what each build session actually involves — what a
 static-fire day looks like, what the bench-bring-up sequence covers, and so on. The governing
 calendar for the full five-research-question program is `WYVERN_E4_Timeline_3Month.md`, targeting
-the Nov 21–22 / Nov 28–29 launch weekends; use that for pacing and this document for procedure
+the Nov 7–8 / Nov 14–15 launch weekends; use that for pacing and this document for procedure
 detail within any given session.
 
 ---
@@ -85,8 +85,8 @@ on Day 10.
 
 | Day | Task | Output | Gate |
 |---|---|---|---|
-| **0** | **PLACE THE ENTIRE ORDER, including the items in `WYVERN_E4_Cart_Gap_Analysis.md` that the current cart is missing.** The flight-blocking ones are the BME680, microSD SPI breakout, airframe filament, and the decoupling kit. Separately, **re-source the M2 linkage rod ends and the servos**, both currently deliver after the bench gate. | Priority shipping on: PCB1 fab, BNO085, servos, HX711 × 4 + load cells, ASA-Aero + PETG-CF filament, all motors. Order **spares** of the PCB1 fab, one BNO085, and one servo, they are cheap and each is a single point of failure. | Order confirmations, ETA per line | **Gate 0** |
-| 0 | Flash the firmware to PCB1, or run the SIL. Read §5 of `CONFLICTS.md`, the frozen parameter table is the contract the firmware is written against. | — | |
+| **0** | **PLACE THE ENTIRE ORDER, including the items in `WYVERN_E4_Cart_Gap_Analysis.md` that the current cart is missing.** The flight-blocking ones are the BME688, microSD SPI breakout, airframe filament, and the decoupling kit. Separately, **re-source the M2 linkage rod ends and the servos**, both currently deliver after the bench gate. | Priority shipping on: the flight computer fab, BNO085, servos, HX711 × 4 + load cells, ASA-Aero + PETG-CF filament, all motors. Order **spares** of the the flight computer fab, one BNO085, and one servo, they are cheap and each is a single point of failure. | Order confirmations, ETA per line | **Gate 0** |
+| 0 | Flash the firmware to the flight computer, or run the SIL. Read §5 of `CONFLICTS.md`, the frozen parameter table is the contract the firmware is written against. | — | |
 | 1 | Slice every print. Airframe, gimbal, both stands. Confirm plate layout, material assignment (PLA vs PETG-CF, see the zoning table), and total print hours. **This is the schedule's hidden long pole.** | Print queue with hour estimates | |
 | 1 | `python3 we4_flight_reduce.py --selftest`, confirm the reduction pipeline passes on your machine. | `SELFTEST: PASS` | |
 | 2 | Run the full sim suite end to end so every number in the paper is regenerable on demand. Read the go/no-go gates in `plots_val/validation_summary.json`. | 10/13 gates, 7/8 deep checks (the flag is servo torque, see §11 of the build-readiness report) | |
@@ -103,7 +103,7 @@ on Day 10.
 | Day | Task | Gate |
 |---|---|---|
 | 5 | Print airframe: nose, Upper BT, Lower BT, separation bulkhead, motor mount, gimbal, 4 × fins, rail buttons. ~20 h of printer time, start the longest plate overnight Day 4. | |
-| 6 | Populate and bring up PCB1 per the schematic. Confirm the onboard TPS564201 buck rail and INA226 monitor per `01_FlightComputer_Spec.md` §4. Keep the servo feed and logic feed as separate star runs off the buck output. | |
+| 6 | Populate and bring up the flight computer per the schematic. Confirm the onboard TPS564201 buck rail and INA226 monitor per `01_FlightComputer_Spec.md` §4. Keep the servo feed and logic feed as separate star runs off the buck output. | |
 | 7 | Bench bring-up: `t1_i2c_scan` → `t2_imu_grv_deflection` → `t3_servo_sweep` → `t4_sensors_sdlog`, then `selftest.py`. Full procedure in `WYVERN_E4_Build_Guide.md` §B. | **Gate 2: `>>> PREFLIGHT GO <<<`** |
 | 7 | **Calibrate `SERVO_LINKAGE_RATIO`** in `t3` and copy it into `wyvern4_tvc.ino`. Do not skip, the flight code assumes the nozzle actually reaches ±8°. | |
 | 8 | Assemble the airframe. Route servo/STEMMA-QT cables through the bulkhead pass-through, join the two body tubes at the bulkhead joint, install rail buttons, mount the gimbal and servos. | |
@@ -181,7 +181,7 @@ the vehicle actually does:
 ## 8. Day-0 checklist, do these today
 
 - [ ] Place the full BOM order, priority shipping on the critical path
-- [ ] Add spares: 1 × extra PCB1 fab (custom flight computer, not a Pico), 1 × BNO085, 1 × servo
+- [ ] Add spares: 1 × extra the flight computer fab (custom flight computer, not a Pico), 1 × BNO085, 1 × servo
 - [ ] Order 4 × F15-4, 10 × F15-0, 4 × E16-4
 - [ ] Confirm launch site and RSO for Day 11, hold Day 12 as backup
 - [ ] Slice all prints, total the hours, identify the longest plate

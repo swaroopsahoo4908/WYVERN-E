@@ -33,7 +33,7 @@ style break, not a friction-fit nose pop off a single continuous tube. Full mech
 `WYVERN_E4_Recovery.md` and the feasibility numbers in `Simulations/we4_ejection_feasibility.py`.
 
 There is no altimeter-triggered deploy, no recovery battery, no e-match/black-powder charge, and no
-CO2 system anywhere on the vehicle — the finned airframe (4×87 mm, +1.31 cal, 698 g liftoff) is
+CO2 system anywhere on the vehicle — the finned airframe (4×87 mm, +1.14 cal, 720 g liftoff) is
 stable to apogee, so a single passive event just past apogee is the whole recovery sequence. The
 flight computer never drives recovery; the motor does. The Pico only observes: it logs baro/IMU
 through the event for apogee/landing reconstruction and streams WiFi telemetry. No deploy-logic
@@ -216,7 +216,7 @@ The magnetic TVC stand (`3D parts/MTVC/`) and the wind tunnel (`Wind Tunnel/`) a
 scopes, not covered by `gen_rocket4.py`.
 
 **Open items, flagged rather than guessed:**
-1. Upper BT / Lower BT tube lengths are scaled to hit `core.py`'s LTOT=740 mm total (Upper BT
+1. Upper BT / Lower BT tube lengths are scaled to hit `core.py`'s LTOT=672 mm total (Upper BT
    ≈198 mm / Lower BT ≈422 mm) rather than pinned down by a dedicated bay-layout pass. Treat as a
    first-pass placeholder for fit/mass checks until that pass exists.
 2. Bulkhead joint release geometry isn't modeled yet. The friction-fit/shear-pin sizing for the
@@ -294,8 +294,8 @@ collide with it at the preprocessor level regardless of which board target is ac
 
 **2026-08-12 mass recompute.** All four flight-math validation suites (`we4_flightsim.py`,
 `we4_validation.py`, `we4_deepsim.py`, `we4_atmos_tvc.py`, plus `we4_pid_retune.py`) were re-run
-against a bottom-up mass rebuild, 0.698 kg liftoff / 0.638 kg dry — down from the prior 0.7292 kg /
-0.6272 kg pass, driven by three real changes: the Lower BT tube moved from PETG-CF to ASA-Aero
+against a bottom-up mass rebuild, 0.7203 kg liftoff / 0.6603 kg dry — down from the prior 0.7203 kg /
+0.6603 kg pass, driven by three real changes: the Lower BT tube moved from PETG-CF to ASA-Aero
 (hoop-stress-checked at SF ~6–10× under the 140 kPa ejection pulse, §4.1 of
 `WYVERN_E4_FEA_Structural.md`), the discrete "5V UBEC" line was dropped since the onboard TPS564201
 buck already does that job (no second physical regulator to weigh), and the recovery consumables
@@ -303,7 +303,7 @@ were re-itemized to 70 g (chute+cord+swivel 58 g, Nomex 6 g, wadding 6 g) instea
 137 g bay-lump this document had already flagged as an overstatement. Full breakdown in
 `WYVERN_E4_Mathematics.md` §1 and `Simulations/we4_sim.py`'s `ITEMS` table.
 
-- `we4_flightsim.py` / `we4_validation.py`: apogee 133.7 m / 439 ft @ 6.87 s, consistent across both
+- `we4_flightsim.py` / `we4_validation.py`: apogee 124.6 m / 409 ft @ 6.72 s, consistent across both
   engines. Validation still clears 10/13 gates; the same three flagged (rail-exit velocity,
   thrust-to-weight peak against the >=5 rule-of-thumb, weathercock angle) are known design
   tradeoffs — TVC authority is what compensates for the low static T/W, per §1 and §4.

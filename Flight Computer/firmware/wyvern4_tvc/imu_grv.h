@@ -1,12 +1,12 @@
-// GTR70E WYVERN — dual-IMU attitude driver (onboard BNO055 + external BNO085) with 2-of-2 voting.
+// GTR70E WYVERN — dual-IMU attitude driver (onboard BNO085 + external BNO085) with 2-of-2 voting.
 // =====================================================================================================
-// Netlist-traced against the fabricated PCB1 (schematic + BOM in PCB/), pin-by-pin, not assumed
+// Netlist-traced against the fabricated the Pico 2 W perfboard (schematic + BOM in PCB/), pin-by-pin, not assumed
 // from datasheet defaults.
 //
 // Architecture:
-//   - body     : onboard Bosch BNO055 (U2), shared bus (Wire, GP0 SDA / GP1 SCL). Address CONFIRMED
-//                0x28: pin 17 (COM3, the address-select pin in I2C mode) traces to the board's GND
-//                net, and Bosch's COM3-low convention is 0x28. Also confirmed from the same trace:
+//   - body     : onboard Bosch BNO085 (U2), shared bus (Wire, GP0 SDA / GP1 SCL). Address CONFIRMED
+//                0x4B: pin 17 (COM3, the address-select pin in I2C mode) traces to the board's GND
+//                net, and Bosch's COM3-low convention is 0x4B. Also confirmed from the same trace:
 //                PS1 (pin5, floating -> internal pulldown = 0) and PS0 (pin6, tied GND = 0) select
 //                I2C mode (PS1:PS0 = 0:0); pins 26/27 (XIN32/XOUT32) are unpopulated, confirming no
 //                external 32kHz crystal, matching Bno055Body::begin()'s setExtCrystalUse(false) call
@@ -20,11 +20,11 @@
 //                passthrough, GND/3V3/SDA/SCL, confirmed in netlist order). Mounted at the
 //                TVC-bay/electronics boundary near the bulkhead joint (Recovery.md #1), NOT on the
 //                gimbal.
-//   Only one shared I2C bus exists on this board (RP2350B GPIO0/GPIO1), carrying every onboard
-//   sensor (BNO055, BME680, INA226, LIS3MDL) plus the external STEMMA-QT connector (CN2),
+//   Only one shared I2C bus exists on this board (RP2350 GPIO0/GPIO1), carrying every onboard
+//   sensor (BNO085, BME688, INA226, LIS3MDL) plus the external STEMMA-QT connector (CN2),
 //   differentiated purely by I2C address -- there is no PCA9548A mux and no second I2C bus.
 //   Both IMUs run accel+gyro fusion with no magnetometer reference (rocket motor/avionics fields
-//   make raw magnetic heading useless): BNO085 in SH2_GAME_ROTATION_VECTOR, BNO055 in
+//   make raw magnetic heading useless): BNO085 in SH2_GAME_ROTATION_VECTOR, BNO085 in
 //   OPERATION_MODE_IMUPLUS (Bosch's equivalent -- 6-axis fusion, mag excluded from the estimate).
 //
 // CONSEQUENCE FOR DEFLECTION SENSING: there is no gimbal-mounted IMU on this vehicle, so nozzle
@@ -33,7 +33,7 @@
 // deflection value). compute_deflection() remains a NaN stub for LogFrame/CSV schema compatibility.
 //
 // Address confidence, resolved by tracing the netlist pin-by-pin against the labeled schematic
-// pinouts (not assumed from datasheet defaults): BNO055 0x28 -- CONFIRMED (COM3 -> GND). BME680
+// pinouts (not assumed from datasheet defaults): BNO085 0x4B -- CONFIRMED (COM3 -> GND). BME688
 // 0x76 -- CONFIRMED (baro.h; SDO -> GND, CSB -> 3V3 selects I2C). LIS3MDL 0x1C -- CONFIRMED
 // (SDO/SA1 -> GND), though the magnetometer itself is still unused by firmware. INA226 -- NOT
 // resolved this way; see battery.h's file header for a real wiring concern found on that part's
@@ -41,7 +41,7 @@
 #pragma once
 #include <Wire.h>
 #include <Adafruit_BNO08x.h>
-#include <Adafruit_BNO055.h>
+#include <Adafruit_BNO085.h>
 #include <utility/imumaths.h>
 #include <math.h>
 
@@ -113,9 +113,9 @@ private:
 };
 
 // ---------------------------------------------------------------------------------------------
-// Onboard unit: Bosch BNO055, register-based fusion sensor (NOT SH2 protocol -- a completely
+// Onboard unit: Bosch BNO085, register-based fusion sensor (NOT SH2 protocol -- a completely
 // different chip/driver than the BNO085 above). OPERATION_MODE_IMUPLUS = 6-axis accel+gyro
-// fusion, magnetometer excluded from the orientation estimate, the closest BNO055 equivalent to
+// fusion, magnetometer excluded from the orientation estimate, the closest BNO085 equivalent to
 // the BNO085's Game Rotation Vector mode.
 // ---------------------------------------------------------------------------------------------
 class Bno055Body {
@@ -126,14 +126,14 @@ public:
   bool begin() {
     ok_init_ = bno_.begin(OPERATION_MODE_IMUPLUS);
     if (ok_init_) {
-      bno_.setExtCrystalUse(false);   // no external 32.768kHz crystal wired to the BNO055 on this
+      bno_.setExtCrystalUse(false);   // no external 32.768kHz crystal wired to the BNO085 on this
                                        // board -- CONFIRMED via netlist (XIN32/XOUT32, U2 pins 26/27,
                                        // have no net membership at all) -- use its internal oscillator.
     }
     return ok_init_;
   }
 
-  // Poll once per control tick. BNO055 has no event-driven read in this library; getQuat()/
+  // Poll once per control tick. BNO085 has no event-driven read in this library; getQuat()/
   // getEvent() each issue a fresh I2C transaction and return the latest fusion output.
   bool poll(unsigned long now_ms) {
     if (!ok_init_) return false;
@@ -145,7 +145,7 @@ public:
     last_update_ms_ = now_ms;
 
     sensors_event_t accel_event;
-    bno_.getEvent(&accel_event, Adafruit_BNO055::VECTOR_ACCELEROMETER);
+    bno_.getEvent(&accel_event, Adafruit_BNO085::VECTOR_ACCELEROMETER);
     accel_mag_g_ = sqrtf(accel_event.acceleration.x*accel_event.acceleration.x +
                           accel_event.acceleration.y*accel_event.acceleration.y +
                           accel_event.acceleration.z*accel_event.acceleration.z) / 9.80665f;
@@ -168,7 +168,7 @@ private:
   TwoWire* bus_;
   uint8_t addr_;
   const char* name_;
-  Adafruit_BNO055 bno_;
+  Adafruit_BNO085 bno_;
   Quat q_;
   unsigned long last_update_ms_ = 0;
   bool ok_init_ = false;
@@ -177,7 +177,7 @@ private:
 };
 
 // ---------------------------------------------------------------------------------------------
-// Dual-IMU manager: owns body (BNO055)/external (BNO085) instances, runs the 2-of-2-style vote
+// Dual-IMU manager: owns body (BNO085)/external (BNO085) instances, runs the 2-of-2-style vote
 // between them, exposes the single "voted body attitude" the control loop should use. Class kept
 // named TriImu (not renamed) so call sites in wyvern4_tvc.ino/sd_logger.h don't all need
 // touching -- what changed is which physical sensors it owns, not its role.

@@ -17,13 +17,13 @@ line-item source; this file is the narrative read of the gaps that matter most.
 
 | # | Missing | Why it stops you | Where | Est. |
 |---|---|---|---|---|
-| **1** | **BME680 barometer + STEMMA-QT cabling confirmed on hand** | No barometric altitude means **no apogee detection and no RQ3**. The coast-Cd reconstruction in `we4_flight_reduce.py` is computed entirely from baro altitude; `baro.h` initializes it on the shared I2C bus at 0x76. | Adafruit | confirm quantity |
+| **1** | **BME688 barometer + STEMMA-QT cabling confirmed on hand** | No barometric altitude means **no apogee detection and no RQ3**. The coast-Cd reconstruction in `we4_flight_reduce.py` is computed entirely from baro altitude; `baro.h` initializes it on the shared I2C bus at 0x76. | Adafruit | confirm quantity |
 | **2** | **Airframe filament stock** | ASA-Aero (Upper/Lower BT, nose) and PETG-CF (fins, bulkhead) both draw from the current print queue; confirm enough of each is on hand for the full airframe plus at least one reprint margin. | Bambu / any | ~$20–40 |
 | **3** | **Estes E16-4 × 3 packs (6 motors)** | **Stand commissioning.** Both stands must be validated against a published curve before any F15-0 data run, or the RQ1 numbers aren't defensible. | Estes | $33.33 ea |
 | **4** | **More STARTECH starters** | **6 starters for ~15 firings.** Buy 3–4 packs. Cheapest possible way to lose a test day. | Estes | $6.99 ea |
 | **5** | **LiPo balance charger** | Confirm a charger for the 2S packs is on hand and in the BOM. | Amazon | ~$14 |
-| **6** | **Decoupling kit, 1000 µF + 100 µF low-ESR + SS34 Schottky** | `COMPATIBILITY.md` §5c calls this **mandatory**. Servos and PCB1 share one 5 V rail; a ~1 A servo-stall transient can brown out the flight computer mid-burn without the bulk cap and hold-up diode. | Amazon | ~$10 |
-| **7** | **Arming switch/power switch spares** | U13 is the sole arming safety on PCB1 as fabricated; a spare is worth having. | Amazon | ~$2 |
+| **6** | **Decoupling kit, 1000 µF + 100 µF low-ESR + SS34 Schottky** | `COMPATIBILITY.md` §5c calls this **mandatory**. Servos and the Pico share one 5 V rail; a ~1 A servo-stall transient can brown out the flight computer mid-burn without the bulk cap and hold-up diode. | Amazon | ~$10 |
+| **7** | **Arming switch/power switch spares** | U13 is the sole arming safety on the flight computer as fabricated; a spare is worth having. | Amazon | ~$2 |
 | **8** | **Calibration masses to ~2.5 kg** | The axial load cell is 5 kg (≈49 N); calibrating over a small fraction of range doesn't clear the bench-calibration gate. Anything of *known* mass works, gym plates, water bottles on a kitchen scale. | — | ~$15 |
 
 ---
@@ -40,7 +40,7 @@ Confirmed against the *Already Acquired* sheet:
 | microSD SPI breakouts | ✅ on hand |
 | 100 kΩ / 62 kΩ resistors | ✅ on hand |
 | PETG-CF filament | ✅ on hand, comfortable margin for fins + bulkhead |
-| BME680 | ✅ on hand |
+| BME688 | ✅ on hand |
 | microSD cards | ✅ on hand |
 | **Full magnetic-solenoid actuator (MTVC)** | ✅ on hand, 3 × 12 V electromagnets, 3 × AIRTAK 100 N, IRF520 pack, 1N4007 pack, 12 V 2 A supply — the MTVC half of RQ1 is fully covered |
 | STEMMA QT cables ×6 | ✅ on hand |

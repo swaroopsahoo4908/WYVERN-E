@@ -34,7 +34,7 @@ struct LogFrame {
   uint8_t rbf_pulled;         // 1 = remove-before-flight pin pulled (armed-eligible), 0 = inserted
   uint8_t batt_flags;         // bit0 = low_battery, bit1 = critical (BatteryMonitor thresholds)
 
-  float qb_w, qb_x, qb_y, qb_z;      // voted body quaternion (onboard BNO055, 2-of-2 vote)
+  float qb_w, qb_x, qb_y, qb_z;      // voted body quaternion (onboard BNO085, 2-of-2 vote)
   float qg_w, qg_x, qg_y, qg_z;      // external BNO085 quaternion (STEMMA-QT, same shared bus as body)
   float vote_disagree_rad;           // TriImu::vote_disagreement_rad(); -1 = only one IMU reporting
 

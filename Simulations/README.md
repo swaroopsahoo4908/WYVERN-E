@@ -1,6 +1,6 @@
 # GTR70E WYVERN, Simulations
 
-- `we4_flightsim.py` → `plots4/01_trajectory.png` + `flightsim_summary.json`, **unified RK4(2e-4) + Barrowman engine** (apogee 397 ft @ 6.67 s, motor-ejection deploy at t=7.45 s / 7.7 m/s, finned margin +1.20 cal).
+- `we4_flightsim.py` → `plots4/01_trajectory.png` + `flightsim_summary.json`, **unified RK4(2e-4) + Barrowman engine** (apogee 397 ft @ 6.67 s, motor-ejection deploy at t=7.45 s / 7.7 m/s, finned margin +1.14 cal).
 - `we4_sim.py` → `plots4/`, mass/CG/inertia, F15-4 trajectory, TVC pitch control + authority,
   recovery, dispersion (`01`–`06`) + `results_summary.json`.
 - `we4_analysis.py` → `plots4/`, drag buildup (`07`), first-order structural/FEA margins (`08`),
@@ -12,7 +12,7 @@
 
 Run: `python3 we4_flightsim.py && python3 we4_sim.py && python3 we4_analysis.py && python3 build_ork4.py`.
 
-Key results: liftoff 729 g · T/W 2.01/3.54 · CG 50.8 cm / CP 59.3 cm (+1.20 cal) · Iyy 0.0257 kg·m² ·
+Key results: liftoff 729 g · T/W 2.01/3.54 · CG 45.0 cm / CP 53.3 cm (+1.14 cal) · Iyy 0.0257 kg·m² ·
 apogee 397 ft @ 6.67 s · v_max 34.5 m/s (Mach 0.101) · rail exit pending re-verify against the
 zoned-material mass stack · min SF ~340× · engine wall ~47 °C · gimbal torque ~0.56 kg·cm (±8°) ·
 battery 450 mAh → ~40 flights/charge.

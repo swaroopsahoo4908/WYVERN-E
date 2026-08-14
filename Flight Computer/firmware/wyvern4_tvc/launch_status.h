@@ -8,7 +8,7 @@
 // ---------------------------------------------------------------------------------------------
 // Launch detect: |a| > 2g sustained for >= 50 ms on the body IMU's accelerometer, per
 // flowcharts/01_flight_state_machine.mermaid ("ARMED --> BOOST: |a|>2g"). The body sensor is a
-// Bosch BNO055 (imu_grv.h), read via getEvent(VECTOR_ACCELEROMETER) rather than an SH2 report. A
+// Bosch BNO085 (imu_grv.h), read via getEvent(VECTOR_ACCELEROMETER) rather than an SH2 report. A
 // hardware inertial switch on GP37 (LAUNCH_IRQ) is OR'd in as a redundant trigger.
 //
 // H1 is a 14-pin debug/expansion connector, netlist-traced pin-by-pin: pin1/5=3V3,
@@ -24,7 +24,7 @@
 class LaunchDetect {
 public:
   // 2.0 g / 50 ms sustain is chosen with margin against the vehicle's peak specific force
-  // (3.70 g at 698 g liftoff, CONFLICTS.md section 5) -- comfortable headroom against
+  // (3.70 g at 720 g liftoff, CONFLICTS.md section 5) -- comfortable headroom against
   // accelerometer noise, a slightly weak motor, or extra build mass, without being so low that
   // ground handling could falsely trigger launch detect.
   static constexpr float THRESHOLD_G = 2.0f;
@@ -104,7 +104,7 @@ class StatusIndicator {
 public:
   enum Pattern { BOOT_SELFTEST, SELFTEST_FAIL, ARMED, LOW_BATTERY, FAULT, OFF };
   // Named PIN_STATUS_LED, not PIN_LED: every Arduino-Pico board profile's pins_arduino.h #defines
-  // PIN_LED as a preprocessor macro (e.g. 25u on weact_rp2350b, 64u on rpipico2w), not a constant.
+  // PIN_LED as a preprocessor macro (e.g. 25u on rpipico2w, 64u on rpipico2w), not a constant.
   // A class member literally named PIN_LED gets textually replaced by the preprocessor before the
   // compiler ever sees it, producing a nonsensical redefinition and a hard compile error. GP35/GP34
   // below are discrete status LED/buzzer pins on the H1 debug/expansion header -- best-effort

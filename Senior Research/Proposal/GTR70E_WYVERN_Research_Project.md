@@ -1,0 +1,937 @@
+April 20th, 2026
+
+Table of Contents
+=================
+
+[[Table of Contents 1]{.underline}](#table-of-contents)
+
+[[Student Information 2]{.underline}](#student-information)
+
+[[Introduction 2]{.underline}](#introduction)
+
+[[Research Questions 3]{.underline}](#research-questions)
+
+> [[Research Question 1 - Magnetic Solenoid vs. Servo Actuation
+> 3]{.underline}](#rq1---magnetic-solenoid-vs.-servo-actuation-for-superior-thrust-vector-control-authority)
+>
+> [[Research Question 2 - Structural Performance in 3D Printable
+> Materials
+> 3]{.underline}](#rq2---structural-performance-in-3d-printable-materials-utilized-in-zoned-airframe-construction-and-jetvane-performance)
+>
+> [[Research Question 3 - Aerofoil Profile Efficiency for Subsonic
+> Control
+> 3]{.underline}](#rq3---aerofoil-profile-efficiency-for-subsonic-control-via-wind-tunnel-measured-performance)
+>
+> [[Research Question 4 - Wind Tunnel Calibration with In-Situ
+> Performance
+> 3]{.underline}](#rq4---wind-tunnel-calibration-with-in-situ-performance)
+>
+> [[Research Question 5 - Accuracy of Flight Control Loop Architectures
+> 4]{.underline}](#rq5---accuracy-of-flight-control-loop-architectures)
+
+[[Project Goal 4]{.underline}](#project-goal)
+
+[[Proposed Methodologies 4]{.underline}](#proposed-methodologies)
+
+[[Expected Outcomes 8]{.underline}](#expected-outcomes)
+
+[[References 9]{.underline}](#references)
+
+[[Abstracts 13]{.underline}](#past-abstracts)
+
+> [[Swaroop Sahoo 13]{.underline}](#swaroop-sahoo)
+>
+> [[Evaluating the Efficiency, Practicality, and Effectiveness of
+> Emission/Reception-Capable LiDAR and RaDAR Detection Systems in
+> Autonomous Navigation
+> 13]{.underline}](#evaluating-the-efficiency-practicality-and-effectiveness-of-emissionreception-capable-lidar-and-radar-detection-systems-in-autonomous-navigation)
+>
+> [[Chris Liu 14]{.underline}](#chris-liu)
+>
+> [[In-Situ resource utilization-derived iron perchlorate redox flow
+> battery for Mars: electrolyte characterization and extreme cold
+> performance validation
+> 14]{.underline}](#in-situ-resource-utilization-derived-iron-perchlorate-redox-flow-battery-for-mars-electrolyte-characterization-and-extreme-cold-performance-validation)
+>
+> [[Allison Hong 15]{.underline}](#allison-hong)
+>
+> [[The Effects of Different Types of Synthetic Retinoids on Bacteria
+> Inhibition: Antibacterial Properties
+> 15]{.underline}](#the-effects-of-different-types-of-synthetic-retinoids-on-bacteria-inhibition-antibacterial-properties)
+
+Student Information
+===================
+
+**Student Names:** Swaroop Sahoo, Chris Liu, Allison Hong
+
+**Project Title:** GTR70E WYVERN: Engineering Design and Experimental
+Validation of Active Flight Control, Materials, Aerodynamic
+Optimization, and Wind Tunnel Evaluation in a Subscale-Demonstrator
+Autonomous Guided Rocket
+
+**Research Pathway:** Engineering/Innovation Design
+
+**Intended Majors:**
+
+-   *Swaroop Sahoo*: Electrical Engineering with Aerospace Engineering
+    > Minor
+
+-   *Chris Liu*: Aerospace Engineering with Business Minor
+
+-   *Allison Hong*: Mechanical Engineering with Aerospace Engineering
+    > Minor
+
+Introduction 
+============
+
+Active flight control in small-scale, hobbyist-accessible rocketry sits
+at the intersection of aerodynamics, embedded real-time systems,
+additive-manufacturing materials science, and classical control theory,
+and progress on any one axis is frequently constrained by the others.
+Thrust-vector control, gimbaling the rocket motor's nozzle or exhaust
+path to produce a control moment without dedicated aerodynamic control
+surfaces, is the actuation method used on essentially every orbital
+launch vehicle, yet open, reproducible, and quantitatively validated
+implementations at the sounding-rocket scale remain comparatively rare
+in the amateur and academic literature. Existing low-cost demonstrations
+of vector control, such as the BPS.space *Signal* and *Echo* flight
+series, establish feasibility but do not typically isolate and quantify
+actuator-class performance independent of flight-to-flight aerodynamic
+and atmospheric variability.
+
+GTR70E WYVERN addresses this gap with a deliberately simplified
+architecture relative to prior program iterations: a single fixed-fin
+airframe that is passively stable through the motor's ignition
+transient, a single bare-metal flight controller executing the entire
+sensing-and-control pipeline, and, critically, an actuator comparison
+that is moved off the flight vehicle and onto a repeatable ground-test
+apparatus. This restructuring is intended to produce a controlled,
+statistically tractable dataset on actuator performance, the central
+engineering question of the program, while retaining a flight-validation
+phase that demonstrates the complete closed-loop system performs as
+designed under real atmospheric and motor-burn conditions.
+
+Research Questions 
+==================
+
+### RQ1 - Magnetic Solenoid vs. Servo Actuation for Superior Thrust Vector Control Authority
+
+Substituting a tri-solenoid magnetic gimbal actuator for a servo-driven
+gimbal actuator as the thrust-vector-control mechanism, evaluated under
+identical commanded-deflection inputs on two physically separate
+three-axis thrust-vector load balances sharing an identical flexure and
+data-acquisition chain so the two datasets are directly comparable, will
+produce measurable differences in actuation bandwidth, slew rate,
+step-response overshoot, steady-state deflection error, and maximum
+achievable gimbal angle, with the objective of determining which
+actuator class provides superior control authority for a given motor
+thrust regime.
+
+### 
+
+### RQ2 - Structural Performance in 3D Printable Materials utilized in Zoned Airframe Construction and Jetvane Performance
+
+Holding all FDM print parameters constant across foamed ASA (ASA-Aero),
+carbon-filled PETG (PETG-CF), and fire-retardant polycarbonate (PC-FR),
+this study will characterize and compare each material\'s flexural
+stiffness and modulus under three-point bend loading, and its
+heat-deflection margin against the measured engine-bay wall temperature
+from the static-fire campaign, with the objective of justifying the
+zoned allocation actually flown: ASA-Aero for the unheated
+avionics-housing upper body, PETG-CF for the lower body and fins, and
+PC-FR for the thrust-vector-control assembly. A second materials thread
+under this same question, run as a blast-shield screen rather than a
+mounted-vane test, fires the motor directly into a flat 5 mm,
+fully-dense coupon plate of each of six candidate materials (PLA,
+PETG-CF, ABS, ASA-Aero, PC, and PC-FR), measuring melt-through, ablation
+depth, and slag buildup; materials that survive 5 mm are retested at 4,
+3, and 2 mm until they fail, producing a failure-thickness ranking
+across all six.
+
+### 
+
+### RQ3 - Aerofoil Profile Efficiency for Subsonic Control via Wind Tunnel Measured Performance
+
+A bench wind tunnel directly measures lift, drag, and stall behaviour
+for four candidate fin aerofoil sections across the flown fin\'s
+angle-of-attack range, complementing an inviscid two-dimensional
+vortex-panel computational solver that predicts the same lift curves and
+surface-pressure distributions analytically. The objective is to select
+the fin aerofoil section on measured rather than purely modelled
+performance, and to characterize where the inviscid panel-method
+prediction diverges from measured behaviour. The panel method captures
+circulation-driven lift and pressure distribution but not viscous
+separation, stall onset, or pressure drag, which only the tunnel run can
+supply, so the section actually flown is the one the tunnel data favours
+rather than the inviscid prediction alone.
+
+### 
+
+### RQ4 - Wind Tunnel Calibration with In-Situ Performance
+
+Sizing the four fixed fins near the minimum conventionally stable static
+margin by the Barrowman (1967) normal-force and center-of-pressure
+method, the predicted static margin, zero-lift drag coefficient, and
+weathercock response are compared against two independent measurements:
+the tunnel-measured aerofoil coefficients, and the same quantities
+reconstructed from recovered flight telemetry. Static margin is
+recovered from the observed pitch-rate response to the measured
+crosswind, and drag coefficient from the coast-phase deceleration
+between burnout and apogee. The objective is to establish how accurately
+a Barrowman-class analytical model, cross-checked against both a
+physical wind-tunnel measurement and flight telemetry, predicts the
+as-built vehicle's passive aerodynamics, and to confirm that the
+selected fin geometry holds a stable margin through the pre-control
+phase without an unnecessary drag or mass penalty.
+
+### RQ5 - Accuracy of Flight Control Loop Architectures
+
+Operating the proportional-integral-derivative thrust-vector control
+loop on the single flight microcontroller under multiple candidate gain
+sets, including a step-response-tuned baseline and a simulation-refined
+gain set validated across modelled atmospheric and gust conditions, peak
+pitch deviation, gimbal-angle utilization, and settling behaviour will
+be quantified and compared across repeated flights. The objective is to
+determine which gain configuration produces the most accurate and
+best-damped trajectory tracking on a deterministic single-controller
+architecture.
+
+Project Goal
+============
+
+The goal of the GTR70E WYVERN project is to design, fabricate, and
+flight-test the GTR70E WYVERN system, a recoverable subscale prototype
+autonomous guided rocket based on a standard 70mm airframe diameter. The
+system serves as an integrated test platform for evaluating methods of
+actively powered flight control, performance of hobbyist and
+industry-grade 3D printable materials, the quantifiable differences in
+fin aerofoil geometries, the translation of the constructed test wind
+tunnel simulations to real world flight data, and the differences
+between different levels of flight computer control loop architecture.
+Testing will be conducted utilizing computer-based CFD and FEA
+simulations, ground-based wind tunnel testing, and in-situ powered
+flight, with the goal to produce usable datasets and reliable components
+for use in the the rocketry community.
+
+Proposed Methodologies 
+======================
+
+The GTR70E WYVERN program employs a three-tier experimental framework
+spanning computational simulation, ground-based wind tunnel testing, and
+in-situ powered flight testing. Each research question is addressed
+through at least two of these tiers to enable cross-validation of
+results. All fabrication utilizes hobbyist-accessible manufacturing
+methods and commercially available components, consistent with the
+project\'s open-source objectives.
+
+### Airframe & Materials
+
+All primary structural components, body tubes, nose cone, fin set, and
+bulkhead, are fabricated by fused deposition modeling on a Bambu Lab X1C
+printer using the 0.4mm hardened steel nozzle. Print parameters,
+including layer height, infill pattern and density, wall count, nozzle
+and bed temperature, and part cooling, are held constant within each
+material class to isolate material as the independent variable,
+following the parameter-control methodology of Popescu et al. (2018).
+Three structural candidate materials are evaluated: fire-retardant
+polycarbonate, allocated to the thrust-vector-control assembly, the zone
+closest to sustained motor-plume heating; carbon-filled polyethylene
+terephthalate glycol, allocated to the lower body and fins, which carry
+the ejection-gas path and the fin aerodynamic load; and foamed
+acrylonitrile styrene acrylate for the upper body tube and nose, where
+neither motor heat nor ejection gas is present. Flexural stiffness and
+modulus of all three materials are characterized under standardized
+three-point bend loading following the mechanical-characterization
+framework of Dizon et al. (2018).
+
+The allocation is driven by thermal exposure and structural role. The
+foamed material is not survivable in contact with the motor's ejection
+gas or sustained plume heat; the carbon-filled material handles the gas
+path and fin loads; and the fire-retardant polycarbonate is reserved for
+the zone with the highest sustained thermal exposure. Engine-bay thermal
+performance is verified by a first-order lumped-capacitance transient
+model of the motor-bay wall against the motor's burn duration, and is
+cross-checked against a thermocouple reading taken on the wall during
+the static-fire campaign. First-order structural margins on the airframe
+exceed the motor's peak axial and control-induced bending loads by more
+than two orders of magnitude, confirming that wall thickness is set by
+printability and handling robustness rather than by flight loads.
+
+### Fins & Aerofoil Profiles
+
+![](media/image5.png){width="2.8438965441819772in"
+height="2.5501607611548556in"}
+
+\*Fin Profiles shown above as downward, then right view.
+
+The flight fin employs a symmetric aerofoil cross-section sized to
+deliver the static margin identified above. Passive aerodynamics are
+established through three complementary channels: analytical prediction,
+direct wind-tunnel measurement, and flight validation.
+
+Four fin cross-section profiles are fabricated for wind tunnel
+evaluation: a thin symmetric NACA profile (NACA 0006), a moderate
+symmetric NACA profile (NACA 0012), a double-wedge, and a flat-plate.
+Symmetric NACA section aerodynamic data referenced in Abbott and Von
+Doenhoff (1959) and the NACA 0012 characterization from NACA TN 2502
+provide baseline expected performance for the NACA profiles at low
+angles of attack. All profiles are printed to identical planform
+dimensions so that only cross-sectional geometry varies between test
+articles. Low-Reynolds-number aerodynamic behavior of these profile
+types is framed using Lissaman (1983) and Mueller and DeLaurier (2003),
+both of which establish that profile geometry effects on lift and drag
+are particularly pronounced in the subsonic, low-Reynolds-number regime
+characteristic of the GTR70E WYVERN flight envelope.
+
+For the computational cross-check, a constant-strength two-dimensional
+vortex-panel method following the Kuethe and Chow methodology solves the
+inviscid flow about each candidate section, returning lift coefficient
+and surface pressure distribution across the same sweep used in the
+tunnel campaign, plus a flat-plate skin-friction viscous-drag estimate
+so that lift-to-drag ratio is meaningful for section selection. The
+method is validated against thin-airfoil theory, returning a lift-curve
+slope close to the theoretical ideal with the expected inviscid
+thickness over-prediction. Because the panel method is inviscid, it
+captures circulation-driven lift and pressure distribution but not
+viscous separation, stall onset, or pressure drag; those come from the
+tunnel campaign, which is exactly what the computational model is built
+to be checked against.
+
+For the analytical prediction, fin normal-force slope and center of
+pressure are computed by the Barrowman (1967) slender-body method with a
+body-interference correction, and zero-lift drag is built up
+componentwise from skin friction over the wetted area at the flight
+Reynolds number, base drag, forebody pressure drag, and fin profile
+drag, giving the nominal drag coefficient carried by the trajectory
+integrator. Reference low-angle-of-attack behaviour for symmetric
+sections of this class is benchmarked against the thin-airfoil and
+low-Reynolds-number frameworks of Lissaman (1983) and Mueller and
+DeLaurier (2003), and against tabulated section data from Abbott and Von
+Doenhoff (1959). Sensitivity of the predicted margin to build tolerance
+is quantified by a sweep across the plausible range of as-built
+center-of-gravity error, and the resulting margin, apogee, and drift
+distributions by Monte Carlo dispersion over the atmospheric envelope.
+An independent implementation of the same geometry in OpenRocket serves
+as a third-party cross-check on the center-of-pressure and trajectory
+prediction.
+
+For flight reconstruction, two quantities are recovered from the onboard
+log and compared against both the analytical prediction and the tunnel
+measurement. Coast-phase drag coefficient is reconstructed from the
+deceleration between burnout and apogee, where thrust is zero and the
+only forces are drag and gravity, evaluated over the
+high-dynamic-pressure portion of the coast and averaged, with air
+density taken from the barometric altitude and the measured surface
+conditions. Static margin is reconstructed from the weathercock
+response: the observed steady pitch offset into the measured crosswind,
+together with the pitch-rate transient at rail exit, yields the
+aerodynamic restoring stiffness, from which the center of pressure
+follows given the measured center of gravity and dynamic pressure.
+Agreement between predicted and reconstructed values is the reported
+result for this research question; disagreement is itself a quantified
+finding about the predictive limits of a Barrowman-class model on a
+short, low-Reynolds-number, additively-manufactured airframe.
+
+### Flight Computer Systems & Avionics
+
+All flight avionics functions, attitude estimation, control-law
+execution, actuator commanding, and data logging, are consolidated onto
+a single Raspberry Pi Pico 2 W, a dual-core microcontroller module
+carried on a hand-assembled prototyping board mounted as an axial card
+in the avionics bay. This replaces the distributed multi-board avionics
+architecture used in earlier program iterations. An intermediate
+revision of this design specified a custom circular printed circuit
+board built around a bare packaged die; that approach was retired on
+schedule grounds, since a fine-pitch quad-flat no-lead package requires
+a four-layer board with a continuous ground plane and the layout and
+fabrication turnaround did not fit the fixed launch window. Control-loop
+capability is unchanged, using the same silicon and the same core
+partition, and the change substantially reduces bring-up risk by making
+the avionics testable one breakout at a time rather than as a single
+monolithic board.
+
+The two processor cores are functionally partitioned to preserve hard
+real-time determinism. The first core executes the 500 Hz
+thrust-vector-control loop exclusively, reading the inertial measurement
+units, computing nozzle deflection, evaluating the control law, and
+commanding the gimbal servos, and is permitted no blocking operations of
+any kind. The second core drains a logged-data ring buffer to a microSD
+card over a serial peripheral interface, isolating all non-deterministic
+input/output latency from the control path. This division directly
+addresses the principal failure mode of single-threaded flight-computer
+architectures, in which storage input/output can transiently block
+control-loop execution. Flight telemetry is logged to card as the data
+of record; the module's onboard radio is used for bench telemetry on the
+ground test stand, where the same board and firmware image are reused
+with the bay inertial unit omitted.
+
+Two nine-axis BNO085 inertial measurement units are deployed, one on the
+avionics board in the upper body tube and one mounted directly on the
+thrust-vector gimbal in the lower body tube, connected by a cable that
+crosses the bulkhead on separable leads. They are distinguished on a
+shared serial bus by their address-select pin. Each runs in a fusion
+mode combining accelerometer and gyroscope data with the magnetometer
+disabled, because the magnetic field generated by the adjacent gimbal
+servos would otherwise corrupt a magnetically-referenced heading
+estimate. The two units vote against each other for attitude fault
+detection, and because the second unit is gimbal-mounted,
+gimbal-relative deflection is measured directly in flight rather than
+only on the ground-test balances. At ejection the two body tubes
+separate and the gimbal unit disconnects with them by design; the
+firmware treats its loss after the deployment time as expected rather
+than as a fault, and descent attitude comes from the bay unit. A single
+barometric sensor (BMP388) on the same bus provides primary altitude
+tracking for the rocket, with a further BME688 utilized for extra
+environmental data.
+
+The entire avionics domain runs off a light two-cell lithium-polymer
+pack through a resettable fuse and an arming switch into a switching
+regulator producing a single five-volt rail. That rail feeds the
+microcontroller, the storage breakout, and both gimbal servos, which are
+oversized for the computed gimbal torque demand; the sensors run off the
+microcontroller's own regulator. A bulk electrolytic capacitor at the
+servo feed absorbs stall transients that would otherwise brown out the
+controller. Pack health is monitored by a resistive divider into an
+analog input, with firmware warning and critical thresholds set at
+conservative per-cell voltages. The arming switch is reached by removing
+the nose cone rather than through an airframe penetration.
+
+The per-axis control law is a discrete proportional-integral-derivative
+controller with integral anti-windup clamping and a first-order
+low-pass-filtered derivative term, executed at 500 Hz with output
+clipped to an eight-degree gimbal deflection limit. That limit was
+raised from an earlier five degrees to give control-authority margin
+against crosswind weathercocking without adding passive fin stability,
+which would otherwise reduce the very disturbance the control system is
+built to demonstrate. The flight gain set was selected by a phase and
+gain margin analysis across twenty-four operating points and
+independently confirmed by a time-domain robust multi-wind auto-tune. It
+holds worst-case gust pitch deviation to under two degrees with wide
+gimbal headroom against the mechanical limit, while avoiding the
+resonance against finite servo lag observed in higher-proportional-gain
+configurations. The control loop is inhibited for the first half-second
+of flight, after which it engages to stabilize the vehicle to vertical
+and execute a small commanded maneuver.
+
+Two thrust-vector-control actuator classes are evaluated using the
+identical control electronics, gimbal mechanism, and software control
+law, isolating actuator dynamics as the experimental variable: a
+tri-solenoid magnetic gimbal actuator and a servo-driven gimbal
+actuator. The comparison is conducted entirely on the ground-based
+three-axis thrust-vector load balances described below rather than in
+flight, to remove flight-to-flight aerodynamic and atmospheric
+variability from the actuator comparison. The flight vehicle itself
+carries the servo actuator, selected on the basis of the
+ground-comparison results.
+
+### Data Logging & Flight Test Plan
+
+Comparative testing for Research Question 1 is conducted on the ground
+stands rather than in flight, with the control loop configured to drive
+each actuator class in turn: one series on the servo thrust-vector stand
+and a separate series on the physically separate magnetic thrust-vector
+stand. Logs record actuator command angle, achieved deflection,
+command-to-response latency, and peak deflection rate per degree of
+actuator input across the commanded range. The actuator class producing
+greater control authority for a given thrust regime is identified by
+comparing bandwidth, slew rate, overshoot, steady-state error, and
+maximum sustained deflection between the two stands. BPS.space TVC
+design references are used to benchmark expected authority against prior
+hobby-scale implementations. For Research Question 5, a minimum number
+of flight repetitions are completed for each candidate gain set, and
+post-flight telemetry is analyzed for percent deviation from the nominal
+trajectory, lateral displacement from the intended recovery point at
+parachute deployment, and peak attitude error during the powered flight
+phase.
+
+All onboard sensor data is logged at the Raspberry Pi Pico 2 W's sample
+rate and simultaneously downlinked via the onboard microSD card with
+critical data being transmitted by onboard WiFi telemetry when possible.
+Multiple flights are conducted with the control law configured under
+each candidate gain set, and post-flight telemetry recovered from the
+onboard log is analysed for peak pitch deviation during the powered
+phase, gimbal-angle utilization, and settling and overshoot behaviour,
+to determine which gain configuration produces the most accurate and
+best-damped attitude tracking. All onboard sensor data, including
+full-rate inertial, barometric, and control-loop telemetry, is logged at
+the full control-loop sample rate. Where a bench or range wireless link
+is in range, a parallel live feed is monitored for real-time anomaly
+detection, though the onboard log remains the data of record.
+
+### Recovery System
+
+The vehicle's passive fin stability is retained through the coast phase
+to apogee, predicted near 409 feet at approximately 6.7 seconds after
+launch. Recovery is initiated not by an independent electronic altimeter
+but by the flight motor's own factory ejection charge. The flight
+configuration uses a motor with a four-second ejection delay, so that
+approximately four seconds after propellant burnout, roughly
+seven-tenths of a second past the predicted apogee, the motor's integral
+ejection charge fires inside the lower body tube. Gas pressure builds
+directly against the bulkhead joint between the two body tubes, and the
+joint, friction-fit and shear-pinned to release at a target force,
+separates, deploying the parachute packed at the forward end of the
+lower body tube.
+
+A first-order feasibility analysis supports the approach on two
+independent grounds. Flow-path losses at the ejection mass-flow rate are
+negligible against the driving pressure. The recovery bay pressurizes to
+roughly an order of magnitude above the friction-fit joint-release
+threshold, giving a pressurization margin of several times. The
+four-second delay is the closest available factory delay to the
+coast-to-apogee optimum; longer available delays are rejected because
+they fire well past apogee, deploying at high descent speed and, in the
+longest case, at dangerously low altitude.
+
+This motor-ejection architecture needs no independent recovery computer,
+no isolated recovery battery, no electric match or black-powder charge,
+and no dedicated recovery wiring, reducing parts count, cost, and an
+entire electronic failure domain, at the cost of a single passive
+deployment event with no electronic backup channel. That trade is
+justified by the pressurization margin and by the finned airframe's
+aerodynamic stability through apogee. Shock-cord and parachute sizing,
+using tubular aramid cord and a 24-inch ripstop nylon canopy with an
+aramid blanket shielding the canopy from the ejection gas, are verified
+against the worst-case deployment scenario, giving a harness structural
+safety factor comfortably above target. A predicted terminal descent
+rate near five metres per second follows once the canopy is fully open.
+
+All electrical connections crossing the bulkhead, the two servo leads
+and the gimbal inertial unit cable, are made on separable male-female
+extension leads that simply pull apart at separation, so the aramid
+shock cord is the only retained link between the two halves. The
+firmware treats the resulting loss of the gimbal sensor and servo power
+as an expected consequence of deployment rather than as a fault
+condition.
+
+### Simulations, Firmware, and Modelling
+
+All flight computer firmware is written in C++ and developed within the
+Arduino IDE using the Arduino-Pico core, targeting the Raspberry Pi Pico
+2 W. The firmware implements a multi-input PID control loop that reads
+IMU attitude quaternion estimates, computes attitude error relative to
+the pre-loaded nominal trajectory, and outputs servo commands to the two
+gimbal actuators. Multiple candidate gain sets are evaluated for
+Research Question 5, including a step-response-tuned baseline and a
+simulation-refined set validated across modelled atmospheric and gust
+conditions. Gain values for each configuration are tuned iteratively
+using the Ziegler-Nichols (1942) step-response tuning method and refined
+against a phase and gain margin sweep. TVC control architecture design
+draws on the low-cost launcher guidance framework described by Gordillo
+et al. (2023) and on NASA TN D-4971 (1968) for fundamental TVC authority
+and control allocation requirements in solid-propellant systems.
+OpenRocket is used for pre-flight stability analysis, center-of-pressure
+and center-of-mass tracking across motor burn, and nominal trajectory
+prediction per the OpenRocket technical documentation (2023), with
+simulated outputs compared against flight telemetry as a
+cross-validation metric.
+
+![](media/image1.png){width="5.896548556430446in"
+height="2.0736384514435695in"}
+
+\*OpenRocket Model with Stability and Approximate Dimensions
+
+### Ground Fire Test Program
+
+Four purpose-built stands are constructed: a servo thrust-vector stand,
+a physically separate magnetic thrust-vector stand, a static-fire stand
+handling calibration, thrust curves, and the blast-shield materials
+screen, and a bench wind tunnel for aerofoil measurement. The three
+motor-fired stands are fully printable in carbon-filled polyethylene
+terephthalate glycol, selected for its motor-plume thermal margin, and
+instrumented with strain-gauge load cells and twenty-four-bit
+bridge-amplifier breakouts, logged to onboard storage by a dedicated
+data-acquisition microcontroller independent of the flight avionics. The
+wind tunnel is an unpowered bench rig with its own instrumentation.
+
+Each actuator class is mounted to its own physically identical thrust
+block, restrained from a fixed base by three strain-gauge load cells
+acting through flexures, one axial and two lateral, resolving the
+complete thrust vector in both magnitude and direction. The cells are
+sized to the expected loading envelope of the test motor, using a
+five-kilogram axial cell and two one-kilogram lateral cells digitized at
+eighty samples per second, identically on both stands. An alternative
+single-piece design, a cruciform flexure instrumented with one bridge
+per arm forming a unified three-axis force sensor, is held as a fallback
+configuration should the discrete three-cell assembly prove difficult to
+align. Running the identical instrumentation chain on two separate
+physical stands, rather than swapping actuators on one shared fixture,
+is what makes the magnetic-versus-servo comparison valid under nominally
+identical thrust conditions. Commanded-versus-measured deflection angle
+is logged across a series of step and ramp commands under identical
+thrust conditions on each stand to extract bandwidth, slew rate,
+step-response overshoot, steady-state error, and maximum sustained
+deflection for each actuator. Because each firing provides only a few
+seconds of control window, the independent command set for each actuator
+system is built up across multiple firings on its respective stand.
+
+The static-fire stand is a single-axis, load-cell-only stand fitted with
+a steel blast deflector. It validates the as-fired thrust curve of every
+motor class used in the program against its published specification, and
+carries a thermocouple on the engine-bay wall to measure the peak
+temperature that the materials heat-deflection argument depends on. The
+blast-shield materials screen runs on this same stand: a flat coupon
+plate of each candidate material, five millimetres thick at full
+density, is mounted directly in the exhaust path and fired on. Six
+materials go through the screen, and the measured response is
+melt-through, ablation depth, and slag buildup rather than thrust or
+deflection. Materials surviving five millimetres are retested at four,
+then three, then two millimetres until they fail, feeding the materials
+dataset as a failure-thickness ranking. Ground firings use a plugged,
+zero-delay variant of the flight motor, which has an identical thrust
+curve but no ejection charge, so that nothing fires into the stand
+fixtures after burnout.
+
+Planned firing counts are four flight motors for flight testing, and
+between thirteen and twenty-four plugged ground motors: six across the
+two thrust-vector stands at three firings per actuator system, two on
+the static-fire stand for thrust-curve verification and the engine-bay
+wall temperature measurement, and the blast-shield screen, which is
+adaptive rather than fixed. Six materials at up to four thickness steps
+each tops out at twenty-four firings if every material survives to two
+millimetres, though most candidates are expected to fail by four
+millimetres in practice, so the realistic budget is roughly twelve to
+sixteen firings with twenty-four as the worst case. A further six
+low-cost motors are budgeted for stand commissioning at two firings per
+motor-fired stand.
+
+Each stand's load cells are first calibrated independently of any motor
+firing, using a series of known hanging dead weights spanning the
+expected force range, to establish a force-to-voltage transfer function
+for every channel. Each stand is then commissioned with a minimum of two
+low-cost motor firings before any data-collection firing is conducted,
+to validate the as-built stand's measured thrust curve against the
+motor's independently published reference curve and confirm that
+structural compliance in the stand itself is not corrupting the force
+measurement. Only after a stand passes this commissioning check are
+data-collection firings conducted on it. All raw and reduced ground-test
+data are archived in the same repository used for flight data release.
+
+### Wind Tunnel
+
+![](media/image3.png){width="1.8104549431321084in"
+height="6.229166666666667in"}
+
+\*Initial 3D Model of the low-speed open-return wind tunnel system
+
+The custom open-return wind tunnel is designed per the Hofferth (2025)
+AIAA SciTech modular configuration and comprises a bell-mouth inlet, a
+flow-conditioning section with honeycomb and mesh screens, a converging
+contraction section designed per Bell and Mehta (1988) area ratio and
+length criteria, an optically accessible test section, and a diffuser
+leading to a variable-speed fan unit. Tunnel design also draws on the
+low-speed tunnel design rules of Mehta and Bradshaw (1979) and the
+reference design methodology of Pope and Harper (1966). Prior to
+aerodynamic testing, the tunnel is characterized across its full
+operating range using a Pitot-static probe traversed across the test
+section cross-section at multiple fan speed settings to map freestream
+velocity and spatial uniformity, with a uniformity target of less than
+2% RMS variation in the core flow region. Blockage corrections are
+applied to all measured drag coefficients using the Maskell (1963)
+bluff-body blockage correction method. Reynolds number similarity ratios
+between tunnel conditions and powered-ascent flight conditions are
+computed to identify the fan operating point at which tunnel aerodynamic
+loading on the scaled rocket model most closely replicates predicted
+loading on the full-scale vehicle during powered ascent.
+
+Each fin profile test article is mounted on a two-axis force balance
+string within the test section and lift and drag forces are recorded at
+equal angle-of-attack increments from 0° through post-stall at the
+calibrated Reynolds-matched condition. Lift coefficient, drag
+coefficient, lift-to-drag ratio, and stall onset angle are extracted for
+each profile, with a minimum of three repeated runs per angle per
+profile conducted to assess measurement repeatability. Mean values from
+repeated runs are used for all cross-profile comparisons. Each fin
+article is additionally tested at representative ascent airspeeds with
+deflection inputs applied in 2° increments to characterize
+deflection-normalized lift increment as a function of airspeed,
+providing the ground-based component of the aerofoil performance
+comparison addressed in Research Question 3. Airfoil section data from
+Selig (2003) and Selig et al. (1989) are used as reference benchmarks
+against which tunnel-measured coefficients for the NACA profiles are
+validated prior to cross-profile comparison.
+
+### Safety & Compliance
+
+All flights are conducted in compliance with NAR (2023) safety code and
+motor classification standards, with a NAR representative or similarly
+qualified adult present at each flight session. All flights use a single
+Estes F15-4 motor, an F-class motor with a four-second ejection delay,
+and the fully loaded liftoff mass of approximately 720 grams is well
+under the Federal Aviation Administration's Class 1 model rocket
+threshold of 1,500 grams loaded weight per motor, requiring no
+airworthiness waiver and no high-power certification. Range procedures
+include remote ignition, a minimum three-metre personnel standoff from
+both ground-test stands during firing, a fail-safe neutral-gimbal
+default state on any control-system fault, and standard model-rocketry
+motor-handling discipline for the motor's integral ejection charge. The
+igniter is installed last, at the pad, and there are no independent
+pyrotechnic or electronic ejection circuits in the vehicle to arm or
+inhibit, since recovery is effected solely by the motor's own delay and
+ejection charge.
+
+Expected Outcomes 
+=================
+
+![](media/image2.png){width="6.458333333333333in"
+height="2.137344706911636in"}
+
+\*OpenRocket Render of the GTR70E WYVERN in Flight
+
+We expect to see a few possible outcomes from our research and
+prototyping journey. We will be able produce a quantitative,
+ground-validated comparison of magnetic-solenoid and servo
+thrust-vector-control actuators, including bandwidth, slew rate,
+overshoot, and steady-state error for each, directly informing actuator
+selection for future closed-loop rocketry programs without requiring a
+dedicated in-flight comparison.
+
+We will also be able to identify the optimal material for hobbyist
+manufacturing utilizing 3D printing for rapid prototyping and defining
+which has the best stiffness, print quality, and overall durability,
+something not as commonly addressed in rocketry literature which tends
+to prefer wood, ceramic, or fiberglass construction. In addition we are
+looking into the aerofoil profiles and will be able to experimentally
+determine which of them produces the most attitude control in an
+actively deflected configuration at low Reynolds numbers, with recorded
+wind tunnel and simulation data being released as an open-source
+dataset. The development of the GTR70E WYVERN testing wind tunnel will
+give the rocketry community a cost effective and open-source option for
+ground-based simulation, powered ascent simulation, and live testing of
+aerodynamics and control theory. It will also further expand on that
+control theory by evaluating the complexity of control and the
+performance regimens that can be achieved with different levels of
+microprocessor and loop complexity. We hope to be able to release all
+data as publicly available datasheets through a public repository and
+develop the rocket components into either fledged out products or
+reproducible systems; still committing to full open-source designs and
+data sharing.
+
+References
+==========
+
+> Abbott, I. H., & Von Doenhoff, A. E. (1959). *Theory of wing sections:
+> Including a summary of airfoil data*. Dover Publications.
+> https://store.doverpublications.com/0486605868.html
+>
+> Barrowman, J. S. (1967). *The practical calculation of the aerodynamic
+> characteristics of slender finned vehicles* (NASA NTRS accession
+> 20010047838). https://ntrs.nasa.gov/citations/20010047838
+>
+> Barrowman, J. S. (1967). *The theoretical prediction of the center of
+> pressure*. Apogee Rockets.
+> https://www.apogeerockets.com/downloads/barrowman\_report.pdf
+>
+> Bell, J. H., & Mehta, R. D. (1988). *Contraction design for small
+> low-speed wind tunnels* (NASA CR-182747).
+> https://ntrs.nasa.gov/api/citations/19880012661/downloads/19880012661.pdf
+>
+> Bhandari, S., Lopez-Anido, R. A., & Gardner, D. J. (2019). Enhancing
+> the interlayer tensile strength of 3D printed short carbon fiber
+> reinforced PETG. *Composites Part B: Engineering, 179*, 107542.
+> https://doi.org/10.1016/j.compositesb.2019.107542
+>
+> BPS.space. (n.d.). Thrust vector control. BPS.space. Retrieved April
+> 18, 2026, from https://bps.space/products/thrust-vector-control
+>
+> Chacón, J. M., Caminero, M. A., García-Plaza, E., & Núñez, P. J.
+> (2017). Additive manufacturing of PLA structures using fused
+> deposition modelling. *Composite Structures, 182*, 107--116.
+> https://doi.org/10.1016/j.compstruct.2017.09.004
+>
+> Dizon, J. R. C., Espera, A. H., Chen, Q., & Advincula, R. C. (2018).
+> Mechanical characterization of 3D-printed polymers. *Additive
+> Manufacturing, 20*, 44--67.
+> https://doi.org/10.1016/j.addma.2017.12.002
+>
+> Estes Industries. (n.d.). F15 model rocket engine, technical
+> specifications.
+>
+> Federal Aviation Administration. (n.d.). Title 14 CFR Part 101,
+> Subpart C, Amateur rockets.
+>
+> Hofferth, J. (2025). Modular wind tunnel for STEM education. *AIAA
+> SciTech 2025 Forum*. https://doi.org/10.2514/6.2025-2630
+>
+> Hsueh, M.-H., Lai, C.-J., Liu, K.-Y., Chung, C.-F., Wang, S.-H., Pan,
+> C.-Y., Huang, W.-C., Hsieh, C.-H., & Zeng, Y.-S. (2021). Effects of
+> printing parameters on the thermal and mechanical properties of
+> 3D-printed PLA and PETG. *Polymers, 13*(13), 2092.
+> https://doi.org/10.3390/polym13132092
+>
+> Kuethe, A. M., & Chow, C.-Y. (1998). Foundations of aerodynamics:
+> Bases of aerodynamic design (5th ed.). John Wiley & Sons.
+>
+> Lissaman, P. B. S. (1983). Low-Reynolds-number airfoils. *Annual
+> Review of Fluid Mechanics, 15*, 223--239.
+> https://bpb-us-w1.wpmucdn.com/sites.usc.edu/dist/4/81/files/2023/05/lissaman-arfm-1983.pdf
+>
+> Liu, Y., & Hui, W. (2024). Implementation and verification of a
+> micro-jet-vane system of a solid rocket motor for a micro-nano
+> satellite. *Aerospace, 11*(5), 367.
+> https://www.mdpi.com/2226-4310/11/5/367
+>
+> Mahony, R., Hamel, T., & Pflimlin, J.-M. (2008). Nonlinear
+> complementary filters on the special orthogonal group. *IEEE
+> Transactions on Automatic Control, 53*(5), 1203--1218.
+> https://hal.science/hal-00488376v1/document
+>
+> Maskell, E. C. (1963). *A theory of the blockage effects on bluff
+> bodies and stalled wings in a closed wind tunnel* (ARC R&M 3400).
+> Aeronautical Research Council.
+> https://reports.aerade.cranfield.ac.uk/handle/1826.2/3452
+>
+> Mehta, R. D., & Bradshaw, P. (1979). Design rules for small low speed
+> wind tunnels. *Aeronautical Journal, 83*(827), 443--449.
+> https://doi.org/10.1017/S0001924000031985
+>
+> Mueller, T. J., & DeLaurier, J. D. (2003). Aerodynamics of small
+> vehicles. *Annual Review of Fluid Mechanics, 35*, 89--111.
+> https://doi.org/10.1146/annurev.fluid.35.101101.161102
+>
+> Murty, M. S. R., & Chakraborty, D. (2015). Numerical characterisation
+> of jet-vane based thrust vector control systems. *Defence Science
+> Journal, 65*(4), 263--270.
+> https://www.researchgate.net/publication/283661759\_Numerical\_Characterisation\_of\_Jet-Vane\_based\_Thrust\_Vector\_Control\_Systems
+>
+> National Advisory Committee for Aeronautics. (1951). *Aerodynamic
+> characteristics of NACA 0012 airfoil section at angles of attack from
+> 0° to 180°* (NACA TN 2502).
+> https://ntrs.nasa.gov/citations/19930082895
+>
+> National Association of Rocketry. (2023). *NAR safety code and motor
+> classification standards*. https://www.nar.org/safety-information/
+>
+> NASA. (1968). *Thrust-vector control requirements for solid-propellant
+> launch vehicles* (NASA TN D-4971).
+> https://ntrs.nasa.gov/api/citations/19680019218/downloads/19680019218.pdf
+>
+> OpenRocket Project. (2023). *OpenRocket technical documentation
+> v23.09*. https://openrocket.info/documentation.html
+>
+> Pérez Gordillo, A., Simplício, P., Iannelli, A., & Marcos, A. (2023).
+> Thrust vector control and state estimation architecture for low-cost
+> small-scale launchers. *arXiv*. https://arxiv.org/pdf/2303.16983
+>
+> Pillay, S., Vaidya, U. K., & Janowski, G. M. (2009). Effects of
+> moisture and UV exposure on liquid molded carbon fabric reinforced
+> nylon 6 composite laminates. *Composites Science and Technology,
+> 69*(6), 839--846. https://doi.org/10.1016/j.compscitech.2008.11.012
+>
+> Popescu, D., Zapciu, A., Amza, C., Baciu, F., & Marinescu, R. (2018).
+> FDM process parameters influence over the mechanical properties of
+> polymer specimens. *Polymer Testing, 69*, 157--166.
+> https://doi.org/10.1016/j.polymertesting.2018.05.020
+>
+> Pope, A., & Harper, J. J. (1966). *Low-speed wind tunnel testing*.
+> Wiley. https://archive.org/details/lowspeedwindtunn0000pope
+>
+> Precision Ceramics. (2021). *Macor machinable glass ceramic ---
+> technical data sheet*.
+> [[https://precision-ceramics.com/wp-content/uploads/2021/06/Macor\_Technical\_Data\_Sheet.pdf]{.underline}](https://precision-ceramics.com/wp-content/uploads/2021/06/Macor_Technical_Data_Sheet.pdf)
+>
+> Raspberry Pi Ltd. (2024). Raspberry Pi Pico 2 W datasheet.
+>
+> Sahoo, S. (2026, April 11). (Skylight Industries, Ed.). WYVERN PTD
+> Portal; Skylight Industries. https://GTR70E WYVERN.base44.app/
+
+Selig, M. S. (2003). *UIUC airfoil data site*. University of Illinois at
+Urbana-Champaign. https://m-selig.ae.illinois.edu/ads.html
+
+> Selig, M. S., Donovan, J. F., & Fraser, D. B. (1989). *Airfoils at low
+> speeds* (Soartech 8). SoarTech Publications.
+> https://m-selig.ae.illinois.edu/ads/afplots/airfoils\_at\_low\_speeds.pdf
+>
+> Ziegler, J. G., & Nichols, N. B. (1942). Optimum settings for
+> automatic controllers. *Transactions of the ASME, 64*, 759--768.
+> https://davidr.no/iiav3017/papers/Ziegler\_Nichols\_%201942.pdf
+
+Past Abstracts
+==============
+
+Swaroop Sahoo
+-------------
+
+### Evaluating the Efficiency, Practicality, and Effectiveness of Emission/Reception-Capable LiDAR and RaDAR Detection Systems in Autonomous Navigation
+
+Autonomous vehicles are swiftly evolving from experimental prototypes to
+a social norm. Advanced emitter-based sensor technologies, including
+LiDAR and RaDAR, are at the heart of these developments. This research
+has explored, through an analysis of raw performance, which is best for
+autonomous navigation systems. With an R2 Smart Car, we had extensive
+testing with the setup to ascertain detection capability across various
+terrains and conditions. We hypothesized that if an autonomous vehicle
+employs LiDAR sensors rather than RaDAR sensors, it will realize better
+detection owing to its higher resolution, precision, and finer
+performance for short-range distances. During our trials, LiDAR always
+outperformed RaDAR concerning precision and the recognition of objects
+within close and medium ranges. However, RaDAR showed better performance
+in adverse weather conditions, proving that it is more resistant to
+environmental stressors. Despite LiDAR\'s superior detection
+performance, several challenges were identified: higher cost, greater
+energy demands, and limited field of view. RaDAR, though less effective
+in performance, claims advantages regarding cost-efficiency, weather
+robustness, and lower battery requirements. These considerations become
+critical in balancing efficiency against function while designing a
+self-driving vehicle. This experiment shows that such a multi-sensor
+approach is needed to put together the strengths of LiDAR and RaDAR to
+attain maximum detection accuracy and system reliability. Such
+integration will be imperative for making robust, cost-effective
+autonomous systems that are capable of navigating diverse real-world
+conditions and thereby fostering the feasibility and safety of
+autonomous vehicles in mainstream society.
+
+Chris Liu
+---------
+
+### In-Situ resource utilization-derived iron perchlorate redox flow battery for Mars: electrolyte characterization and extreme cold performance validation
+
+Sustained habitation on Mars demands robust energy storage systems
+capable of reliable operation under extreme cold, especially during
+night and dust storm periods that render conventional lithium-ion
+batteries ineffective. This work introduces an in-situ resource
+utilization (ISRU) strategy for constructing iron perchlorate redox flow
+batteries, fully leveraging Martian-available materials to achieve
+extreme cold resilience. Eutectic freezing points and ionic
+conductivities of three Martian-available electrolytes (iron sulfate,
+iron chloride, and iron perchlorate) were systematically characterized.
+Iron perchlorate aqueous solution at 45 wt% displayed a eutectic
+freezing point of −78 °C, outperforming iron chloride (−55 °C) and iron
+sulfate (−10 °C). Laboratory-scale single cells were developed via
+computer-aided design and 3D printing, then tested under simulated
+Martian low-temperature conditions. The iron perchlorate system
+maintained 56% of its room-temperature capacity at −50 °C and remained
+operational at −70 °C, while iron chloride cells retained only 25% at
+−50 °C and lost functionality at lower temperatures. Electrochemical
+impedance measurements revealed that, although electrolyte resistance
+increases at lower temperature, charge transfer resistance becomes the
+dominant limiting factor under extreme cold. The results establish that
+ISRU-derived iron perchlorate flow batteries offer a feasible,
+cold-resilient solution for reliable energy storage in future Mars
+surface operations and settlement, with further performance gains likely
+through advanced perchlorate brine formulation.
+
+Allison Hong
+------------
+
+### The Effects of Different Types of Synthetic Retinoids on Bacteria Inhibition: Antibacterial Properties
+
+Retinoids are a group of compounds including naturally occurring and
+synthetic vitamin A metabolites and analogs. The two most common
+synthetic vitamin derivatives are Tretinoin and Adapelene. This
+experiment aims to determine the inhibitory properties of Adapalene and
+Tretinoin on Escherichia Coli. K-12. We hypothesized that the tretinoin
+group would have a greater inhibitory effect than the adapalene group.
+We created agar petri dishes and swabbed E. coli. The dishes were
+incubated for six days in total. Adapalene Gel 0.1% and Tretinoin Gel
+0.1% were measured and diluted with Methyl Alcohol. The solutions were
+added on day two of incubation. The bacterial growth was counted after
+the incubation period for the number of colonies formed on each dish.
+The retinoids, especially adapalene, were found to promote the growth of
+bacteria instead of inhibiting its growth. The data of all three groups
+represent a polynomial regression, with adapalene and tretinoin
+exhibiting an exponential pattern and the control group exhibiting a
+logarithmic pattern. Each result was evaluated with the statistical
+analysis of a t-test, and all data was significant and not random.
+Further research is suggested to better understand the retinoids'
+effects on bacterial growth and inhibition.

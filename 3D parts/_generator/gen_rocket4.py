@@ -89,7 +89,7 @@ P = dict(
     MOT=29.6, MMT=33.0,
     NOSE_L=120.0,
     UPPER_L=round(_OLD_FC_L * _SCALE, 1),   # 198.4 mm, sized by the 70 mm perfboard + cam + pack stack
-    LOWER_L=350.0,                          # shortened from 421.6 mm to raise TVC pitch authority
+    LOWER_L=350.0,                          # shortened from 350.0 mm to raise TVC pitch authority
     BULKHEAD_T=4.0,
     PCB_W=50.0, PCB_H=70.0,  # Pico 2 W perfboard, mounted as an axial card in the Upper BT
 )
@@ -329,7 +329,7 @@ def tvc_balance():
 
 # ---- static thrust stand (static fire test) ----
 def static_stand():
-    # 5 kg axial load cell + HX711 -> RP2350B custom PCB (GSE_TestStands.md #1, confirmed current
+    # 5 kg axial load cell + HX711 -> RP2350 custom PCB (GSE_TestStands.md #1, confirmed current
     # 2026-08-11, see CONFLICTS.md #9 / Static Stand README fix). Steel blast deflector is bought
     # hardware, not printed; TS_base_plate/TS_motor_tower/TS_loadcell_bracket are the printed set.
     base = box(220, 140, 8, True, 0)

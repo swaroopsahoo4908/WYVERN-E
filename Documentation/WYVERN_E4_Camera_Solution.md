@@ -21,7 +21,7 @@ runs on **its own battery** and records to **its own microSD**, wholly independe
   the budget originally assumed. This has been **carried through the whole cascade**, FC bay 96 → 122 g,
   liftoff 679 → **792 g**, apogee 471 → **324 ft**, T/W 2.16/3.80 → **1.85/3.26**. Because the camera
   sits at ~0.42 m (forward of the 0.49 m CG), the aft-CG shift is *favourable*: static margin rises
-  from 1.04 to **1.31 cal** (more stable). Net: a small altitude/TWR cost for the cheaper camera, with
+  from 1.04 to **1.14 cal** (more stable). Net: a small altitude/TWR cost for the cheaper camera, with
   a slight stability *gain*.
 - **Keep the OV2640 as *optional***: only if you want a few Pico-grabbed JPEG frames time-synced
   to the flight log for a telemetry overlay, run it at VGA, low fps, best-effort (never blocking

@@ -55,7 +55,7 @@ bulkhead faces (`WYVERN_E4_Recovery.md` §7) is the near-term thermal mitigation
 that check finds.
 
 ## 5. Modal / dynamics note
-The body is short (0.74 m) and stiff relative to the loads; first lateral bending mode is well above
+The body is short (0.672 m) and stiff relative to the loads; first lateral bending mode is well above
 the ~10 Hz TVC control bandwidth, so no structural–control coupling. (A full modal FEM is listed as
 future work; first-order separation is comfortable.)
 

@@ -1,4 +1,4 @@
-// GTR70E WYVERN · T3 — TVC servo sweep to the FULL +-8 deg gimbal limit (custom PCB1/RP2350B, GP2 pitch / GP3 yaw).
+// GTR70E WYVERN · T3 — TVC servo sweep to the FULL +-8 deg gimbal limit (Pico 2 W perfboard/RP2350, GP2 pitch / GP3 yaw).
 // ================================================================================================
 // REWRITTEN 2026-08 to exercise the SAME signal path the flight firmware uses.
 //

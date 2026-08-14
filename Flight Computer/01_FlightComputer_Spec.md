@@ -3,142 +3,162 @@
 **Authors:** Swaroop Sahoo, Chris Liu, Allison Hong  
 **Program:** GTR70E WYVERN
 
+### Raspberry Pi Pico 2 W on a 20 × 24 perfboard, flight computer *and* real-time TVC controller
 
-### Custom PCB1 (bare RP2350B, QFN-80, Ø62 mm board), flight computer *and* real-time TVC controller
-
-*Traced pin-by-pin against the fabricated PCB1 netlist, BOM, and schematic
-(`PCB/Netlist_PCB1_2026-08-11.tel`, `PCB/SCH_Schematic1_2026-08-11.pdf`) and the firmware in
-`Flight Computer/firmware/wyvern4_tvc/`.*
+Numbers here follow `Documentation/CANONICAL_NUMBERS.md`. Wiring is drawn hole-by-hole in
+`wiring/wyvern_perfboard_wiring.svg`; physical placement and the separation-joint cabling are in
+`wiring/wyvern_bay_layout.svg`.
 
 ## 1. Architecture
 
-No Raspberry Pi 5, no Linux, no Teensy, and **no Pico/Pico-W module of any kind** — PCB1 carries a
-standalone **RP2350B** (48 GPIO, QFN-80, external QSPI flash) as the entire avionics brain, on the
-Arduino-Pico core's `weact_rp2350b` board profile, not `rpipico2`/`rpipico2w`. It reads the IMUs,
-closes the TVC loop at 500 Hz, drives the 2 servos with hardware PWM, logs to an SPI microSD
-breakout, and observes recovery/camera state. The dual M33 cores are split for determinism:
+A Raspberry Pi Pico 2 W carries the entire avionics load: attitude estimation, the 500 Hz TVC
+control law, servo commanding, and logging. It sits on a generic 20 × 24 (50 × 70 mm) perfboard
+mounted as an axial card in the Upper BT, held in two slotted carrier disks
+(`3D parts/02b_fc_card_carrier_{fwd,aft}_ASAAero`). The 70 mm board length will not fit across the
+66.8 mm bore, so it stands on edge; the LiPo straps to its back face and the components stand off
+the front.
 
-- **Core 0, real-time control.** The 500 Hz TVC loop, plus everything on the one shared I²C bus
-  (body BNO055, external BNO085, BME680, INA226) since RP2350 has a single I²C0 peripheral and only
-  one core may safely own it at a time. Nothing on core 0 is allowed to block.
-- **Core 1, logging + comms.** Drains an inter-core FIFO to the microSD over SPI0, services the
-  (currently inert) bench-only WiFi telemetry code path, and handles housekeeping (camera gate,
-  RBF sense, status LED). SD writes can stall here for milliseconds without ever jittering the
-  control loop on core 0.
+The RP2350's two cores are partitioned the same way the earlier custom-board design intended:
 
-Two body tubes, one bulkhead joint:
+- **Core 0** runs the control loop exclusively — read IMUs, evaluate PID, command the gimbal
+  servos. No blocking operations.
+- **Core 1** drains a log ring buffer to microSD over SPI1, keeping storage latency off the
+  control path.
 
-- **Lower BT (TVC bay)**, F15-4 + 2-axis 2-servo gimbal + motor mount.
-- **Upper BT (FC bay)**, custom PCB1, **body BNO055** (onboard, primary attitude), BME680, SPI
-  microSD log, action camera (self-contained, see Camera Solution).
-- **Bulkhead joint**, the separation point for **motor ejection** (F15-4 charge pressurizes the
-  Lower BT directly against the joint), wiring pass-throughs for the servo extensions and the
-  STEMMA-QT cable to the **external BNO085** mounted right at the joint. The FC does not actuate
-  recovery, the motor's own delayed ejection charge deploys the chute.
+Unlike the retired PCB1, the Pico 2 W has a CYW43439 radio. Flight still logs to microSD as the
+data of record; WiFi telemetry is enabled only on the ground test stand
+(`WYV_WIFI_ENABLED`, defaults to the value of `WYVERN_GROUND_TEST`).
 
-## 2. IMU configuration (body BNO055 + external BNO085, 2-of-2 voting)
+## 2. Sensing
 
-The two IMUs on this board are **not the same chip**: the onboard unit (U2) is a **Bosch BNO055**
-(register protocol, address `0x28`, confirmed via netlist trace — COM3 tied GND), while the
-external unit is an off-board **Adafruit BNO085** breakout on the STEMMA-QT port (CN2, address
-`0x4A`, Adafruit default). Both run 6-axis accel+gyro fusion with the magnetometer excluded from
-the estimate — BNO085 in `SH2_GAME_ROTATION_VECTOR`, BNO055 in `OPERATION_MODE_IMUPLUS` (Bosch's
-equivalent) — a mag-fused IMU inches from two servo motors reads corrupted heading, and neither
-board needs magnetic-north reference for a ~7 s flight. They vote against each other for attitude
-fault detection.
+Four Adafruit STEMMA-QT breakouts share one I²C bus on GP0/GP1. No mux, no second bus.
 
-**There is no gimbal-mounted IMU**, so nozzle deflection (q_body⁻¹ ⊗ q_gimbal) is not computable in
-flight — the control loop is body-attitude-only. Direct gimbal-deflection measurement is covered by
-the 3-axis load balance on the ground rigs (`WYVERN_E4_GSE_TestStands.md`), not in-flight sensing.
+| Device | Role | Address | Strap |
+|---|---|---|---|
+| BNO085 | Bay attitude, primary control source | 0x4B | DI wired to 3V3 |
+| BNO085 | Gimbal-mounted, deflection sensing | 0x4A | DI unconnected (default) |
+| BME688 | Primary barometric altitude | 0x76 | SDO wired to GND |
+| BMP388 | Backup barometric altitude | 0x77 | SDO unconnected (default) |
 
-## 3. Bus map (custom PCB1, RP2350B)
+Both IMUs run Game Rotation Vector mode — accelerometer/gyro fusion with the magnetometer
+disabled, because the gimbal servos sit inches away and would corrupt a magnetically-referenced
+heading. The two units vote against each other for attitude fault detection.
 
-The real board has **one shared I²C bus, no mux, no second controller** — every earlier design that
-assumed a PCA9548A mux or a dedicated I²C1 for the external IMU was never fabricated this way.
+Unlike the PCB1 design, the second IMU **is** gimbal-mounted on the flight vehicle, so
+gimbal-relative deflection is directly measurable in flight rather than only on the ground rigs.
 
-| Bus | Pins | Members |
+No external I²C pull-ups are fitted. Each Adafruit breakout carries 10 kΩ; four in parallel give
+roughly 2.5 kΩ, which is correct for 400 kHz.
+
+## 3. Pin map
+
+| Pico pin | GPIO | Function |
 |---|---|---|
-| **I²C0** (single shared bus) | GP0 SDA / GP1 SCL | body BNO055 (0x28) · external BNO085 (0x4A, STEMMA-QT CN2) · BME680 (0x76) · INA226 (U4, address TBD by bench scan — see §4) |
-| **SPI0** (microSD) | per `sd_logger.h` | flight-data log (full-rate IMU/baro/control) |
-| **PWM** | GP2 (S1 pitch) / GP3 (S2 yaw) | 2× servo signal, hardware PWM slices |
-| **GPIO** | GP12 (RBF sense, H1 pin13 — **not wired to any switch on this board rev**, see note below) | discrete I/O |
-| **Radio** | none populated | no CYW43439, no onboard WiFi/BLE — `WIFI_ENABLED` is hard-defined `0` |
+| 1 | GP0 | I²C0 SDA, all four sensors |
+| 2 | GP1 | I²C0 SCL, all four sensors |
+| 4 | GP2 | Servo 1 signal (pitch) |
+| 5 | GP3 | Servo 2 signal (yaw) |
+| 11 | GP8 | microSD MISO |
+| 12 | GP9 | microSD CS |
+| 14 | GP10 | microSD SCK |
+| 15 | GP11 | microSD MOSI |
+| 31 | GP26 | Battery sense (ADC0) |
+| 36 | 3V3 OUT | Sensor rail |
+| 39 | VSYS | 5 V from UBEC |
+| 3, 8, 13, 18, 23, 28, 33, 38 | GND | Common ground |
 
-**Open item, RBF.** There is no software-readable remove-before-flight pin on this board as
-fabricated. U13 (the physical slide switch near the power path) connects to nothing on U1 in the
-netlist trace — both its terminals sit in the power domain, not on any GPIO. Arming safety on PCB1
-is currently provided entirely by U13 being a literal power switch: the board isn't running until
-it's flipped. GP12 is kept wired to an `INPUT_PULLUP` software gate as a hook for a future bodge
-wire, but as fabricated nothing is soldered there, so this stage of the BOOT gate provides no actual
-protection yet.
-
-> **3.3 V logic.** RP2350B GPIO is 3.3 V. All STEMMA-QT sensors (BNO085, BME680) are 3.3 V-safe.
-> Recovery is motor-driven (F15-4 ejection at the bulkhead joint); there are no deploy actuators, no
-> recovery battery, and no pyro for the FC to drive.
+Defined once in `firmware/wyvern4_tvc/wyvern_config.h`.
 
 ## 4. Power
 
-- **2S LiPo → onboard buck, no discrete UBEC.** One 2S LiPo (7.4 V, ~450 mAh) feeds PCB1's XT30
-  input directly into the onboard **TPS564201** synchronous buck (U15), which supplies the ~5 V
-  servo/camera rail; 3.3 V logic comes off the board's onboard LDO stage. There is no separate UBEC
-  module in this design — the "one 5 V UBEC" language in the project brief refers to this onboard
-  buck, not an added part.
-- **Battery monitor wiring defect (INA226, U4).** Traced pin-by-pin against the netlist: U4's
-  VBUS/VIN- both land on the buck's **output** (VBUCK, ~4.98 V calculated from the feedback
-  divider), not the raw pack input, so `getBusVoltage()` currently reads the regulated rail, not the
-  6.0–8.4 V 2S pack range — the 6.4 V/6.0 V (3.2/3.0 V-per-cell) cutoffs from the project brief do
-  **not** apply to this reading as wired. VIN+/VIN- also don't span a real series shunt, so
-  current/power readings aren't physically meaningful either. Firmware (`battery.h`) has been
-  updated to rail-sag thresholds instead of pack-voltage thresholds as a software workaround; the
-  real fix is a board revision routing U4 across an actual pack-current shunt. See
-  `Documentation/CONFLICTS.md` §3 for the full defect record.
-- **Address strap.** U4's A1 pin isn't cleanly strapped to any of the INA226's four supported
-  address levels (it sees ~5 V off VBUCK through R10, not GND/VS+/SDA/SCL) — `0x40` is the current
-  best-guess bench-scan candidate, not a confirmed address. Run `test_code/t1_i2c_scan.ino` and
-  update `INA226_ADDR` to whatever the scan actually finds before trusting this class's output.
-- **Recovery:** none, the F15-4 motor's own ejection charge deploys the chute at the bulkhead joint.
-  No recovery battery or deploy electronics.
+2S LiPo (7.4 V nominal, 8.4 V full) → PPTC 2.6 A → arming switch → 5 V 3 A switching UBEC.
 
-## 5. Control loop (500 Hz, deterministic, core 0)
+The UBEC output is the single 5 V rail: Pico VSYS, the microSD breakout, and both servos. Sensors
+run off the Pico's own 3V3 regulator. A 470 µF electrolytic sits at the servo feed — without it a
+simultaneous servo stall browns out the Pico.
 
-**TVC is disabled for the first 0.5 s** (the F15 ignition spike), the fins hold attitude passively;
-at t = 0.5 s the loop engages on the smooth thrust curve. Each cycle: read external + body IMU
-(fused orientation, both accel+gyro-only) → PID about the setpoint (stabilize-to-vertical, then a
-4° commanded maneuver) → clip to ±8° → hardware PWM to the 2 servos (GP2/GP3) → push a log frame to
-the core-1 ring buffer. At burnout thrust → 0 ⇒ no control authority ⇒ coast to the F15-4 ejection
-(t ≈ 7.45 s, 0.58 s past apogee), which separates the two body tubes at the bulkhead joint and
-deploys the chute. Firmware lives in `firmware/wyvern4_tvc/` (sketch name = folder name, all `.h`
-files are tabs, see `Documentation/COMPATIBILITY.md` and `Documentation/CONFLICTS.md`).
+The arming switch is reached by pulling the nose cone, so there is no hole in the Upper BT and no
+switch cutout in the CAD. It carries full pack current (about 1.9 A worst case at the 6.0 V
+cutoff) plus inrush into the UBEC and bulk capacitance, which is why it is a 20 A-class switch
+rather than a micro slide switch.
 
-## 6. Logging + telemetry (core 1)
+Battery sense is a 100 kΩ / 47 kΩ divider from the armed pack rail to GP26, with 100 nF on the
+tap: 2.686 V at 8.4 V, 1.918 V at the 6.0 V cutoff, both inside the ADC range. Firmware thresholds
+are 6.4 V warn / 6.0 V critical.
 
-Core 1 pops log frames from the inter-core FIFO and streams them to the SPI microSD as CSV/binary at
-full rate (no flush in the control path). `wifi_telemetry.h`'s UDP broadcaster code path exists but
-is inert — **PCB1 has no radio chip populated**, so `WIFI_ENABLED` stays `0` and telemetry is
-logged, not streamed. Flight data of record is always the on-board microSD, pulled post-flight.
+## 5. Separation
 
-## 7. Why the custom PCB1 (vs. the Teensy 4.1 / Pico 2 W it replaces)
+The Upper BT and Lower BT part at the bulkhead when the F15-4 ejection charge fires at t = 7.45 s.
+Seven leads cross that joint on dupont male-female extensions and simply pull apart:
 
-| | Teensy 4.1 (was) | Pico 2 W (interim design, never fabricated) | Custom PCB1 (now) |
-|---|---|---|---|
-| Core | 1× 600 MHz M7 | 2× 150 MHz M33 | **2× 150 MHz M33** (control + logging split) |
-| MCU | discrete module | Pico 2 W module | **bare RP2350B, QFN-80, on the custom board** |
-| Real-time guarantee | single thread; SD flush risk | core 0 never touches SD/radio | **core 0 owns the sole I²C bus + control loop; SD/radio isolated to core 1** |
-| microSD | built-in SDIO | SPI breakout | SPI breakout (on PCB1) |
-| Wireless | none | Wi-Fi 802.11n + BLE (CYW43439) | **none populated** — `WIFI_ENABLED=0`, telemetry is log-only |
-| I²C | 3 controllers | 2 + PCA9548A mux (never built) | **1 shared bus, no mux** (netlist-confirmed) |
-| PWM | FlexPWM | RP2350 PWM slices | RP2350B PWM slices (GP2/GP3) |
-| Power | — | Pico VSYS + discrete UBEC | **onboard TPS564201 buck, no discrete UBEC** |
+SERVO1_SIG · SERVO2_SIG · +5V · GND · SDA · SCL · 3V3
 
-The move from the never-fabricated Pico-2-W-module design to the real custom board (PCB1) trades a
-COTS module's WiFi/BLE and simpler bus topology for a purpose-built Ø62 mm board sized to the
-airframe, at the cost of two open hardware findings (INA226 wiring, RBF pin) tracked in
-`Documentation/CONFLICTS.md`.
+Only the aramid shock cord is retained. Bulkhead pass-throughs (4.5 mm and 4.0 mm) are sized for
+the wire bundles, not the connector shells — the dupont housings sit either side so they part
+freely.
+
+Consequences the firmware handles explicitly:
+
+- TVC is finished at burnout (3.45 s), four seconds before separation, so losing servo power costs
+  nothing.
+- The gimbal IMU leaves with the Lower BT. `TriImu::mark_separated()` stops reporting its absence
+  as a fault after `WYV_DEPLOY_T_MS`; before that point it is still a genuine fault.
+- Descent attitude comes from the bay unit, which never crosses the joint.
+- `WYV_I2C_TIMEOUT_US` bounds every transaction. A read to the now-absent 0x4A must NACK, not
+  block — otherwise the loop stalls exactly when descent logging matters.
+
+## 6. Dual role, flight and ground stand
+
+The same board and the same firmware image serve the ground TVC/servo test stand. Set
+`WYVERN_GROUND_TEST` to 1 and:
+
+- The bay IMU is not required — `begin()` reports it present so the 2-of-2 gate passes on a stand
+  that physically has one IMU
+- `body_accel_mag_g()` returns a resting 1 g, so launch-detect and landing-quiescence cannot trip
+- Launch detection and recovery logic compile out
+- WiFi telemetry enables, since a bench has no reason to log blind
+
+Attitude on the stand comes solely from the gimbal unit, which is the thing the stand exists to
+measure.
+
+## 7. Control law
+
+Discrete PID per axis with integral anti-windup clamping and a first-order low-pass-filtered
+derivative, at 500 Hz, output clipped to ±8° gimbal deflection.
+
+Flight gains: Kp = 0.10, Ki = 0.40, Kd = 0.18, τ_d = 0.02 s. Selected by a 24-point phase/gain
+margin sweep (phase margin ≈ 33°, gain margin ≈ 12.6 dB) and confirmed by a time-domain
+multi-wind auto-tune. The TVC loop is inhibited for the first 0.5 s, after which it stabilises to
+vertical and executes a commanded maneuver.
+
+## 8. Why the Pico 2 W
+
+The custom PCB1 (Ø62 mm, bare RP2350B QFN-80) was retired on schedule and cost grounds: a 0.4 mm
+pitch QFN needs a 4-layer board with a solid ground plane, and the layout work plus fab turnaround
+did not fit the November launch window.
+
+| | PCB1 (retired) | Pico 2 W perfboard |
+|---|---|---|
+| MCU | Bare RP2350B, QFN-80 | Pico 2 W module (RP2350) |
+| Cores | 2 × 150 MHz M33 | 2 × 150 MHz M33 |
+| Radio | None populated | CYW43439, bench use |
+| Assembly | 4-layer PCB fab + reflow | Perfboard, hand-soldered |
+| Bring-up risk | Whole board, one shot | Per-breakout, incremental |
+| Mass | ~14 g board | ~11 g board + 4 g Pico |
+| Lead time | Fab turnaround | On hand |
+
+Control-loop capability is identical — same silicon, same core split, same 500 Hz. What was lost
+is board density and the INA226 current monitor; battery monitoring is now a resistor divider on
+GP26.
 
 ## References
 
-CEVA, Inc. (2023). *BNO08X datasheet* (Rev. 1.17). https://www.ceva-ip.com/wp-content/uploads/BNO080_085-Datasheet.pdf
+Bosch Sensortec. (n.d.). *BNO085 9-axis absolute orientation IMU, datasheet.*
 
-Raspberry Pi Ltd. (2024). *RP2350 datasheet*. https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf
+Bosch Sensortec. (n.d.). *BME688 gas, pressure, humidity, temperature sensor, datasheet.*
 
-Texas Instruments. (n.d.). *TPS564201: 4.5-V to 17-V input, 4-A synchronous step-down voltage regulator* (SLVSFB5) [Datasheet]. https://www.ti.com/lit/ds/symlink/tps564201.pdf
+Bosch Sensortec. (n.d.). *BMP388 digital pressure sensor, datasheet.*
+
+Raspberry Pi Ltd. (2024). *Raspberry Pi Pico 2 W datasheet.*
+
+Raspberry Pi Ltd. (2024). *RP2350 datasheet.*

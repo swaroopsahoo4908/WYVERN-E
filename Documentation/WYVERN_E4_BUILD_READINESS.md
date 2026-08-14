@@ -19,21 +19,21 @@ build / 2-week launch schedule in §7 is scoped against that punch-list.
 
 | Parameter | Value |
 |---|---|
-| Airframe | 70 mm OD, ~0.74 m, single stage, **two body tubes (Lower BT, Upper BT) + one separation bulkhead** |
-| Liftoff / dry mass | **698 g / 638 g** |
+| Airframe | 70 mm OD, ~0.672 m, single stage, **two body tubes (Lower BT, Upper BT) + one separation bulkhead** |
+| Liftoff / dry mass | **720 g / 660 g** |
 | Motor (flight) | **Estes F15-4** ×4 (4 s delay + ejection charge = recovery) |
 | Motor (ground) | **Estes F15-0** ×13-24 (plugged; static thrust curves + MTVC + servo TVC on the balance + jetvane blast-shield screen) |
 | Commissioning | Estes/AeroTech **E16-4** ×6 |
-| Apogee | **~439 ft / 133.7 m @ 6.87 s** (RK4(2e-4)+Barrowman) |
+| Apogee | **~409 ft / 124.6 m @ 6.72 s** (RK4(2e-4)+Barrowman) |
 | v_max / Mach | **37.1 m/s / Mach 0.108** |
 | Max acceleration | **2.71 g** net (3.70 g specific force = peak T/W) |
-| T/W | **2.10 avg / 3.70 peak** |
+| T/W | **2.04 avg / 3.58 peak** |
 | Fins | 4 × **87 mm** PETG-CF, root 70 / tip 35 / LE-sweep 25° |
-| Stability | CG 50.1 cm / CP 59.3 cm → **+1.31 cal** (→1.5 cal burnout), no ballast |
+| Stability | CG 45.0 cm / CP 53.3 cm → **+1.14 cal** (→1.5 cal burnout), no ballast |
 | Materials | **ASA-Aero**: nose, Upper BT tube, Lower BT tube · **PETG-CF**: fins, separation bulkhead · **PC-FR**: TVC assembly, motor mount, gimbal |
 | Recovery | **F15-4 motor ejection** separating the two body tubes at the bulkhead joint; deploy t≈7.45 s (+0.58 s past apogee, ~5.7 m/s); 24″ chute → ~4.7 m/s; no RRC3/9 V/CO2/e-match |
-| Flight computer | **Custom PCB1** (bare RP2350B, QFN-80, Ø62 mm), dual-core, 500 Hz TVC PID **Kp0.10/Ki0.40/Kd0.18**, ±8° gimbal, no onboard radio |
-| Sensors | body **BNO055** + external **BNO085** (STEMMA-QT), **BME680** baro, microSD, i3 4K Thumb Action Camera cam, telemetry logged not streamed |
+| Flight computer | **Raspberry Pi Pico 2 W** on a 20×24 (50×70 mm) perfboard, dual-core RP2350, 500 Hz TVC PID **Kp0.10/Ki0.40/Kd0.18**, ±8° gimbal |
+| Sensors | **BNO085** ×2 (bay 0x4B, gimbal 0x4A via STEMMA-QT), **BME688** 0x76 + **BMP388** 0x77 baros, microSD on SPI1, i3 4K Thumb Action Camera; telemetry logged, WiFi bench-only |
 | Structural margins | flight min SF ~340×; bulkhead separation-joint release-force sizing and direct-gas thermal check are **open items**, see `WYVERN_E4_FEA_Structural.md` §4; engine-bay thermal < HDT |
 | Servo torque margin | **2.3× at the full ±8° gimbal** (0.086 N·m hinge vs 0.20 N·m stall), below the 3.0× gate, see §11 |
 
@@ -208,7 +208,7 @@ Run `selftest.py` before every flight; it gates on all of the above that are obs
 **Week 1, fabricate & bench:**
 - Days 1–2: print airframe (PLA body/nose/fins; PETG-CF bulkheads/tube/engine bay/gimbal/mount)
   and both stands. Order-long-lead items already in BOM.
-- Days 3–4: assemble FC (custom PCB1 + sensors), wire per the schematic, flash firmware,
+- Days 3–4: assemble FC (Pico 2 W perfboard + sensors), wire per `wyvern_perfboard_wiring.svg`, flash firmware,
   run `t1`–`t4` bench tests + `selftest.py`.
 - Days 5–7: assemble rocket; join the two body tubes at the bulkhead (route the servo/STEMMA-QT
   cables through the pass-through holes first), install recovery (chute + shock cord + Nomex);
@@ -219,7 +219,7 @@ Run `selftest.py` before every flight; it gates on all of the above that are obs
   A/B (servo vs. magnetic) on the 3-axis stand; lock the flown actuator (servo).
 - Days 11–12: full preflight `selftest.py` GO; range procedures (remote ignition, ≥3 m standoff,
   igniter installed last).
-- Days 13–14: **launch on F15-4** (FAA Class-1, no waiver; 698 g < 1500 g). Recover, pull SD +
+- Days 13–14: **launch on F15-4** (FAA Class-1, no waiver; 720 g < 1500 g). Recover, pull SD +
   Wi-Fi logs, feed flight data back into `Simulations/` for post-flight validation.
 
 ## 8. Notes / residual risk
@@ -254,7 +254,7 @@ research question has two independent methods behind it (Proposal §3, Table 0).
 | 1 | F15 thrust curve renormalized to 49.6 N·s from a shape integrating to 41.97 N·s | peak thrust inflated to **29.9 N** vs Estes' published 25.3 N; peak T/W read 4.32 against the 3.66 quoted repo-wide | sustain block lifted +2.4408 N so the curve matches impulse, peak **and** average simultaneously |
 | 2 | `fc_sil.py` fed the launch detector kinematic acceleration, not specific force | peaked at 2.65 g against the firmware's 3 g latch, the SIL state machine **never left ARMED** in any flight: no BOOST, no TVC, no deploy, ~70 m/s ballistic "touchdown" in every logged run | accelerometer now reports specific force (peaks at 3.27 g ≈ peak T/W 3.26) |
 | 3 | `we4_sim.py` hard-coded **Kp=8.0/Ki=1.5/Kd=1.2** | the TVC plot disagreed with the firmware, `pid_reference.py`, and `CONFLICTS.md` §1, which record those gains as superseded and unstable | gains set to the frozen 0.10/0.40/0.18 |
-| 4 | `we4_deepsim.py` used **CG 0.467 / CP 0.537**; `we4_validation.py` used **CG 0.467** | every margin, flutter, CG-tolerance and stability gate was scored against a pre-PLA, pre-camera vehicle | both set to CG/CP **0.491/0.568** at the time of this fix, **superseded 2026-08-10**: the material change to PLA/PETG-CF shifted the mass stack again, and the actual canonical value (independently re-derived from the `we4_sim.py` component stack, and matching `we4_flightsim.py`/`we4_stability.py`) is **CG 0.484, margin +1.20 cal**, not 0.491/1.10. This row's "fix" value is itself now stale; treat 0.484/56.8/1.20 as current. |
+| 4 | `we4_deepsim.py` used **CG 0.467 / CP 0.537**; `we4_validation.py` used **CG 0.467** | every margin, flutter, CG-tolerance and stability gate was scored against a pre-PLA, pre-camera vehicle | both set to CG/CP **0.491/0.568** at the time of this fix, **superseded 2026-08-10**: the material change to PLA/PETG-CF shifted the mass stack again, and the actual canonical value (independently re-derived from the `we4_sim.py` component stack, and matching `we4_flightsim.py`/`we4_stability.py`) is **CG 0.484, margin +1.14 cal**, not 0.491/1.10. This row's "fix" value is itself now stale; treat 0.484/56.8/1.20 as current. |
 | 5 | `we4_stability.py` reported `fin_span_mm: 35.0` while evaluating `s35=0.055` | the "35 mm fins are unstable (−0.52 cal)" finding was quoting a **55 mm** fin; the flown 72 mm fin was never evaluated | file rewritten; 35 mm is **−0.99 cal (unstable)**, flown 72 mm reproduces 48.4/56.8/+1.20 exactly |
 | 6 | Deploy sampled at **t = 4.0 s** in three files | reported a 29 m/s deploy against the Recovery doc's ~6.5 m/s, the retired finless-era electronic timer, not motor ejection | deploy is now t = burnout + 4 s = **7.45 s**; integration runs through apogee to reach it |
 | 7 | Three different Cd for one vehicle (0.50 / 0.58 / 0.539) | apogee disagreed between scripts | unified to the **0.539** componentwise buildup |
@@ -305,23 +305,23 @@ two figures are not directly comparable, the script now prints that caveat along
 
 **Updated 2026-08-12** for the mass recompute (§2, `WYVERN_E4_Mathematics.md` §1): Lower BT tube
 PETG-CF→ASA-Aero, the discrete UBEC line dropped, and recovery consumables re-itemized, taking
-liftoff from 729 g to 698 g. Every row below was re-run this pass (`we4_flightsim.py`,
+liftoff from 729 g to 720 g. Every row below was re-run this pass (`we4_flightsim.py`,
 `we4_validation.py`, `we4_deepsim.py`, `we4_pid_retune.py`), not carried over.
 
 | Quantity | Value |
 |---|---|
-| Apogee | **133.7 m / 439 ft @ 6.87 s** (was 397 ft at 729 g; 324 ft at 792 g; 435 ft at the original 705 g spec) |
+| Apogee | **124.6 m / 409 ft @ 6.72 s** (was 397 ft at 729 g; 324 ft at 792 g; 435 ft at the original 705 g spec) |
 | Burnout | 3.45 s, 74.0 m, 36.3 m/s |
 | v_max / Mach | 37.1 m/s / **Mach 0.108** |
 | Max acceleration | 2.71 g net (3.70 g specific force) |
-| CG / CP / margin | 50.1 cm / 59.3 cm / **+1.31 cal** |
+| CG / CP / margin | 45.0 cm / 53.3 cm / **+1.14 cal** |
 | Deploy | t = 7.45 s, +0.58 s past apogee, 5.7 m/s |
 | PID margins | PM **44.1°**, GM **12.6 dB**, worst gust pitch **2.45°**, gimbal per `we4_pid_retune.py` re-run |
 | Gates | validation **10/13**, deepsim **7/8** (servo torque flagged, §11) |
 | Cross-file check | pending a fresh cross-file numeric-agreement pass against these re-run values |
 
 The three flagged validation gates are unchanged in character and share one root cause: the F15 is
-underpowered for a 698 g vehicle, even lighter than before. Rail exit and weathercock figures have not been re-run against the
+underpowered for a 720 g vehicle, even lighter than before. Rail exit and weathercock figures have not been re-run against the
 new mass stack; peak T/W is now 3.54 against the 5.0 rule of thumb used elsewhere. This is a
 launch-window constraint, not a design defect, but it is real and should not be presented as passing.
 
