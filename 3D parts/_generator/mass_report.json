@@ -7,19 +7,31 @@
  ],
  [
   "02_upper_bt_avionics_ASAAero",
-  69.0,
-  44.9,
+  68.1,
+  44.3,
+  "ASAAERO"
+ ],
+ [
+  "02b_fc_card_carrier_fwd_ASAAero",
+  8.1,
+  5.2,
+  "ASAAERO"
+ ],
+ [
+  "02b_fc_card_carrier_aft_ASAAero",
+  8.1,
+  5.2,
   "ASAAERO"
  ],
  [
   "03_lower_bt_chute_tvc_ASAAero",
-  144.9,
-  94.2,
+  120.3,
+  78.2,
   "ASAAERO"
  ],
  [
   "04_bulkhead_joint_PETGCF",
-  13.3,
+  13.2,
   17.2,
   "PETGCF"
  ],
@@ -97,8 +109,8 @@
  ],
  [
   "00_full_assembly",
-  260.7,
-  338.9,
+  236.1,
+  306.9,
   "PETGCF"
  ]
 ]

@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1618" height="823" viewBox="0 0 1618 823" font-family="Helvetica,Arial,sans-serif">
+<rect width="1618" height="823" fill="#12161c"/>
+<text x="809.0" y="46" fill="#eaf3ee" font-size="27" text-anchor="middle" font-weight="bold">GTR70E WYVERN, bay layout and separation-joint cabling</text>
+<text x="809.0" y="76" fill="#9fb4c4" font-size="18" text-anchor="middle">70 mm OD, 672 mm overall. Section view, nose left. Dupont male-female leads part at the bulkhead; only the aramid cord stays attached.</text>
+<path d="M 120.0 281.75 Q 223.32 210.0 366.0 210.0 L 1498.4199999999998 210.0 L 1498.4199999999998 353.5 L 366.0 353.5 Q 223.32 353.5 120.0 281.75 Z" fill="#1b3f2a" stroke="#3f8f5f" stroke-width="3"/>
+<line x1="120.0" y1="281.75" x2="1498.4199999999998" y2="281.75" stroke="#4a5560" stroke-width="1.6" stroke-dasharray="12,8"/>
+<rect x="366.0" y="213.28" width="41.0" height="136.93999999999997" fill="#2a3340" fill-opacity="0.55" stroke="#7f8b98" stroke-width="2"/>
+<text x="386.5" y="273.75" fill="#eaf3ee" font-size="16" text-anchor="middle" font-weight="bold">wadding</text>
+<rect x="407.0" y="213.28" width="106.6" height="136.93999999999997" fill="#3a2b18" fill-opacity="0.55" stroke="#caa96a" stroke-width="2"/>
+<text x="460.29999999999995" y="273.75" fill="#eaf3ee" font-size="16" text-anchor="middle" font-weight="bold">i3 4K cam</text>
+<text x="460.29999999999995" y="295.75" fill="#c3ced8" font-size="13.5" text-anchor="middle">36 g</text>
+<rect x="521.8" y="213.28" width="151.7" height="136.93999999999997" fill="#14304a" fill-opacity="0.55" stroke="#4d9be6" stroke-width="2"/>
+<text x="597.65" y="273.75" fill="#eaf3ee" font-size="16" text-anchor="middle" font-weight="bold">PERFBOARD CARD</text>
+<text x="597.65" y="295.75" fill="#c3ced8" font-size="13.5" text-anchor="middle">Pico 2 W + 3 breakouts, on-edge</text>
+<text x="597.65" y="179.28" fill="#8fb8d8" font-size="13" text-anchor="middle">70 mm long, 50 mm wide, mounted as an axial card</text>
+<rect x="530.0" y="298.15" width="118.89999999999999" height="45.099999999999994" fill="#3d1f1c" fill-opacity="0.9" stroke="#e2483d" stroke-width="2"/>
+<text x="589.4499999999999" y="324.79999999999995" fill="#f3cdc8" font-size="13" text-anchor="middle">2S LiPo 450 mAh</text>
+<rect x="530.0" y="220.25" width="69.69999999999999" height="36.9" fill="#1f3a2a" fill-opacity="0.9" stroke="#57c98a" stroke-width="2"/>
+<text x="564.8499999999999" y="242.8" fill="#cfeedd" font-size="12" text-anchor="middle">UBEC</text>
+<rect x="612.0" y="220.25" width="53.3" height="36.9" fill="#14304a" fill-opacity="0.9" stroke="#4d9be6" stroke-width="2"/>
+<text x="638.65" y="242.8" fill="#cfe2f5" font-size="12" text-anchor="middle">ARM SW</text>
+<text x="673.5" y="187.45" fill="#8fb8d8" font-size="11.5" text-anchor="middle">reached via nose cone</text>
+<rect x="772.7199999999999" y="210.0" width="8.2" height="143.5" fill="#5a3b6b" stroke="#c07be0" stroke-width="3"/>
+<line x1="776.8199999999999" y1="140.0" x2="776.8199999999999" y2="405.5" stroke="#e05a5a" stroke-width="2.6" stroke-dasharray="10,7"/>
+<text x="776.8199999999999" y="132.0" fill="#e05a5a" font-size="17" text-anchor="middle" font-weight="bold">SEPARATION PLANE  t = 7.45 s</text>
+<rect x="780.9199999999998" y="213.28" width="221.39999999999998" height="136.93999999999997" fill="#2a3340" fill-opacity="0.55" stroke="#7f8b98" stroke-width="2"/>
+<text x="891.6199999999999" y="273.75" fill="#eaf3ee" font-size="16" text-anchor="middle" font-weight="bold">chute 24 in + Nomex</text>
+<text x="891.6199999999999" y="295.75" fill="#c3ced8" font-size="13.5" text-anchor="middle">aramid shock cord</text>
+<rect x="1010.5199999999999" y="213.28" width="190.64999999999998" height="136.93999999999997" fill="#3d2a1c" fill-opacity="0.55" stroke="#caa96a" stroke-width="2"/>
+<text x="1105.8449999999998" y="273.75" fill="#eaf3ee" font-size="16" text-anchor="middle" font-weight="bold">TVC BAY</text>
+<text x="1105.8449999999998" y="295.75" fill="#c3ced8" font-size="13.5" text-anchor="middle">gimbal + 2x ES08MA II + BNO085 0x4A</text>
+<rect x="1209.37" y="213.28" width="280.84999999999997" height="136.93999999999997" fill="#2a2f38" fill-opacity="0.55" stroke="#9aa4ad" stroke-width="2"/>
+<text x="1349.7949999999998" y="273.75" fill="#eaf3ee" font-size="16" text-anchor="middle" font-weight="bold">F15-4</text>
+<text x="1349.7949999999998" y="295.75" fill="#c3ced8" font-size="13.5" text-anchor="middle">29 x 114 mm</text>
+<path d="M 673.5 232.55 L 739.9199999999998 232.55 L 756.3199999999999 232.55" fill="none" stroke="#57c98a" stroke-width="5"/>
+<path d="M 801.4199999999998 232.55 L 1088.4199999999998 232.55 L 1088.4199999999998 265.35" fill="none" stroke="#57c98a" stroke-width="5"/>
+<rect x="739.9199999999998" y="219.55" width="18.45" height="26" rx="3" fill="#3a3f4a" stroke="#e8eef4" stroke-width="2"/>
+<rect x="785.0199999999999" y="219.55" width="18.45" height="26" rx="3" fill="#3a3f4a" stroke="#e8eef4" stroke-width="2"/>
+<text x="776.8199999999999" y="208.55" fill="#e8eef4" font-size="14" text-anchor="middle">dupont M-F, 7 leads</text>
+<path d="M 694.0 335.04999999999995 C 772.7199999999999 343.25, 895.7199999999999 326.85, 977.7199999999999 335.04999999999995" fill="none" stroke="#e8a13a" stroke-width="4.5" stroke-dasharray="3,7"/>
+<text x="813.7199999999999" y="359.65" fill="#e8a13a" font-size="14" text-anchor="middle">aramid shock cord, the ONLY retained link</text>
+<line x1="120.0" y1="387.5" x2="1498.4199999999998" y2="387.5" stroke="#8fa0ad" stroke-width="1.6"/>
+<line x1="120.0" y1="380.5" x2="120.0" y2="394.5" stroke="#8fa0ad" stroke-width="1.6"/>
+<text x="120.0" y="411.5" fill="#8fa0ad" font-size="13" text-anchor="middle">0</text>
+<line x1="366.0" y1="380.5" x2="366.0" y2="394.5" stroke="#8fa0ad" stroke-width="1.6"/>
+<text x="366.0" y="411.5" fill="#8fa0ad" font-size="13" text-anchor="middle">120</text>
+<line x1="772.7199999999999" y1="380.5" x2="772.7199999999999" y2="394.5" stroke="#8fa0ad" stroke-width="1.6"/>
+<text x="772.7199999999999" y="411.5" fill="#8fa0ad" font-size="13" text-anchor="middle">318.4</text>
+<line x1="1498.4199999999998" y1="380.5" x2="1498.4199999999998" y2="394.5" stroke="#8fa0ad" stroke-width="1.6"/>
+<text x="1498.4199999999998" y="411.5" fill="#8fa0ad" font-size="13" text-anchor="middle">672.4</text>
+<text x="809.2099999999999" y="433.5" fill="#8fa0ad" font-size="13" text-anchor="middle">station from nose tip, mm</text>
+<rect x="100" y="449.5" width="1418" height="330" rx="12" fill="#161b22" stroke="#39424d" stroke-width="2"/>
+<text x="120" y="479.5" fill="#eaf3ee" font-size="21" font-weight="bold">The seven leads that cross the joint, and what happens at separation</text>
+<text x="120" y="513.5" fill="#9fb4c4" font-size="15" font-weight="bold">lead</text>
+<text x="310" y="513.5" fill="#9fb4c4" font-size="15" font-weight="bold">from (perfboard)</text>
+<text x="550" y="513.5" fill="#9fb4c4" font-size="15" font-weight="bold">to (TVC bay)</text>
+<text x="820" y="513.5" fill="#9fb4c4" font-size="15" font-weight="bold">colour</text>
+<text x="980" y="513.5" fill="#9fb4c4" font-size="15" font-weight="bold">at separation</text>
+<circle cx="112" cy="538.5" r="5.5" fill="#57c98a"/>
+<text x="120" y="543.5" fill="#dbe6f0" font-size="14.5">SERVO1 sig</text>
+<text x="310" y="543.5" fill="#dbe6f0" font-size="14.5">C5</text>
+<text x="550" y="543.5" fill="#dbe6f0" font-size="14.5">servo 1 orange</text>
+<rect x="820" y="531.5" width="26" height="14" rx="3" fill="#57c98a"/>
+<text x="980" y="543.5" fill="#c3ced8" font-size="14">open, TVC already done at 3.45 s</text>
+<circle cx="112" cy="570.5" r="5.5" fill="#57c98a"/>
+<text x="120" y="575.5" fill="#dbe6f0" font-size="14.5">SERVO2 sig</text>
+<text x="310" y="575.5" fill="#dbe6f0" font-size="14.5">C8</text>
+<text x="550" y="575.5" fill="#dbe6f0" font-size="14.5">servo 2 orange</text>
+<rect x="820" y="563.5" width="26" height="14" rx="3" fill="#57c98a"/>
+<text x="980" y="575.5" fill="#c3ced8" font-size="14">open, TVC already done</text>
+<circle cx="112" cy="602.5" r="5.5" fill="#e2483d"/>
+<text x="120" y="607.5" fill="#dbe6f0" font-size="14.5">+5 V</text>
+<text x="310" y="607.5" fill="#dbe6f0" font-size="14.5">B bus</text>
+<text x="550" y="607.5" fill="#dbe6f0" font-size="14.5">servo 1+2 red</text>
+<rect x="820" y="595.5" width="26" height="14" rx="3" fill="#e2483d"/>
+<text x="980" y="607.5" fill="#c3ced8" font-size="14">servos unpowered, harmless</text>
+<circle cx="112" cy="634.5" r="5.5" fill="#9aa4ad"/>
+<text x="120" y="639.5" fill="#dbe6f0" font-size="14.5">GND</text>
+<text x="310" y="639.5" fill="#dbe6f0" font-size="14.5">A bus</text>
+<text x="550" y="639.5" fill="#dbe6f0" font-size="14.5">servo 1+2 brown</text>
+<rect x="820" y="627.5" width="26" height="14" rx="3" fill="#9aa4ad"/>
+<text x="980" y="639.5" fill="#c3ced8" font-size="14">return opens with the rest</text>
+<circle cx="112" cy="666.5" r="5.5" fill="#4d9be6"/>
+<text x="120" y="671.5" fill="#dbe6f0" font-size="14.5">SDA</text>
+<text x="310" y="671.5" fill="#dbe6f0" font-size="14.5">R bus</text>
+<text x="550" y="671.5" fill="#dbe6f0" font-size="14.5">gimbal BNO085 blue</text>
+<rect x="820" y="659.5" width="26" height="14" rx="3" fill="#4d9be6"/>
+<text x="980" y="671.5" fill="#c3ced8" font-size="14">0x4A drops off the bus</text>
+<circle cx="112" cy="698.5" r="5.5" fill="#f2e14c"/>
+<text x="120" y="703.5" fill="#dbe6f0" font-size="14.5">SCL</text>
+<text x="310" y="703.5" fill="#dbe6f0" font-size="14.5">S bus</text>
+<text x="550" y="703.5" fill="#dbe6f0" font-size="14.5">gimbal BNO085 yellow</text>
+<rect x="820" y="691.5" width="26" height="14" rx="3" fill="#f2e14c"/>
+<text x="980" y="703.5" fill="#c3ced8" font-size="14">0x4A drops off the bus</text>
+<circle cx="112" cy="730.5" r="5.5" fill="#e8a13a"/>
+<text x="120" y="735.5" fill="#dbe6f0" font-size="14.5">3V3</text>
+<text x="310" y="735.5" fill="#dbe6f0" font-size="14.5">T bus</text>
+<text x="550" y="735.5" fill="#dbe6f0" font-size="14.5">gimbal BNO085 red</text>
+<rect x="820" y="723.5" width="26" height="14" rx="3" fill="#e8a13a"/>
+<text x="980" y="735.5" fill="#c3ced8" font-size="14">gimbal IMU unpowered</text>
+<text x="120" y="779.5" fill="#9fb4c4" font-size="14.5">Leave a 25-30 mm service loop each side so the tubes are already moving before the pins take load. Firmware treats 0x4A going quiet after DEPLOY_T as expected, not a fault.</text>
+</svg>

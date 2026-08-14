@@ -7,8 +7,9 @@ Architecture (`Documentation/WYVERN_E4_Recovery.md`, `CONFLICTS.md` §6/§8,
 `Documentation/WYVERN_E4_Mathematics.md`):
 
   Upper BT (ASA-Aero, foamed 0.65 g/cm3): nose + recovery wadding/FC bay (avionics housing,
-            no motor heat, no ejection-gas load -- lightest zone in the stack). Carries 4x M3
-            standoff bosses sized for the Ø62 mm custom PCB1 board.
+            no motor heat, no ejection-gas load -- lightest zone in the stack). Houses the Pico 2 W
+            perfboard as a 50 x 70 mm axial card in a pair of slotted carrier disks, plus the
+            camera, LiPo and UBEC. Arming switch is reached by pulling the nose cone.
   Lower BT (ASA-Aero, foamed 0.65 g/cm3): chute+cord+wadding zone + TVC bay, ONE continuous
             tube. Hoop stress under the 140 kPa ejection pulse (`WYVERN_E4_FEA_Structural.md`
             §4.1 load): sigma = p*r/t = 2.93 MPa, SF ~10x vs solid-ASA yield (30 MPa), ~6x even
@@ -87,10 +88,10 @@ P = dict(
     OD=70.0, R=35.0, WALL=WALL, RI=33.4,
     MOT=29.6, MMT=33.0,
     NOSE_L=120.0,
-    UPPER_L=round(_OLD_FC_L * _SCALE, 1),
-    LOWER_L=round((_OLD_REC_L + _OLD_ENG_L) * _SCALE, 1),
+    UPPER_L=round(_OLD_FC_L * _SCALE, 1),   # 198.4 mm, sized by the 70 mm perfboard + cam + pack stack
+    LOWER_L=350.0,                          # shortened from 421.6 mm to raise TVC pitch authority
     BULKHEAD_T=4.0,
-    PCB_D=62.0,  # custom PCB1 board diameter (CONFLICTS.md #7, revised from 61mm 2026-08-12)
+    PCB_W=50.0, PCB_H=70.0,  # Pico 2 W perfboard, mounted as an axial card in the Upper BT
 )
 DENS = dict(ASAAERO=0.65, PETGCF=1.30, PCFR=1.20)
 report = []
@@ -125,14 +126,12 @@ def upper_bt():
     # bulkhead's rim, 8mm in from the aft face (clear of the bulkhead's own edge chamfer).
     b = tube(P["R"], P["RI"], P["UPPER_L"])
     b = b.cut(retention_screws(P["R"], P["RI"], 8.0, n=3))
-    # PCB1 standoff bosses: 4x M3 heat-set insert bosses on a bolt circle
-    # sized 4mm inside the Ø62mm PCB1 board edge (typical mounting-hole inset), so the board
-    # drops onto real standoffs instead of floating loose in the bore. Placed mid-bay, clear of
-    # the bulkhead retention screws (z=8) and the fwd end.
-    pcb_r = P["PCB_D"] / 2.0
+    # Flight-computer card carrier retention. The Pico 2 W perfboard is a 50 x 70 mm card mounted
+    # ON EDGE along the tube axis (70 mm won't fit across a 66.8 mm bore), so it can't bolt to the
+    # tube wall on a bolt circle. It slides into a pair of slotted carrier disks (see
+    # fc_card_carrier()); these 3x M3 radial pilots pin the forward carrier disk in place.
     boss_z = min(30.0, P["UPPER_L"] - 20.0)
-    for (x, y) in bolt_circle(pcb_r - 4.0, 4):
-        b = b.fuse(insert_boss(M3["BOSS_OD"], M3["BOSS_H"], M3["PILOT"], x, y, boss_z))
+    b = b.cut(retention_screws(P["R"], P["RI"], boss_z, n=3))
     save(b, DROCK, "02_upper_bt_avionics_ASAAero", "ASAAERO")
 
 def lower_bt():
@@ -151,6 +150,35 @@ def lower_bt():
     b = b.cut(retention_screws(P["R"], P["RI"], 8.0, n=2))
     save(b, DROCK, "03_lower_bt_chute_tvc_ASAAero", "ASAAERO")
 
+def fc_card_carrier():
+    """Two slotted disks that hold the Pico 2 W perfboard as an axial card in the Upper BT.
+
+    The board is 50 x 70 x ~1.6 mm and stands on edge along the tube axis. Each disk is a
+    FIT_SLIP plug in the tube bore with a through-slot on the diameter; the card slides in from
+    the aft end and is captured fore and aft. Components stand off one face of the card and the
+    LiPo straps to the other, which is what keeps the whole avionics stack inside 140 mm of the
+    198.4 mm Upper BT.
+
+    Cable notches at the rim let the servo/IMU bundle and the battery leads pass without being
+    pinched between the disk and the tube wall.
+    """
+    r = P["RI"] - FIT_SLIP
+    t = 3.0                     # 3 mm is plenty: these carry the card, not a flight load
+    slot_w = 1.6 + 0.6          # board thickness + slide clearance
+    for tag in ("fwd", "aft"):
+        d = cyl(r, t)
+        d = d.cut(box(P["PCB_W"] + 0.6, slot_w, t + 2, True, -1))     # card slot on the diameter
+        # rim cable notches, 180 deg apart, clear of the card slot
+        for ang in (90.0, 270.0):
+            d = d.cut(box(9.0, 6.0, t + 2, True, -1).translate(r - 3.0, 0, 0).rotate("z", ang))
+        # lightening holes: these disks see no flight load beyond restraining the card, so most
+        # of the web is removable. Placed off the card slot axis so they don't break into it.
+        for ang in (35.0, 145.0, 215.0, 325.0):
+            d = d.cut(hole_cutter(13.0, t + 2, r * 0.55, 0, -1, axis="z", margin=0.5).rotate("z", ang))
+        for (x, y) in bolt_circle(r - M3["BOSS_OD"] / 2, 3):
+            d = d.cut(hole_cutter(M3["PILOT"], t + 1, x, y, -0.5, axis="z", margin=0.5))
+        save(d, DROCK, f"02b_fc_card_carrier_{tag}_ASAAero", "ASAAERO")
+
 def bulkhead_joint():
     # The ONE bulkhead between Upper BT and Lower BT. NOT gas-sealed -- pass-throughs are wiring
     # holes only (servo bundle + STEMMA-QT). Disk OD is FIT_SLIP under the tube bore so it can
@@ -167,8 +195,13 @@ def bulkhead_joint():
     off = 18.0
     r = P["RI"] - FIT_SLIP
     d = cyl(r, P["BULKHEAD_T"])
-    d = d.cut(cyl(5.0, P["BULKHEAD_T"] + 2, -1).translate(off, 0, 0))    # servo signal/power bundle
-    d = d.cut(cyl(3.0, P["BULKHEAD_T"] + 2, -1).translate(-off, 0, 0))  # STEMMA-QT cable
+    # Pass-throughs carry the seven leads that cross the separation joint on dupont male-female
+    # extensions: SERVO1_SIG, SERVO2_SIG, +5V, GND (servo bundle) and SDA, SCL, 3V3 (gimbal IMU,
+    # sharing the same GND). They are sized for the WIRE bundle with chafe clearance, not for the
+    # connector bodies -- the dupont shells sit either side of the bulkhead, not inside the hole,
+    # so they can part freely when the tubes separate.
+    d = d.cut(cyl(4.5, P["BULKHEAD_T"] + 2, -1).translate(off, 0, 0))    # servo bundle, 4 leads
+    d = d.cut(cyl(4.0, P["BULKHEAD_T"] + 2, -1).translate(-off, 0, 0))  # gimbal IMU, 4 leads
     for (x, y) in bolt_circle(r - M3["BOSS_OD"]/2, 3):
         d = d.cut(hole_cutter(M3["PILOT"], P["BULKHEAD_T"] + 1, x, y, -0.5, axis="z", margin=0.5))
     save(d, DROCK, "04_bulkhead_joint_PETGCF", "PETGCF")
@@ -241,7 +274,7 @@ def assembly():
     asm = parts[0][1]
     for _, p in parts[1:]: asm = asm.fuse(p)
     total_len = z + P["NOSE_L"]
-    print(f" [assembly length {total_len:.0f} mm, vs core.py LTOT=740 mm target]")
+    print(f" [assembly length {total_len:.0f} mm, vs core.py LTOT=672 mm]")
     save(asm, DROCK, "00_full_assembly", "PETGCF")
 
 # ---- 3-axis TVC balance (servo ground-test stand) ----
@@ -354,7 +387,7 @@ if __name__ == "__main__":
                 except PermissionError:
                     print(f" could not remove stale {stem}{ext} (needs manual cleanup)")
 
-    print("== AIRFRAME =="); nose(); upper_bt(); lower_bt(); bulkhead_joint(); motor_mount(); gimbal(); fins()
+    print("== AIRFRAME =="); nose(); upper_bt(); fc_card_carrier(); lower_bt(); bulkhead_joint(); motor_mount(); gimbal(); fins()
     print("== SERVO TEST STAND (TVC balance) =="); tvc_balance()
     print("== STATIC TEST STAND =="); static_stand()
     print("== RAIL BUTTONS =="); rail_buttons()

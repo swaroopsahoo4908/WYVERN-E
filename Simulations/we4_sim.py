@@ -9,43 +9,51 @@ g=9.80665; rho0=1.225; OD=0.070; A=np.pi*(OD/2)**2
 # ---------- 1. MASS / CG / INERTIA (station = m from nose tip; two-body-tube architecture) ----------
 # (name, mass_kg, station_m)
 #
-# Two-BT architecture: Upper BT + Lower BT + ONE bulkhead, with the custom-PCB1 avionics stack.
+# Two-BT architecture: Upper BT + Lower BT + ONE bulkhead, with the Pico 2 W perfboard avionics
+# stack carried on two slotted card-carrier disks in the Upper BT.
 #
 # Structural masses (first 8 rows) are real, from 3D parts/_generator/mass_report.json (current
 # CAD run, `gen_rocket4.py`) -- not estimates. The Lower BT tube is ASA-Aero, hoop-stress-checked
 # at SF ~6-10x under the 140 kPa ejection pulse (gen_rocket4.py docstring). Motor mount/gimbal use
-# PC-FR (thermal duty next to the nozzle); bulkhead uses PETG-CF (direct gas-exposure part). Upper
-# BT tube carries 4x M3 PCB1 standoff bosses (Ø62 mm board).
+# PC-FR (thermal duty next to the nozzle); bulkhead uses PETG-CF (direct gas-exposure part).
 # Station values for non-structural items (recovery/avionics/actuation) are placement estimates
-# within the two-BT geometry (aft=0/nose=740mm converted to from-nose stations), not CAD-extracted
-# centroids -- same "confirmed vs. best-effort" caveat this project applies elsewhere. Custom PCB1
-# assembly mass is a self-estimate (bare Ø62mm FR4 board ~8.9 g + populated components ~5.2 g
-# ~= 14 g); no bench scale weight exists for it or the LiPo pack yet.
+# within the two-BT geometry (nose=0 stations over a 672 mm vehicle), not CAD-extracted centroids
+# -- same "confirmed vs. best-effort" caveat this project applies elsewhere. Perfboard mass is
+# computed from 50x70x1.6 mm FR4; breakout and UBEC masses are vendor figures. No bench scale
+# weight exists for the assembled stack or the LiPo pack yet.
 ITEMS=[
  # ---- printed structure (real, mass_report.json) --------------------------------------------
  ("Nose cone (ASA-Aero)",0.0209,0.060),
- ("Upper BT tube (ASA-Aero, incl. PCB1 standoffs)",0.0449,0.215),
- ("Lower BT tube (ASA-Aero)",0.0942,0.529),
+ ("Upper BT tube (ASA-Aero)",0.0443,0.215),
+ ("FC card carriers x2 (ASA-Aero, slotted)",0.0104,0.235),
+ ("Lower BT tube (ASA-Aero)",0.0782,0.4974),
  ("Bulkhead joint (PETG-CF)",0.0172,0.316),
- ("Motor mount (PC-FR)",0.0577,0.670),
- ("TVC gimbal assy (PC-FR)",0.1056,0.620),
- ("4 fins (PETG-CF, 87 mm)",0.0708,0.700),
- ("Rail buttons x2 (PETG-CF)",0.0012,0.550),
+ ("Motor mount (PC-FR)",0.0577,0.5984),
+ ("TVC gimbal assy (PC-FR)",0.1056,0.5484),
+ ("4 fins (PETG-CF, 87 mm)",0.0708,0.6284),
+ ("Rail buttons x2 (PETG-CF)",0.0012,0.4784),
  # ---- recovery (motor ejection; no RRC3/9V/e-match) ------------------------------------------
  ("Chute (24 in) + cord + swivel",0.058,0.340),("Nomex chute protector",0.006,0.340),
  ("Recovery wadding",0.006,0.300),
- # ---- avionics (custom PCB1) -----------------------------------------------------------------
- # No separate UBEC line: the onboard TPS564201 buck (on PCB1) is the "2S LiPo -> one 5V UBEC"
- # the project brief describes -- there's no second physical regulator module to weigh.
- ("Custom PCB1 assembly (Ø62mm, self-estimated)",0.014,0.290),
- ("External BNO085 (STEMMA-QT breakout+cable)",0.004,0.320),
- ("microSD",0.0005,0.290),
+ # ---- avionics (Pico 2 W perfboard stack) -----------------------------------------------------
+ # 2S LiPo -> PPTC -> arming switch -> 5 V switching UBEC -> Pico VSYS + servo rail.
+ # Sensors run off the Pico's own 3V3 regulator. Breakout masses are vendor/comparable-product
+ # figures; the perfboard is computed from 50x70x1.6 mm FR4 at 1.85 g/cm3 plus copper and headers.
+ ("Perfboard 20x24 (50x70 mm) + headers",0.011,0.250),
+ ("Raspberry Pi Pico 2 W",0.004,0.250),
+ ("BNO085 bay breakout (0x4B)",0.003,0.245),
+ ("BME688 breakout (0x76)",0.002,0.255),
+ ("BMP388 breakout (0x77)",0.0015,0.255),
+ ("microSD breakout + card",0.0025,0.245),
+ ("BNO085 gimbal breakout + STEMMA-QT cable",0.005,0.5284),
+ ("5 V 3 A switching UBEC",0.009,0.280),
+ ("Arming switch + PPTC + passives",0.005,0.270),
  ("i3 4K thumb cam",0.036,0.180),
  ("2S LiPo (450mAh, comparable-product estimate)",0.027,0.250),
- ("Wiring/connectors",0.008,0.400),
+ ("Wiring/connectors",0.012,0.400),
  # ---- actuation --------------------------------------------------------------------------------
- ("2x TVC servo (EMAX ES08MA II, 12g ea, datasheet)",0.024,0.600)]
-MOTOR=("Estes F15-4 (loaded)",0.102,0.68); PROP=0.060; Ln=0.74; PIVOT=0.62 # gimbal pivot station
+ ("2x TVC servo (EMAX ES08MA II, 12g ea, datasheet)",0.024,0.5284)]
+MOTOR=("Estes F15-4 (loaded)",0.102,0.6084); PROP=0.060; Ln=0.672; PIVOT=0.5484 # gimbal pivot station
 dry=ITEMS; m_dry=sum(m for _,m,_ in dry); m_lift=m_dry+MOTOR[1]
 def cg(items): 
     M=sum(m for _,m,_ in items); return sum(m*x for _,m,x in items)/M, M

@@ -7,25 +7,28 @@ integrate in lock-step; this is what makes million-flight datasets tractable in 
 Python/NumPy. The nominal physics match `we4_flightsim.py` (the project's canonical
 RK4+Barrowman engine) so datasets are consistent with the single-flight results.
 
+Avionics are a Raspberry Pi Pico 2 W on a 20x24 (50x70 mm) perfboard carrying Adafruit STEMMA-QT
+breakouts: two BNO085 (bay 0x4B, gimbal 0x4A), BME688 (0x76), BMP388 (0x77), and a microSD
+breakout on SPI1. Power is 2S LiPo -> PPTC -> arming switch -> 5 V switching UBEC, feeding Pico
+VSYS and the servo rail; sensors run off the Pico's own 3V3 regulator. See
+`Flight Computer/wiring/wyvern_perfboard_wiring.svg`.
+
 MASS BUDGET: bottom-up build from the current CAD (`3D parts/_generator/mass_report.json`,
 real geometry) plus real/estimated component masses.
   - Lower BT tube is ASA-Aero. Hoop stress under the 140 kPa ejection pulse is 2.93 MPa,
     SF ~6-10x -- comfortable margin (see `3D parts/_generator/gen_rocket4.py` docstring).
     Motor mount/gimbal use PC-FR (thermal duty), bulkhead uses PETG-CF (direct gas-exposure
     part).
-  - No separate discrete UBEC line -- the onboard TPS564201 buck (PCB1) regulates 2S -> ~5 V
-    directly; the "2S LiPo -> one 5V UBEC" in the project brief describes that buck, not a
-    second physical module.
   - Recovery consumables: chute 58 g + Nomex 6 g + wadding 6 g = 70 g.
-  Custom PCB1 assembly mass (Ø62 mm, 2-layer FR4 + all populated parts) is a self-estimate:
-  ~8.9 g bare board (volume x FR4 density 1.85 g/cm3) + ~5.2 g populated components (USB-C,
-  slide switch, fuse, QFN80, 6-7 small sensor/PMIC packages, 4x JST, STEMMA-QT, H1 header,
-  buck inductor, ~40 passives) = ~14 g. No bench scale weight exists yet for this or the LiPo
-  pack (~27 g, comparable-product estimate) -- flag both if a real reading ever contradicts.
+  Perfboard mass is computed (50 x 70 x 1.6 mm FR4 at 1.85 g/cm3, plus copper and headers).
+  Breakout and UBEC masses are vendor/comparable-product figures. No bench scale weight exists
+  yet for the assembled stack or the LiPo pack (~27 g) -- flag both if a real reading contradicts.
 
 Canonical vehicle (F15-4, zoned ASA-Aero upper+lower body / PETG-CF fins+bulkhead / PC-FR TVC
 assembly, 87 mm fins, i3 cam):
-  m_lift=0.698 kg, m_dry=0.638 kg, D = 70 mm, burn 3.45 s.
+  m_lift=0.7203 kg, m_dry=0.6603 kg, D = 70 mm, L = 672 mm, burn 3.45 s.
+  Lower BT shortened to 350 mm: Iyy falls faster than the control arm, so pitch authority
+  (T sin8 * arm / Iyy) rises from 15.9 to 17.2 rad/s^2 while static margin stays at 1.14 cal.
 
 --------------------------------------------------------------------------------------------
 Fidelity notes
@@ -72,16 +75,16 @@ G = 9.80665
 D = 0.070 # body diameter [m]
 RB = D / 2.0
 A = np.pi * RB**2 # reference area [m^2]
-LTOT = 0.74 # overall length [m]
+LTOT = 0.672 # overall length [m]
 LNOSE = 0.12
-M_LIFT = 0.698 # liftoff mass [kg] (ASA-Aero upper+lower/PETG-CF fins+bulkhead/PC-FR TVC, 87 mm fins)
-M_DRY = 0.638 # burnout/dry mass [kg] (airframe 596.0 g + spent motor casing 42 g)
+M_LIFT = 0.7203 # liftoff mass [kg] (ASA-Aero upper+lower/PETG-CF fins+bulkhead/PC-FR TVC, 87 mm fins)
+M_DRY = 0.6603 # burnout/dry mass [kg] (airframe 618.3 g + spent motor casing 42 g)
 PROP = 0.060 # propellant mass [kg]
 TB = 3.45 # burn time [s]
-CG=0.5011 # CG from nose [m] (liftoff; from we4_sim.py ITEMS mass breakdown)
-XCP = 0.5925 # CP from nose [m] (Barrowman, 87 mm fins)
-IYY = 0.02624 # pitch inertia [kg m^2]
-PIVOT = 0.62 # gimbal pivot station from nose [m]
+CG=0.4500 # CG from nose [m] (liftoff; from we4_sim.py ITEMS mass breakdown)
+XCP = 0.5327 # CP from nose [m] (Barrowman, 87 mm fins)
+IYY = 0.02010 # pitch inertia [kg m^2]
+PIVOT = 0.5484 # gimbal pivot station from nose [m]
 CN_ALPHA= 12.0 # total normal-force slope [1/rad] (nose+fins, order-of-mag)
 
 # F15-4 ejection delay: charge fires 4 s after burnout -> recovery deploy time

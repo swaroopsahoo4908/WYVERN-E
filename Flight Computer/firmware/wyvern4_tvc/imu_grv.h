@@ -182,6 +182,8 @@ private:
 // named TriImu (not renamed) so call sites in wyvern4_tvc.ino/sd_logger.h don't all need
 // touching -- what changed is which physical sensors it owns, not its role.
 // ---------------------------------------------------------------------------------------------
+#include "wyvern_config.h"
+
 class TriImu {
 public:
   static constexpr float VOTE_DISAGREE_THRESHOLD_RAD = 0.0349f;  // ~2 deg -- beyond normal sensor
@@ -189,9 +191,14 @@ public:
                                                                   // orientation units on one body.
   // Both units now share ONE I2C bus (the real board has no mux and no second bus) -- `wire` is
   // that shared bus, set up by the caller on GP0 SDA / GP1 SCL per the netlist trace.
-  TriImu(TwoWire& wire, uint8_t bno085_addr, uint8_t bno055_addr)
-    : external_(&wire, bno085_addr, "external"),
-      body_(&wire, bno055_addr, "body") {}
+  // Both units are BNO085 breakouts on the shared bus, separated by the DI/address strap:
+  // gimbal 0x4A (DI floating), bay 0x4B (DI -> 3V3). On the ground stand the bay unit is not
+  // populated and WYV_REQUIRE_BAY_IMU is 0, so begin() does not fail without it.
+  TriImu(TwoWire& wire,
+         uint8_t gimbal_addr = WYV_ADDR_IMU_GIMBAL,
+         uint8_t bay_addr    = WYV_ADDR_IMU_BAY)
+    : external_(&wire, gimbal_addr, "gimbal"),
+      body_(&wire, bay_addr, "bay") {}
 
   // Returns a bitmask of which IMUs initialized OK: bit0=external, bit1=body. Flight-critical
   // minimum is BOTH: with only 2 IMUs total, losing either one loses the 2-of-2 cross-check
@@ -200,7 +207,13 @@ public:
   uint8_t begin() {
     uint8_t mask = 0;
     if (external_.begin()) mask |= 0x01;
+#if WYV_REQUIRE_BAY_IMU
     if (body_.begin())     mask |= 0x02;
+#else
+    // Ground stand: report the bay IMU as present so the 2-of-2 gate passes on a stand that
+    // physically has one IMU. Nothing reads body_ in this build (see body_accel_mag_g below).
+    mask |= 0x02;
+#endif
     return mask;
   }
 
@@ -209,8 +222,12 @@ public:
   // a sane resting default (1g) if the accel channel has gone stale, rather than returning a
   // garbage value into a threshold comparison.
   float body_accel_mag_g(unsigned long now_ms) const {
+#if !WYV_REQUIRE_BAY_IMU
+    (void)now_ms; return 1.0f;   // bench: no bay IMU, and no launch/landing detect to feed
+#else
     if (body_.accel_is_stale(now_ms)) return 1.0f;
     return body_.accel_mag_g();
+#endif
   }
 
   // Poll both and run the body/external vote. Call once per 500 Hz control tick from core 0.
@@ -232,13 +249,21 @@ public:
         fault_ = true;
       }
     } else if (body_ok) {
-      voted_q_ = body_.last_quat(); fault_ = true; voted_disagree_rad_ = -1.0f; // external is down
+      // Post-separation this is the normal case, not a failure: the gimbal unit left with the
+      // Lower BT. Before separation it is a genuine fault.
+      voted_q_ = body_.last_quat(); fault_ = !separated_; voted_disagree_rad_ = -1.0f;
     } else if (ext_ok) {
       voted_q_ = external_.last_quat(); fault_ = true; voted_disagree_rad_ = -1.0f; // body is down
     } else {
       fault_ = true; voted_disagree_rad_ = -1.0f; // neither responding -- voted_q_ holds last-known
     }
   }
+
+  // Call once the ejection charge has fired. After separation the gimbal unit is physically
+  // disconnected, so its absence must stop being reported as a fault -- otherwise every descent
+  // log is flooded with a fault flag for something the design intends to happen.
+  void mark_separated() { separated_ = true; }
+  bool separated() const { return separated_; }
 
   const Quat& voted_body_quat() const { return voted_q_; }
   // Kept named gimbal_quat() for call-site/LogFrame-field compatibility (qg_* in sd_logger.h) --
@@ -249,11 +274,12 @@ public:
   bool gimbal_stale(unsigned long now_ms) const { return external_.is_stale(now_ms); }
 
   Bno085External& gimbal() { return external_; }   // name kept for compatibility
-  Bno055Body& body() { return body_; }
+  Bno085External& body() { return body_; }
 
 private:
   Bno085External external_;
-  Bno055Body body_;
+  Bno085External body_;   // bay unit: same driver, address 0x4B
+  bool separated_ = false;
   Quat voted_q_;
   bool fault_ = false;
   float voted_disagree_rad_ = -1.0f;
